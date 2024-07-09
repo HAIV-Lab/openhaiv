@@ -1,0 +1,28 @@
+network:
+  name: resnet18_savc_att_q
+  base_class: '@{dataloader.base_class}'
+  num_classes: '@{dataloader.num_classes}'
+  att_classes: '@{dataloader.att_classes}'
+  # pretrained: True
+  # checkpoint: /new_data/dx450/Project/zzh_ood/NCD_Attr/results/remote_resnet18_savc_att_q_savc_att_e15_lr0.002_default/s0/best_epoch15_acc0.9920.ckpt   # ignore if pretrained is false
+  num_gpus: '@{num_gpus}'
+  net_savc:
+    moco_dim: '@{CIL.moco_dim}'
+    moco_k: '@{CIL.moco_k}'
+    moco_m: '@{CIL.moco_m}'
+    moco_t: '@{CIL.moco_t}'
+    mlp: '@{CIL.mlp}'
+    temperature: '@{CIL.temperature}'
+    not_data_init: '@{CIL.not_data_init}'
+    num_crops: '@{CIL.num_crops}'
+    size_crops: '@{CIL.size_crops}'
+    min_scale_crops: '@{CIL.min_scale_crops}'
+    max_scale_crops: '@{CIL.max_scale_crops}'
+    constrained_cropping: '@{CIL.constrained_cropping}'
+    auto_augment: '@{CIL.auto_augment}'
+    fantasy: '@{CIL.fantasy}'
+    alpha: '@{CIL.alpha}'
+    beta: '@{CIL.beta}'
+    base_mode: '@{CIL.base_mode}'
+    new_mode: '@{CIL.new_mode}'
+    incft: '@{CIL.incft}'

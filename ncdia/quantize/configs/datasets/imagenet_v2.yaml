@@ -1,0 +1,16 @@
+_base_: ./configs/datasets/dataloader.yaml
+
+test_dataset:
+  name: 'imagenet_v2'
+  root: '/data/hdd/datasets/ImageNet-V2'
+
+  transform:
+    resize:
+      size: 224
+      interpolation: 'bicubic'
+    center_crop:
+      size: 224
+    to_tensor: null
+    normalize: 
+      mean: [0.48145466, 0.4578275, 0.40821073]
+      std: [0.26862954, 0.26130258, 0.27577711]

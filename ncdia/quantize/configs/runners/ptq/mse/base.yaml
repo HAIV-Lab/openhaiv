@@ -1,0 +1,22 @@
+quant:
+  default:
+    weight:
+      n_bits: 8
+      symmetric: True
+      signed: True
+      granularity: 'channel'
+      range:
+        name: 'mse'
+        percentile: 0.0
+        maxshrink: 0.8
+        grid: 100
+        norm: 2.4
+    activation:
+      n_bits: 8
+      symmetric: False
+      granularity: 'layer'
+      range:
+        name: 'maminmax'
+        percentile: 0.0
+        momentum: 0.1
+    bn_folding: True

@@ -1,0 +1,54 @@
+_base_: [
+  'configs/datasets/imagenet.yaml',
+]
+
+model:
+  name: 'resnet18'
+  pretrained: True
+
+runner:
+  name: 'adaround'
+  verbose: True
+  beta: 'dynamic'
+
+quant:
+  default:
+    weight:
+      n_bits: 8
+      symmetric: True
+      signed: True
+      granularity: 'layer'
+      range:
+        name: 'minmax'
+        percentile: 0.0
+      adaround:
+        apply: True
+    activation:
+      n_bits: 32
+      range:
+        name: 'minmax'
+    bn_folding: True
+
+train_dataset:
+  num_shots: 16
+
+train_loader:
+  batch_size: 128
+
+optimizer:
+  name: 'adam'
+  lr: 1e-3
+
+lr_scheduler:
+  name: 'constant'
+
+train:
+  max_epoch: 10
+  print_freq: 10
+  eval_freq: 1
+
+gpus: 0
+use_cude: True
+
+seed: 1
+output_dir: 'results/adaround/weight_quantize/minmax_layer/resnet18/W8/seed1'

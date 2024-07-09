@@ -1,0 +1,93 @@
+exp_name: "Infer_'@{dataset.name}'_'@{pipeline.name}'_'@{network.name}'_'@{trainer.name}'_'@{mark}'/s'@{seed}'"
+output_dir: ./results_infer/
+save_output: True
+merge_option: merge
+mark: default
+seed: 0
+
+num_gpus: 1
+num_workers: 8
+num_machines: 1
+machine_rank: 0
+
+dataset:
+  name: remote
+
+preprocessor:
+  name: base
+
+network:
+  pretrained: True
+  checkpoint: /new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/results_att/fpr22_remote_savc_att_base_resnet18_savc_att_q_savc_att_e15_lr0.002_default/s1/ReFc_Final_acc0.9960.ckpt
+
+pipeline:
+  name: savc_att_infer
+
+trainer:
+  name: savc_att
+
+loss:
+  cls_loss: ce
+  att_loss: bce
+  trade_weight: 5.0
+  
+evaluator:
+  name: savc_attr
+
+optimizer:
+  name: sgd
+  num_epochs: 15
+  new_epochs: 2
+  lr: 0.002
+  lr_base: 0.002
+  lr_new: 0.01
+  momentum: 0.9
+  weight_decay: 0.0005
+  schedule: Step
+  step: 40
+  gamma: 0.1
+  milestones: [60, 70]
+
+recorder:
+  name: attr
+  save_scores: False
+  save_csv: True
+  save_all_models: False
+
+discoverer:
+  name: savc_att_discoverer
+  ood_method: mls
+  ood_type: classification # attribute
+  val_ratio: 1.0
+  prev_valset_ratio: 0.1
+  precision_bar: 0.85
+  sift_threshold: 0.92
+
+quantizer:
+  apply: False
+  name: adaround
+  quant:
+    default:
+      weight:
+        n_bits: 5
+        symmetric: True
+        signed: True
+        granularity: channel
+        range:
+          name: mse
+          maxshrink: 0.8
+          grid: 100
+        adaround:
+          apply: True
+      activation:
+        n_bits: 32
+        range:
+          name: minmax
+      bn_folding: True
+      bias_correct: 
+          momentum: 0.1
+  optimizer: 
+      name: adam
+      lr: 0.001
+  train: 
+      max_epoch: 10

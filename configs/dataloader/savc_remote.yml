@@ -1,0 +1,26 @@
+dataloader:
+  name: savc_dataloader
+  dataset: remote
+  base_class: '@{CIL.base_class}'
+  num_classes: '@{CIL.num_classes}'
+  att_classes: 86
+  way: '@{CIL.way}'
+  shot: '@{CIL.shot}'
+  sessions: '@{CIL.sessions}'
+  num_crops: '@{CIL.num_crops}'
+  size_crops: '@{CIL.size_crops}'
+  min_scale_crops: '@{CIL.min_scale_crops}'
+  max_scale_crops: '@{CIL.max_scale_crops}'
+  constrained_cropping: '@{CIL.constrained_cropping}'
+  auto_augment: '@{CIL.auto_augment}'
+  fantasy: '@{CIL.fantasy}'
+  txt_path: /new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/index_list/
+  att_path: /new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/Benckmark/attribute.xlsx
+  split_file_train: /new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/Benckmark/train_0222/
+  split_file_test: /new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/Benckmark/test_0222/  # _cheat
+  batch_size_base: 128
+  batch_size_new: 64
+  test_batch_size: 100
+  num_workers: '@{num_workers}'
+  num_gpus: '@{num_gpus}'
+  num_machines: '@{num_machines}'
