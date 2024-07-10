@@ -1,3 +1,3 @@
-from ncdia.pipelines import get_pipeline
+from ncdia_old.pipelines import get_pipeline
 
 net = get_pipeline('savc_att_base')

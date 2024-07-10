@@ -1,6 +1,6 @@
-from ncdia.pipelines import get_pipeline
-from ncdia.utils import launch, set_seed 
-from ncdia.utils.config import parse_config, Config, merge_configs, consume_dots, traverse_dfs, init_assign
+from ncdia_old.pipelines import get_pipeline
+from ncdia_old.utils import launch, set_seed 
+from ncdia_old.utils.config import parse_config, Config, merge_configs, consume_dots, traverse_dfs, init_assign
 import os
 import argparse
 

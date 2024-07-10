@@ -1,5 +1,5 @@
-from ncdia.pipelines import get_pipeline
-from ncdia.utils import launch, setup_config, set_seed 
+from ncdia_old.pipelines import get_pipeline
+from ncdia_old.utils import launch, setup_config, set_seed 
 import os
 
 # Choose one of the configurations

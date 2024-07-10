@@ -1,3 +1,2 @@
 mkdocs
-"mkdocstrings[python]"
 mkdocs-material
