@@ -146,7 +146,7 @@ def build_scheduler(
     Args:
         name (str): name of scheduler
         optimizer (torch.optim.Optimizer): optimizer
-        **kwargs: arguments for scheduler
+        kwargs (dict): arguments for scheduler
 
     Returns:
         lr_scheduler (torch.optim.lr_scheduler._LRScheduler): learning rate scheduler

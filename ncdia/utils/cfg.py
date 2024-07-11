@@ -114,18 +114,21 @@ class Configs():
         1
         >>> cfg['b.c']
         2
+
         >>> cfg = Configs()
         >>> cfg.merge_from_dict({'a': 1, 'b': {'c': 2}})
         >>> cfg.a
         1
         >>> cfg.b.c
         2
+
         >>> cfg = Configs()
         >>> cfg.merge_from_yaml('tests/data/config.yaml')
         >>> cfg.a
         1
         >>> cfg.b.c
         2
+        
         >>> cfg = Configs()
         >>> cfg.merge_from_list(['a=1', 'b.c=2'])
         >>> cfg.a

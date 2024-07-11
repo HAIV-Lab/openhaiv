@@ -15,7 +15,7 @@ def build_optimizer(
         model (nn.Module | dict): model or param_groups
         param_groups (dict | None): 
             if provided, directly optimize param_groups and abandon model
-        **kwargs: arguments for optimizer
+        kwargs (dict): arguments for optimizer
 
     Returns:
         optimizer (torch.optim.Optimizer): optimizer
