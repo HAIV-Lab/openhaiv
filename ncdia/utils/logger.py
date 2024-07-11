@@ -58,6 +58,18 @@ class Logger(object):
         if self.file is not None:
             self.file.write(msg)
 
+    def info(self, msg: str, end: str = '\n'):
+        """Write message to console and file with timestamp
+
+        Args:
+            msg (str): message to be written
+            end (str): end character
+
+        Examples:
+            >>> logger.info('Hello, world!')
+        """
+        self.write(msg, timestamp=True, end=end)
+
     def flush(self):
         """Flush the buffer to external file
 
