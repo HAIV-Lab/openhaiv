@@ -1,3 +1,4 @@
 data/
 pretrained_model/
+__pycache__/
 results/
