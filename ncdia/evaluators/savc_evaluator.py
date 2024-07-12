@@ -29,7 +29,7 @@ class SAVCEvaluator(BaseEvaluator):
         self.id_conf = None
         self.id_gt = None
         self.config = config
-        if config.CIL.fantasy is not None:
+        if config.CIL.fantasy is not None and config.CIL.fantasy != "None":
             self.transform, self.num_trans = fantasy.__dict__[config.CIL.fantasy]()
         else:
             self.transform = None
@@ -53,9 +53,11 @@ class SAVCEvaluator(BaseEvaluator):
                           disable=not progress or not comm.is_main_process()):
                 data = batch['data'].cuda()
                 label = batch['label'].cuda()
-
+                
                 b = data.size()[0]
-                data = self.transform(data)
+                # 20240711 
+                if self.transform is not None:
+                    data = self.transform(data)
                 m = data.size()[0] // b
                 joint_preds = net(data)
                 feat = net.get_features(data)
@@ -299,7 +301,9 @@ class SAVCEvaluator(BaseEvaluator):
                 imgpath = batch['imgpath']
                 # data, test_label, test_att_label = [_.cuda() for _ in batch]
                 b = data.size()[0]
-                data = self.transform(data)
+                # 20240712
+                if self.transform is not None:
+                    data = self.transform(data)
                 m = data.size()[0] // b
                 joint_preds = net(data)
                 feat = net.get_features(data)

@@ -14,11 +14,9 @@ import ncdia.utils.comm as comm
 
 from .base_evaluator import BaseEvaluator
 from .metrics import compute_ood_metrics
-
 from tqdm import tqdm
 from sklearn.metrics import precision_score, recall_score, f1_score, average_precision_score
 from sklearn.preprocessing import label_binarize
-from sklearn.metrics import confusion_matrix
 
 from ncdia.augmentations import fantasy
 from sklearn.manifold import TSNE
@@ -42,8 +40,7 @@ class SAVCattEvaluator(BaseEvaluator):
                   data_loader: DataLoader,
                   progress: bool = True,
                   session: int = -1,
-                  id_split: str = 'train',
-                  is_draw_confusion = False):
+                  id_split: str = 'train'):
         """ if id_split = 'train', return the prototype of train_id_loader
         else, return six lists containing pred, conf, label & attribute ones        
         """
@@ -101,21 +98,7 @@ class SAVCattEvaluator(BaseEvaluator):
         pred_att_list = torch.cat(pred_att_list).numpy()#.astype(int)
         conf_att_list = torch.cat(conf_att_list).numpy()
         label_att_list = torch.cat(label_att_list).numpy().astype(int)
-        
-        # draw confusion matrix
-        # if is_draw_confusion:
-        #     if session == 0:
-        #         draw_confusion_matrix(label_true=label_list, label_pred=pred_list,
-        #                             label_name=['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'],
-        #                             title="混淆矩阵",
-        #                             pdf_save_path=os.path.join(self.config.output_dir, "Confusion_Matrix_Base.jpg"),
-        #                             dpi=300)
-        #     else:
-        #         draw_confusion_matrix(label_true=label_list, label_pred=pred_list,
-        #                             label_name=['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14'],
-        #                             title="混淆矩阵",
-        #                             pdf_save_path=os.path.join(self.config.output_dir, "Confusion_Matrix_Inc.jpg"),
-        #                             dpi=300)
+
         if id_split == 'train':
             label_list = torch.tensor(label_list)
             classes = torch.unique(label_list)
@@ -133,7 +116,7 @@ class SAVCattEvaluator(BaseEvaluator):
             print('prototype_cls shape', prototype_cls.shape)  # 8  11  
             print('prototype_att shape', prototype_att.shape)
 
-            return prototype_cls, prototype_att
+            return feature_list, logit_list, prototype_cls, prototype_att
 
         return feature_list, pred_list, logit_list, label_list, pred_att_list, logit_att_list, label_att_list
 
@@ -155,7 +138,7 @@ class SAVCattEvaluator(BaseEvaluator):
 
         # -------- prepare the prototype of training set -------- #
         print(f'Performing inference on {dataset_name} dataset...', flush=True)
-        prototype_cls, prototype_att = self.inference(
+        train_feat, train_logit, prototype_cls, prototype_att = self.inference(
             net, id_data_loaders['train'], session=session, id_split='train')
         prototype_cls = F.normalize(prototype_cls, p=2, dim=1)
         prototype_att = F.normalize(prototype_att, p=2, dim=1)
@@ -179,8 +162,11 @@ class SAVCattEvaluator(BaseEvaluator):
 
         # load nearood data and compute ood metrics
         print(u'\u2500' * 70, flush=True)
-        self._eval_ood(net, [id_feat, id_conf, id_gt, id_att_conf, id_att_gt, prototype_cls, prototype_att],
-                       ood_data_loaders, session)
+        self._eval_ood(net, 
+                       [train_feat, train_logit,id_feat, id_conf, id_logit, id_gt, \
+                        id_att_conf, id_att_logit, id_att_gt, prototype_cls, prototype_att],
+                       ood_data_loaders, 
+                       session)
 
 
     def _eval_ood(self,
@@ -189,7 +175,8 @@ class SAVCattEvaluator(BaseEvaluator):
                   ood_data_loader,
                   session: int = -1):
         print(f'Processing ood inference...', flush=True)
-        [id_feat, id_conf, id_gt, id_att_conf, id_att_gt, prototype_cls, prototype_att] = id_list
+        [train_feat, train_logit, id_feat, id_conf, id_logit, id_gt, \
+         id_att_conf, id_att_logit, id_att_gt, prototype_cls, prototype_att] = id_list
         metrics_list = []
 
         ood_feat, ood_pred, ood_logit, ood_gt, ood_att_pred, ood_att_logit, ood_att_gt = \
@@ -197,6 +184,8 @@ class SAVCattEvaluator(BaseEvaluator):
         ood_logit = ood_logit.clone().detach()
         ood_att_logit = ood_att_logit.clone().detach()
 
+
+        # ----------  draw the TSNE of features   --------- #
         total_feat = torch.cat([id_feat.cpu(), ood_feat.cpu()])
         label = np.concatenate([id_gt, ood_gt])
         tsne = TSNE(n_components=2, random_state=0)
@@ -212,7 +201,127 @@ class SAVCattEvaluator(BaseEvaluator):
         plt.xlabel('t-SNE axis 1')
         plt.ylabel('t-SNE axis 2')
         plt.savefig(os.path.join(self.config.output_dir, 'tSNE.png'))
+        # --------------------------------- #
 
+        # ood_feat, ood_pred, ood_logit, ood_gt  
+        # ood_att_pred, ood_att_logit, ood_att_gt 
+        
+        ood_gt = -1 * np.ones_like(ood_gt)  # hard set to -1 as ood
+        # ------------  MSP  ------------- #
+        tmp = torch.softmax(id_logit, 1)
+        tid_conf, _ = torch.max(tmp, dim=1, keepdim=True)
+        tmp = torch.softmax(ood_logit, 1)
+        tood_conf, _ = torch.max(tmp, dim=1, keepdim=True)
+
+        print(f'Computing *** MSP *** metrics on OOD (new-train) dataset...')
+        # pred = np.concatenate([id_pred, ood_pred])
+        conf = np.concatenate([tid_conf.cpu(), tood_conf.cpu()])
+        label = np.concatenate([id_gt, ood_gt])
+        ood_metrics_msp = compute_ood_metrics(conf, label)
+        # print(ood_metrics_msp)
+       
+        # ------------  MCM  ------------- #
+        T = 2
+        tmp = torch.softmax(id_logit/T, 1)
+        tid_conf, _ = torch.max(tmp, dim=1, keepdim=True)
+        tmp = torch.softmax(ood_logit/T, 1)
+        tood_conf, _ = torch.max(tmp, dim=1, keepdim=True)
+
+        print(f'Computing *** MCM *** metrics on OOD (new-train) dataset...')
+        # pred = np.concatenate([id_pred, ood_pred])
+        conf = np.concatenate([tid_conf.cpu(), tood_conf.cpu()])
+        label = np.concatenate([id_gt, ood_gt])
+        ood_metrics_mcm = compute_ood_metrics(conf, label)
+        # print(ood_metrics_mcm)
+
+        # ------------  MaxLogit  ------------- #        
+        tid_conf, _ = torch.max(id_logit, dim=1, keepdim=True)
+        tood_conf, _ = torch.max(ood_logit, dim=1, keepdim=True)
+
+        print(f'Computing *** MaxLogit *** metrics on OOD (new-train) dataset...')
+        # pred = np.concatenate([id_pred, ood_pred])
+        conf = np.concatenate([tid_conf.cpu(), tood_conf.cpu()])
+        label = np.concatenate([id_gt, ood_gt])
+        ood_metrics_mls = compute_ood_metrics(conf, label)
+        # print(ood_metrics_mls)
+
+        # ------------  Energy  ------------- #
+        from scipy.special import logsumexp
+        tid_conf = logsumexp(id_logit.cpu(), axis=-1)
+        tood_conf = logsumexp(ood_logit.cpu(), axis=-1)
+
+        print(f'Computing *** Energy *** metrics on OOD (new-train) dataset...')
+        # pred = np.concatenate([id_pred, ood_pred])
+        conf = np.concatenate([tid_conf, tood_conf])
+        label = np.concatenate([id_gt, ood_gt])
+        ood_metrics_energy = compute_ood_metrics(conf, label)
+        # print(ood_metrics_energy)
+
+        # ------------  ViM  ------------- #
+        from numpy.linalg import norm, pinv
+        from scipy.special import logsumexp
+        from sklearn.covariance import EmpiricalCovariance
+        DIM = train_feat.shape[1]//2
+        ec = EmpiricalCovariance(assume_centered=True)
+        ec.fit(train_feat.cpu())
+        eig_vals, eigen_vectors = np.linalg.eig(ec.covariance_)
+        NS = np.ascontiguousarray(
+            (eigen_vectors.T[np.argsort(eig_vals * -1)[DIM:]]).T)
+        vlogit_id_train = norm(np.matmul(train_feat.cpu(), NS), axis=-1)
+        alpha = train_logit.max(axis=-1)[0].mean() / vlogit_id_train.mean()
+        print(f'Computing *** ViM *** metrics on OOD (new-train) dataset...')
+        # print(f'DIM={DIM}, alpha={alpha:.4f}')
+
+        id_energy = logsumexp(id_logit.cpu(), axis=-1)
+        ood_energy = logsumexp(ood_logit.cpu(), axis=-1)
+        id_vlogit = norm(np.matmul(id_feat.numpy(), NS), axis=-1) * alpha.cpu().numpy()
+        ood_vlogit = norm(np.matmul(ood_feat.numpy(), NS), axis=-1) * alpha.cpu().numpy()
+
+        tid_conf = -id_vlogit + id_energy
+        tood_conf = -ood_vlogit + ood_energy
+        conf = np.concatenate([tid_conf, tood_conf])
+        label = np.concatenate([id_gt, ood_gt])
+        ood_metrics_vim = compute_ood_metrics(conf, label)
+        # print(ood_metrics_vim)
+
+        # ------------  DML  ------------- # 直接用featnorm加上logit分数
+        w = net.fc.weight.clone().detach()
+        w = F.normalize(w, p=2, dim=1).cpu()
+        w = w[::2,]  # savc使用的是两倍类别数的fc层
+        id_cosine = F.normalize(id_feat, p=2, dim=1) @ w.T
+        ood_cosine = F.normalize(ood_feat, p=2, dim=1) @ w.T
+        id_mcos, _ = torch.max(id_cosine, dim=1, keepdim=True)
+        ood_mcos, _ = torch.max(ood_cosine, dim=1, keepdim=True)
+        id_norm = torch.norm(id_feat, dim=1)
+        ood_norm = torch.norm(ood_feat, dim=1)
+
+        tid_conf = id_mcos + 0.002 * id_norm.unsqueeze(1)
+        tood_conf = ood_mcos + 0.002 * ood_norm.unsqueeze(1)
+
+        print(f'Computing *** DML *** metrics on OOD (new-train) dataset...')
+        # pred = np.concatenate([id_pred, ood_pred])
+        conf = np.concatenate([tid_conf.cpu(), tood_conf.cpu()])
+        label = np.concatenate([id_gt, ood_gt])
+        ood_metrics_dml = compute_ood_metrics(conf, label)
+        print(ood_metrics_dml)
+
+        ttood_conf = F.normalize(ood_logit, p=2, dim=1) @ prototype_cls.T
+        ttood_conf, _ = torch.max(ttood_conf, dim=1, keepdim=True)
+        ttid_conf = id_conf
+
+        tid_conf = tid_conf + 40 * ttid_conf.cpu()
+        tood_conf = tood_conf + 40 * ttood_conf.cpu()
+
+        print(f'Computing *** DML+ *** metrics on OOD (new-train) dataset...')
+        # pred = np.concatenate([id_pred, ood_pred])
+        conf = np.concatenate([tid_conf.cpu(), tood_conf.cpu()])
+        label = np.concatenate([id_gt, ood_gt])
+        ood_metrics_dmlp = compute_ood_metrics(conf, label)
+        print(ood_metrics_dmlp)
+        # ------------  ？？？  ------------- #
+
+
+        # -------  Our original OOD methods  ------- #
         ood_conf = F.normalize(ood_logit, p=2, dim=1) @ prototype_cls.T
         ood_att_conf = F.normalize(ood_att_logit, p=2, dim=1) @ prototype_att.T
         ood_conf, _ = torch.max(ood_conf, dim=1, keepdim=True)
@@ -222,34 +331,45 @@ class SAVCattEvaluator(BaseEvaluator):
         if self.config.recorder.save_scores:
             self._save_scores(ood_pred, ood_conf, ood_gt, 'OOD')
 
+
+        print(f'Computing metrics on OOD (new-train) dataset...')
         # pred = np.concatenate([id_pred, ood_pred])
         conf = np.concatenate([id_conf.cpu(), ood_conf.cpu()])
         label = np.concatenate([id_gt, ood_gt])
-
-        print(f'Computing metrics on OOD (new-train) dataset...')
         ood_metrics_cls = compute_ood_metrics(conf, label) #, pred)
+        print(ood_metrics_cls)
 
         conf = np.concatenate([id_att_conf.cpu(), ood_att_conf.cpu()])
-        label = np.concatenate([id_gt, ood_gt])
         ood_metrics_att = compute_ood_metrics(conf, label)
 
         conf = np.concatenate([id_att_conf.cpu() + id_conf.cpu(), \
                                ood_att_conf.cpu() + ood_conf.cpu()])
-        label = np.concatenate([id_gt, ood_gt])
         ood_metrics_merge = compute_ood_metrics(conf, label)
+
+        # ------------------------------------------- #
     
+
         if self.config.recorder.save_csv:
+            self._save_csv(ood_metrics_msp, dataset_name='OOD_MSP')
+            self._save_csv(ood_metrics_mcm, dataset_name='OOD_MCM')
+            self._save_csv(ood_metrics_mls, dataset_name='OOD_MLS')
+            self._save_csv(ood_metrics_energy, dataset_name='ood_Energy')
+            self._save_csv(ood_metrics_dml, dataset_name='OOD_DML')
+            self._save_csv(ood_metrics_dmlp, dataset_name='OOD_DML+')
+            self._save_csv(ood_metrics_vim, dataset_name='OOD_ViM')
+            
             self._save_csv(ood_metrics_cls, dataset_name='OOD_cls')
             self._save_csv(ood_metrics_att, dataset_name='OOD_att')
             self._save_csv(ood_metrics_merge, dataset_name='OOD_merge')
 
-        metrics_list.append(ood_metrics_cls)
 
-        print('Computing mean metrics...', flush=True)
-        metrics_list = np.array(metrics_list)
-        metrics_mean = np.mean(metrics_list, axis=0)
-        if self.config.recorder.save_csv:
-            self._save_csv(metrics_mean, dataset_name='OOD_cls')
+        # metrics_list.append(ood_metrics_cls)
+
+        # print('Computing mean metrics...', flush=True)
+        # metrics_list = np.array(metrics_list)
+        # metrics_mean = np.mean(metrics_list, axis=0)
+        # if self.config.recorder.save_csv:
+        #     self._save_csv(metrics_mean, dataset_name='OOD_cls')
 
 
     def _save_csv(self, metrics, dataset_name):
@@ -302,7 +422,7 @@ class SAVCattEvaluator(BaseEvaluator):
         net.eval()
 
         _, id_pred, id_logit, id_gt, id_att_pred, id_att_logit, id_att_gt = self.inference(
-            net, data_loader, session=session, id_split='test', is_draw_confusion=True)
+            net, data_loader, session=session, id_split='test')
         
         # --------- calculate the acc for each class -------- #
         id_pred, id_gt = torch.tensor(id_pred), torch.tensor(id_gt)
@@ -358,50 +478,7 @@ class SAVCattEvaluator(BaseEvaluator):
         print('Completed!', flush=True)
 
 
-# 
-def draw_confusion_matrix(label_true, label_pred, label_name, title="Confusion Matrix", pdf_save_path="./confusion_matrix", dpi=300):
-    """
-    @param label_true: 真实标签，比如[0,1,2,7,4,5,...]
-    @param label_pred: 预测标签，比如[0,5,4,2,1,4,...]
-    @param label_name: 标签名字，比如['cat','dog','flower',...]
-    @param title: 图标题
-    @param pdf_save_path: 是否保存，是则为保存路径pdf_save_path=xxx.png | xxx.pdf | ...等其他plt.savefig支持的保存格式
-    @param dpi: 保存到文件的分辨率，论文一般要求至少300dpi
-    @return:
-    example：
-            draw_confusion_matrix(label_true=y_gt,
-                          label_pred=y_pred,
-                          label_name=["Angry", "Disgust", "Fear", "Happy", "Sad", "Surprise", "Neutral"],
-                          title="Confusion Matrix on Fer2013",
-                          pdf_save_path="Confusion_Matrix_on_Fer2013.png",
-                          dpi=300)
 
-    """
-    cm = confusion_matrix(y_true=label_true, y_pred=label_pred, normalize='true')
-
-    plt.imshow(cm, cmap='Blues')
-    plt.title(title)
-    plt.xlabel("预测标签")
-    plt.ylabel("真实标签")
-    plt.yticks(range(label_name.__len__()), label_name)
-    plt.xticks(range(label_name.__len__()), label_name, rotation=45)
-
-    plt.tight_layout()
-
-    plt.colorbar()
-    
-    font_size = 8
-    for i in range(label_name.__len__()):
-        for j in range(label_name.__len__()):
-            color = (1, 1, 1) if i == j else (0, 0, 0)  # 对角线字体白色，其他黑色
-            value = float(format('%.2f' % cm[j, i]))
-            if value >0.02:
-                plt.text(i, j, value, verticalalignment='center', horizontalalignment='center', color=color, fontsize=font_size)
-
-    # plt.show()
-    if not pdf_save_path is None:
-        plt.savefig(pdf_save_path, bbox_inches='tight', dpi=dpi)
-        plt.clf()
 
     def cheating_testset(self,
                  net: nn.Module,
@@ -461,7 +538,7 @@ def draw_confusion_matrix(label_true, label_pred, label_name, title="Confusion M
         correct_imgpaths_dict = {}
         merge_imgpaths_dict = {}
         accuracy_per_class = {}
-        for cls in [11, 12, 13]:
+        for cls in [8, 9, 10]:
             cls_indices = torch.where(id_gt == cls)[0]
             tmp_imgpath_list = [imgpath_list[i] for i in cls_indices.tolist()]
 
@@ -485,7 +562,7 @@ def draw_confusion_matrix(label_true, label_pred, label_name, title="Confusion M
             merge_imgpaths = [tmp_imgpath_list[i] for i in wrong_indices.tolist()[:www] + correct_indices.tolist()]
             merge_imgpaths_dict[cls] = merge_imgpaths
 
-            save_directory = '/new_data/dx450/ATR-13-pingzhuang/'+str(cls)
+            save_directory = '/new_data/dx450/IRBenchmark/cheat_test_sskm/'+str(cls)
             os.makedirs(save_directory, exist_ok=True)
             import shutil
             for img_path in merge_imgpaths:

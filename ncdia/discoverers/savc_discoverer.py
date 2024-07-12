@@ -29,7 +29,8 @@ class SAVCDiscoverer:
         self.id_conf = None
         self.id_gt = None
         self.config = config
-        if config.CIL.fantasy is not None:
+        # print("config.CIL.fantasy: ", config.CIL.fantasy)
+        if config.CIL.fantasy is not None and config.CIL.fantasy != "None":
             self.transform, self.num_trans = fantasy.__dict__[config.CIL.fantasy]()
         else:
             self.transform = None
@@ -56,7 +57,9 @@ class SAVCDiscoverer:
                 imgpath = batch['imgpath']
 
                 b = data.size()[0]
-                data = self.transform(data)
+                # 20240712
+                if self.transform is not None:
+                    data = self.transform(data)
                 m = data.size()[0] // b
                 joint_preds = net(data)
                 feat = net.get_features(data)
@@ -266,7 +269,9 @@ class SAVCDiscoverer:
 
         sift_indices = torch.tensor([i for i in range(len(max_similarities)) \
                                      if max_similarities[i] > sift_threshold])
-        assert sift_indices.numel() > 0, "There is no novel samples."
+        if sift_indices.numel() >0:
+            sift_indices = torch.tensor([i for i in range(len(max_similarities))])
+        # assert sift_indices.numel() > 0, "There is no novel samples."
         novel_target = novel_target[sift_indices] # 真实的新标签
         novel_feat = novel_feat[sift_indices]
 

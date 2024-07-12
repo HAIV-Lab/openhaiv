@@ -18,7 +18,7 @@ preprocessor:
 
 network:
   pretrained: True
-  checkpoint: /new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/results/remote_savc_base_resnet18_savc_q_savc_e8_lr0.002_default/s1/ReFc_Final_acc0.9894.ckpt
+  checkpoint: /new_data/dx450/Project/openhaiv/results/remote_savc_base_resnet18_savc_q_savc_e8_lr0.002_default/s1/ReFc_Final_acc0.9397.ckpt
 
 pipeline:
   name: savc_new
@@ -62,6 +62,7 @@ discoverer:
   prev_valset_ratio: 0.1
   precision_bar: 0.85
   sift_threshold: 0.92
+  apply: True
 
 quantizer:
   apply: False

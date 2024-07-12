@@ -7,7 +7,8 @@ from .base_trainer import BaseTrainer
 from .mixup_trainer import MixupTrainer
 from .savc_att_trainer import SAVCattTrainer
 from .savc_trainer import SAVCTrainer
-
+from .fact_trainer import FACTTrainer
+from .alice_trainer import AliceTrainer
 
 def get_trainer(net, train_loader: DataLoader, val_loader: DataLoader,
                 config: Config):
@@ -18,6 +19,8 @@ def get_trainer(net, train_loader: DataLoader, val_loader: DataLoader,
             'mixup': MixupTrainer,
             'savc_att': SAVCattTrainer,
             'savc': SAVCTrainer,
+            'fact': FACTTrainer,
+            'alice': AliceTrainer
         }
         if config.trainer.name in ['cider', 'npos']:
             return trainers[config.trainer.name](net, train_loader, val_loader,

@@ -14,7 +14,7 @@ dataloader:
   constrained_cropping: '@{CIL.constrained_cropping}'
   auto_augment: '@{CIL.auto_augment}'
   fantasy: '@{CIL.fantasy}'
-  txt_path: /new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/index_list/
+  txt_path: /new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/index_list_0222/
   att_path: /new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/Benckmark/attribute.xlsx
   split_file_train: /new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/Benckmark/train_0222/
   split_file_test: /new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/Benckmark/test_0222/  # _cheat

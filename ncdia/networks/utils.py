@@ -12,6 +12,8 @@ from .resnet18_savc_att_q import SAVCNET_q
 from .resnet18_savc_q import SAVCNET_q2
 from .resnet18_savc_q_sar import SAVCNET_q2_sar
 from .resnet18_savc_att_q_ir import SAVCNET_q_ir
+from .resnet18_fact import FACTNET
+from .resnet18_alice import AliceNET
 
 
 def get_network(config):
@@ -28,6 +30,10 @@ def get_network(config):
         net = SAVCNET_q2_sar(args=config)
     elif network_config.name == 'resnet18_savc_att_q_ir':
         net = SAVCNET_q_ir(args=config)
+    elif network_config.name == 'resnet18_fact':
+        net = FACTNET(args=config)
+    elif network_config.name == 'resnet18_alice':
+        net = AliceNET(args=config)
     else:
         raise Exception('Unexpected Network Architecture!')
 
