@@ -1,10 +1,13 @@
 from typing import List, Dict
 
+import torch.nn as nn
 from torch.utils.data import DataLoader
+from torch.optim import Optimizer, lr_scheduler
 
 from ncdia.utils import TRAINERS, HOOKS
 from hooks import Hook
 from priority import get_priority
+from optims import build_optimizer, build_scheduler
 
 
 @TRAINERS.register()
@@ -16,14 +19,81 @@ class BaseTrainer(object):
     """
     def __init__(
             self,
+            model: nn.Module,
+            train_cfg: dict | None = None,
+            val_cfg: dict | None = None,
+            test_cfg: dict | None = None,
+            optimizer: str | Optimizer | None = None,
+            scheduler: str | lr_scheduler._LRScheduler | None = None,
+            train_loader: DataLoader | None = None,
+            val_loader: DataLoader | None = None,
+            test_loader: DataLoader | None = None,
+            default_hooks: Dict[str, Hook | dict] | None = None,
+            custom_hooks: List[Hook | dict] | None = None,
     ):
         super(BaseTrainer, self).__init__()
-        self._hooks: List[Hook] = []
+        self._model = model
+        self.train_cfg = train_cfg
+        self.val_cfg = val_cfg
+        self.test_cfg = test_cfg
 
-    def train(self):
+        self._optimizer = optimizer
+        self._scheduler = scheduler
+
+        self.train_loader = train_loader
+        self.val_loader = val_loader
+        self.test_loader = test_loader
+
+        self._hooks: List[Hook] = []
+        # register hooks to `self._hooks`
+        self.register_hooks(default_hooks, custom_hooks)
+        # log hooks information
+        self.logger.write(f'Hooks will be executed in the following '
+                          f'order:\n{self.get_hooks_info()}')
+
+    @property
+    def hooks(self):
+        """List[Hook]: List of registered hooks."""
+        return self._hooks
+    
+    @property
+    def model(self) -> nn.Module:
+        """nn.Module: Model to be trained."""
+        return self._model
+    
+    @property
+    def optimizer(self) -> Optimizer:
+        """Optimizer: Optimizer to optimize model parameters."""
+        return self._optimizer
+    
+    @property
+    def scheduler(self) -> lr_scheduler._LRScheduler:
+        """lr_scheduler._LRScheduler: Learning rate scheduler."""
+        return self._scheduler
+
+    def train(self) -> nn.Module:
+        """Launch the training process.
+
+        Returns:
+            model (nn.Module): Trained model.
         """
-        
+        model = self.model
+        optimizer = build_optimizer(self.optimizer, model)
+        scheduler = build_scheduler(self.scheduler, optimizer)
+
+        self.call_hook('before_run')
+
+        self.call_hook('after_run')
+        return model
+
+    def val(self):
         """
+        """
+
+    def test(self):
+        """
+        """
+
     def call_hook(
             self,
             fn_name: str,
@@ -109,21 +179,23 @@ class BaseTrainer(object):
 
         Default hooks and their priorities:
 
-            +----------------------+-------------------------+
-            | Hooks                | Priority                |
-            +======================+=========================+
-            | RuntimeInfoHook      | VERY_HIGH (10)          |
-            +----------------------+-------------------------+
-            | IterTimerHook        | NORMAL (50)             |
-            +----------------------+-------------------------+
-            | DistSamplerSeedHook  | NORMAL (50)             |
-            +----------------------+-------------------------+
-            | LoggerHook           | BELOW_NORMAL (60)       |
-            +----------------------+-------------------------+
-            | ParamSchedulerHook   | LOW (70)                |
-            +----------------------+-------------------------+
-            | CheckpointHook       | VERY_LOW (90)           |
-            +----------------------+-------------------------+
+        ```
+        +----------------------+-------------------------+
+        | Hooks                | Priority                |
+        +======================+=========================+
+        | RuntimeInfoHook      | VERY_HIGH (10)          |
+        +----------------------+-------------------------+
+        | IterTimerHook        | NORMAL (50)             |
+        +----------------------+-------------------------+
+        | DistSamplerSeedHook  | NORMAL (50)             |
+        +----------------------+-------------------------+
+        | LoggerHook           | BELOW_NORMAL (60)       |
+        +----------------------+-------------------------+
+        | ParamSchedulerHook   | LOW (70)                |
+        +----------------------+-------------------------+
+        | CheckpointHook       | VERY_LOW (90)           |
+        +----------------------+-------------------------+
+        ```
 
         If ``hooks`` is None, above hooks will be registered by
         default::
@@ -199,3 +271,31 @@ class BaseTrainer(object):
 
         if custom_hooks is not None:
             self.register_custom_hooks(custom_hooks)
+
+    def get_hooks_info(self) -> str:
+        """Get registered hooks information.
+
+        Returns:
+            info (str): Information of registered hooks.
+        """
+        # Get hooks info in each stage
+        stage_hook_map: Dict[str, list] = {stage: [] for stage in Hook.stages}
+        for hook in self.hooks:
+            try:
+                priority = Priority(hook.priority).name  # type: ignore
+            except ValueError:
+                priority = hook.priority  # type: ignore
+            classname = hook.__class__.__name__
+            hook_info = f'({priority:<12}) {classname:<35}'
+            for trigger_stage in hook.get_triggered_stages():
+                stage_hook_map[trigger_stage].append(hook_info)
+
+        stage_hook_infos = []
+        for stage in Hook.stages:
+            hook_infos = stage_hook_map[stage]
+            if len(hook_infos) > 0:
+                info = f'{stage}:\n'
+                info += '\n'.join(hook_infos)
+                info += '\n -------------------- '
+                stage_hook_infos.append(info)
+        return '\n'.join(stage_hook_infos)

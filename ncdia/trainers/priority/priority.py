@@ -3,7 +3,7 @@ from enum import Enum
 
 class Priority(Enum):
     """Hook priority levels.
-
+    ```
     +--------------+------------+
     | Level        | Value      |
     +==============+============+
@@ -25,6 +25,7 @@ class Priority(Enum):
     +--------------+------------+
     | LOWEST       | 100        |
     +--------------+------------+
+    ```
     """
 
     HIGHEST = 0
