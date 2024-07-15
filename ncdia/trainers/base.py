@@ -1,10 +1,13 @@
+import os
+from tqdm import tqdm
 from typing import List, Dict
 
+import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.optim import Optimizer, lr_scheduler
 
-from ncdia.utils import TRAINERS, HOOKS
+from ncdia.utils import TRAINERS, HOOKS, mkdir_if_missing
 from hooks import Hook
 from priority import get_priority
 from optims import build_optimizer, build_scheduler
@@ -15,6 +18,29 @@ class BaseTrainer(object):
     """Basic trainer class for training models.
 
     Args:
+        model (nn.Module): Model to be trained.
+        train_cfg (dict, optional): Training config. Contains the following
+            'optimizer':
+            - 'name' (str): Name of optimizer.
+            - 'param_groups' (dict | None): If provided, directly optimize
+                param_groups and abandon model.
+            - 'kwargs' (dict): Arguments for optimizer.
+            'scheduler':
+            - 'name' (str): Name of scheduler.
+            - 'kwargs' (dict): Arguments for scheduler.
+            'keys':
+            - `max_epochs` (int): Total epochs for training.
+        val_cfg (dict, optional): Validation config. Contains the following
+            'keys':
+            - '
+        test_cfg (dict, optional): Test config.
+        train_loader (DataLoader, optional): Training data loader.
+        val_loader (DataLoader, optional): Validation data loader.
+        test_loader (DataLoader, optional): Test data loader.
+        default_hooks (dict, optional): Default hooks to be registered.
+        custom_hooks (list, optional): Custom hooks to be registered.
+        load_from (str, optional): Checkpoint file path to load.
+        work_dir (str, optional): Working directory to save logs and checkpoints.
 
     """
     def __init__(
@@ -23,26 +49,39 @@ class BaseTrainer(object):
             train_cfg: dict | None = None,
             val_cfg: dict | None = None,
             test_cfg: dict | None = None,
-            optimizer: str | Optimizer | None = None,
-            scheduler: str | lr_scheduler._LRScheduler | None = None,
             train_loader: DataLoader | None = None,
             val_loader: DataLoader | None = None,
             test_loader: DataLoader | None = None,
             default_hooks: Dict[str, Hook | dict] | None = None,
             custom_hooks: List[Hook | dict] | None = None,
+            load_from: str | None = None,
+            work_dir: str | None = None,
     ):
         super(BaseTrainer, self).__init__()
         self._model = model
-        self.train_cfg = train_cfg
-        self.val_cfg = val_cfg
-        self.test_cfg = test_cfg
+        self._train_cfg = train_cfg
+        self._val_cfg = val_cfg
+        self._test_cfg = test_cfg
 
-        self._optimizer = optimizer
-        self._scheduler = scheduler
+        if 'optimizer' in train_cfg:
+            self._optimizer = dict(train_cfg['optimizer'])
+        else:
+            raise KeyError('Optimizer is not found in train_cfg.')
+        
+        if 'scheduler' in train_cfg:
+            self._scheduler = dict(train_cfg['scheduler'])
+        else:
+            self._scheduler = {'name': 'constant'}
 
         self.train_loader = train_loader
         self.val_loader = val_loader
         self.test_loader = test_loader
+
+        # load checkpoint
+        self._load_from = load_from
+
+        # work directory
+        self._work_dir = work_dir
 
         self._hooks: List[Hook] = []
         # register hooks to `self._hooks`
@@ -64,12 +103,45 @@ class BaseTrainer(object):
     @property
     def optimizer(self) -> Optimizer:
         """Optimizer: Optimizer to optimize model parameters."""
+        if isinstance(self._optimizer, dict):
+            self._optimizer = build_optimizer(self._optimizer, self.model)
         return self._optimizer
     
     @property
     def scheduler(self) -> lr_scheduler._LRScheduler:
         """lr_scheduler._LRScheduler: Learning rate scheduler."""
+        if isinstance(self._scheduler, dict):
+            self._scheduler = build_scheduler(self._scheduler, self.optimizer)
         return self._scheduler
+    
+    @property
+    def max_epochs(self):
+        """int: Total epochs for training."""
+        return self._train_cfg['max_epochs']
+    
+    def train_step(self, batch, **kwargs):
+        """Training step. This method should be implemented in subclasses.
+        
+        Args:
+            batch (tuple | list): A batch of data from the data loader.
+        """
+        raise NotImplementedError
+    
+    def val_step(self, batch, **kwargs):
+        """Validation step. This method should be implemented in subclasses.
+        
+        Args:
+            batch (tuple | list): A batch of data from the data loader.
+        """
+        raise NotImplementedError
+    
+    def test_step(self, batch, **kwargs):
+        """Test step. This method should be implemented in subclasses.
+        
+        Args:
+            batch (tuple | list): A batch of data from the data loader.
+        """
+        raise NotImplementedError
 
     def train(self) -> nn.Module:
         """Launch the training process.
@@ -78,21 +150,116 @@ class BaseTrainer(object):
             model (nn.Module): Trained model.
         """
         model = self.model
-        optimizer = build_optimizer(self.optimizer, model)
-        scheduler = build_scheduler(self.scheduler, optimizer)
-
         self.call_hook('before_run')
 
+        self.load_ckpt(self._load_from)
+        self.call_hook('after_load_checkpoint')
+
+        self.call_hook('before_train')
+
+        for epoch in range(self.max_epochs):
+            self.call_hook('before_train_epoch')
+
+            tbar = tqdm(
+                self.train_loader, 
+                desc=f'Epoch {epoch+1}/{self.max_epochs}',
+                dynamic_ncols=True)
+
+            for batch in tbar:
+                self.call_hook('before_train_iter')
+
+                self.train_step(batch)
+
+                self.call_hook('after_train_iter')
+
+            self.call_hook('after_train_epoch')
+
+        self.val()
+
+        self.call_hook('before_save_checkpoint')
+        self.save_ckpt(os.path.join(self._work_dir, 'latest.pth'))
+
+        self.call_hook('after_train')
+
+        self.test()
+
         self.call_hook('after_run')
+
         return model
 
     def val(self):
-        """
-        """
+        """Validation process."""
+        self.call_hook('before_val')
+
+        self.call_hook('before_val_epoch')
+
+        tbar = tqdm(self.val_loader, desc='Validation', dynamic_ncols=True)
+
+        for batch in tbar:
+            self.call_hook('before_val_iter')
+
+            self.val_step(batch)
+
+            self.call_hook('after_val_iter')
+
+        self.call_hook('after_val_epoch')
+
+        self.call_hook('after_val')
 
     def test(self):
+        """Test process."""
+        self.call_hook('before_test')
+
+        self.call_hook('before_test_epoch')
+
+        tbar = tqdm(self.test_loader, desc='Testing', dynamic_ncols=True)
+
+        for batch in tbar:
+            self.call_hook('before_test_iter')
+
+            self.test_step(batch)
+
+            self.call_hook('after_test_iter')
+
+        self.call_hook('after_test_epoch')
+
+        self.call_hook('after_test')
+    
+    def load_ckpt(self, fpath: str, device: str| None = 'cpu'):
+        """Load checkpoint from file.
+
+        Args:
+            fpath (str): Checkpoint file path.
+            device (str, optional): Device to load checkpoint. Defaults to 'cpu'.
+
+        Returns:
+            model (nn.Module): Loaded model.
+
+        Raises:
+            ValueError: Checkpoint not found when `fpath` does not exist.
         """
+        if not os.path.exists(fpath):
+            raise ValueError(f'Checkpoint {fpath} not found!')
+        
+        checkpoint = torch.load(fpath, map_location=device)
+        self.model.load_state_dict(checkpoint['state_dict'])
+        self.logger.info(f'Checkpoint loaded from {fpath}')
+
+        return self.model
+    
+    def save_ckpt(self, fpath: str):
+        """Save checkpoint to file.
+        
+        Args:
+            fpath (str): Checkpoint file path.
         """
+        mkdir_if_missing(os.path.dirname(fpath))
+
+        checkpoint = {
+            'state_dict': self.model.state_dict()}
+        torch.save(checkpoint, fpath)
+
+        self.logger.info(f'Checkpoint saved to {fpath}')
 
     def call_hook(
             self,

@@ -1,4 +1,5 @@
 from .registry import Registry
+from .tools import *
 
 # manage all kinds of trainers
 TRAINERS = Registry()
