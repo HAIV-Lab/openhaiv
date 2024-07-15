@@ -1,1 +1,1 @@
-::: ncdia.trainer.pretrainer
+::: ncdia.trainers.pretrainer

@@ -1,1 +1,1 @@
-::: ncdia.trainer.inctrainer
+::: ncdia.trainers.inctrainer
