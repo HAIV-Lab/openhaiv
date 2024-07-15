@@ -7,7 +7,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.optim import Optimizer, lr_scheduler
 
-from ncdia.utils import TRAINERS, HOOKS, mkdir_if_missing
+from ncdia.utils import TRAINERS, HOOKS, Logger, mkdir_if_missing
 from hooks import Hook
 from priority import get_priority
 from optims import build_optimizer, build_scheduler
@@ -41,6 +41,7 @@ class BaseTrainer(object):
         custom_hooks (list, optional): Custom hooks to be registered.
         load_from (str, optional): Checkpoint file path to load.
         work_dir (str, optional): Working directory to save logs and checkpoints.
+        logger (Logger, optional): Logger for logging information.
 
     """
     def __init__(
@@ -56,6 +57,7 @@ class BaseTrainer(object):
             custom_hooks: List[Hook | dict] | None = None,
             load_from: str | None = None,
             work_dir: str | None = None,
+            logger: Logger | None = None
     ):
         super(BaseTrainer, self).__init__()
         self._model = model
@@ -81,7 +83,12 @@ class BaseTrainer(object):
         self._load_from = load_from
 
         # work directory
+        mkdir_if_missing(work_dir)
         self._work_dir = work_dir
+
+        if not logger:
+            logger = Logger(os.path.join(work_dir, 'log.txt'))
+        self.logger = logger
 
         self._hooks: List[Hook] = []
         # register hooks to `self._hooks`
