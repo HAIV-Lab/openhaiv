@@ -7,7 +7,10 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.optim import Optimizer, lr_scheduler
 
-from ncdia.utils import TRAINERS, HOOKS, Logger, mkdir_if_missing
+from ncdia.utils import (
+    TRAINERS, HOOKS, Logger,
+    mkdir_if_missing, auto_device,
+)
 from hooks import Hook
 from priority import get_priority
 from optims import build_optimizer, build_scheduler
@@ -19,7 +22,7 @@ class BaseTrainer(object):
 
     Args:
         model (nn.Module): Model to be trained.
-        train_cfg (dict, optional): Training config. Contains the following
+        cfg (dict, optional): Configuration for trainer, Contains:
             'optimizer':
             - 'name' (str): Name of optimizer.
             - 'param_groups' (dict | None): If provided, directly optimize
@@ -30,10 +33,8 @@ class BaseTrainer(object):
             - 'kwargs' (dict): Arguments for scheduler.
             'keys':
             - `max_epochs` (int): Total epochs for training.
-        val_cfg (dict, optional): Validation config. Contains the following
-            'keys':
-            - '
-        test_cfg (dict, optional): Test config.
+            - 'device' (str | torch.device | None): Device to use. If None,
+                use 'cuda' if available.
         train_loader (DataLoader, optional): Training data loader.
         val_loader (DataLoader, optional): Validation data loader.
         test_loader (DataLoader, optional): Test data loader.
@@ -47,9 +48,7 @@ class BaseTrainer(object):
     def __init__(
             self,
             model: nn.Module,
-            train_cfg: dict | None = None,
-            val_cfg: dict | None = None,
-            test_cfg: dict | None = None,
+            cfg: dict | None = None,
             train_loader: DataLoader | None = None,
             val_loader: DataLoader | None = None,
             test_loader: DataLoader | None = None,
@@ -57,21 +56,21 @@ class BaseTrainer(object):
             custom_hooks: List[Hook | dict] | None = None,
             load_from: str | None = None,
             work_dir: str | None = None,
-            logger: Logger | None = None
+            logger: Logger | None = None,
     ):
         super(BaseTrainer, self).__init__()
         self._model = model
-        self._train_cfg = train_cfg
-        self._val_cfg = val_cfg
-        self._test_cfg = test_cfg
+        self._cfg = cfg
+        if 'keys' not in self._cfg:
+            self._cfg['keys'] = {}
 
-        if 'optimizer' in train_cfg:
-            self._optimizer = dict(train_cfg['optimizer'])
+        if 'optimizer' in self._cfg:
+            self._optimizer = dict(self._cfg['optimizer'])
         else:
-            raise KeyError('Optimizer is not found in train_cfg.')
+            raise KeyError('Optimizer is not found in `cfg`.')
         
-        if 'scheduler' in train_cfg:
-            self._scheduler = dict(train_cfg['scheduler'])
+        if 'scheduler' in self._cfg:
+            self._scheduler = dict(self._cfg['scheduler'])
         else:
             self._scheduler = {'name': 'constant'}
 
@@ -124,13 +123,31 @@ class BaseTrainer(object):
     @property
     def max_epochs(self):
         """int: Total epochs for training."""
-        return self._train_cfg['max_epochs']
+        if not hasattr(self, '_max_epochs'):
+            if not 'max_epochs' in self._cfg['keys']:
+                self._max_epochs = 1
+            else:
+                self._max_epochs = int(self._cfg['keys']['max_epochs'])
+
+        return self._max_epochs
+    
+    @property
+    def device(self):
+        """torch.device: Device to use."""
+        if not hasattr(self, '_device'):
+            if not 'device' in self._cfg['keys']:
+                _device = None
+            else:
+                _device = self._cfg['keys']['device']
+            self._device = auto_device(_device)
+        
+        return self._device
     
     def train_step(self, batch, **kwargs):
         """Training step. This method should be implemented in subclasses.
         
         Args:
-            batch (tuple | list): A batch of data from the data loader.
+            batch (dict | tuple | list): A batch of data from the data loader.
         """
         raise NotImplementedError
     
@@ -138,7 +155,7 @@ class BaseTrainer(object):
         """Validation step. This method should be implemented in subclasses.
         
         Args:
-            batch (tuple | list): A batch of data from the data loader.
+            batch (dict | tuple | list): A batch of data from the data loader.
         """
         raise NotImplementedError
     
@@ -146,7 +163,7 @@ class BaseTrainer(object):
         """Test step. This method should be implemented in subclasses.
         
         Args:
-            batch (tuple | list): A batch of data from the data loader.
+            batch (dict | tuple | list): A batch of data from the data loader.
         """
         raise NotImplementedError
 
@@ -157,6 +174,7 @@ class BaseTrainer(object):
             model (nn.Module): Trained model.
         """
         model = self.model
+        
         self.call_hook('before_run')
 
         self.load_ckpt(self._load_from)
