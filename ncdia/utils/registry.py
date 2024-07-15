@@ -103,6 +103,28 @@ class Registry(dict):
             self.register_dict(target)
         else:
             raise TypeError(f"Target {target} is not callable or dict.")
+        
+    def build(self, target: dict):
+        """Build a target with configs.
+
+        Args:
+            target (dict): A dict to be built.
+                It should have a key 'type' to specify the target type.
+                It may have other keys to specify the target configs.
+
+        Returns:
+            object: A built target.
+        """
+        if 'type' not in target:
+            raise KeyError(f"Key 'type' is not found in target {target}.")
+        
+        target_type = target['type']
+        if target_type not in self._dict:
+            raise KeyError(f"Target type {target_type} is not registered.")
+        
+        target.pop('type')
+        target = self._dict[target_type](**target)
+        return target
     
     def __call__(self, target):
         return self.register(target)
