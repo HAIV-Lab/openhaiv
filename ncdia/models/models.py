@@ -1,34 +1,38 @@
-from copy import deepcopy
 import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
-import torch.nn as nn
 
 import ncdia_old.utils.comm as comm
-from ncdia_old.quantize import quantize_pack, reconstruct
+from ncdia_old.quantize import reconstruct
+from models_register_util import get_model
 
-from .resnet18_savc_att import SAVCNET
-from .resnet18_savc_att_q import SAVCNET_q
-from .resnet18_savc_q import SAVCNET_q2
-from .resnet18_savc_q_sar import SAVCNET_q2_sar
-from .resnet18_savc_att_q_ir import SAVCNET_q_ir
+# from .resnet18_savc_att import SAVCNET
+# from .resnet18_savc_att_q import SAVCNET_q
+# from .resnet18_savc_q import SAVCNET_q2
+# from .resnet18_savc_q_sar import SAVCNET_q2_sar
+# from .resnet18_savc_att_q_ir import SAVCNET_q_ir
 
+#####
 
 def get_network(config):
     network_config = config.network
     num_classes = network_config.num_classes
-    if network_config.name == 'resnet18_savc_att':
-        net = SAVCNET(args=config)
-    elif network_config.name == 'resnet18_savc_att_q':
-        net = SAVCNET_q(args=config)
-    elif network_config.name == 'resnet18_savc_q':
-        net = SAVCNET_q2(args=config)
-    elif network_config.name == 'resnet18_savc_q_sar':
-        net = SAVCNET_q2_sar(args=config)
-    elif network_config.name == 'resnet18_savc_att_q_ir':
-        net = SAVCNET_q_ir(args=config)
-    else:
-        raise Exception('Unexpected Network Architecture!')
+    # 使用注册加载模型
+    model_name = network_config.name
+    net = get_model(model_name)
+
+    # if network_config.name == 'resnet18_savc_att':
+    #     net = SAVCNET(args=config)
+    # elif network_config.name == 'resnet18_savc_att_q':
+    #     net = SAVCNET_q(args=config)
+    # elif network_config.name == 'resnet18_savc_q':
+    #     net = SAVCNET_q2(args=config)
+    # elif network_config.name == 'resnet18_savc_q_sar':
+    #     net = SAVCNET_q2_sar(args=config)
+    # elif network_config.name == 'resnet18_savc_att_q_ir':
+    #     net = SAVCNET_q_ir(args=config)
+    # else:
+    #     raise Exception('Unexpected Network Architecture!')
 
     if network_config.pretrained:
         print('Using pretrained model')
