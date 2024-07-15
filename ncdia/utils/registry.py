@@ -113,7 +113,7 @@ class Registry(dict):
                 It may have other keys to specify the target configs.
 
         Returns:
-            object: A built target.
+            target (object): A built target.
         """
         if 'type' not in target:
             raise KeyError(f"Key 'type' is not found in target {target}.")

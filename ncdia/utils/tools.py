@@ -26,7 +26,7 @@ def auto_device(device):
             otherwise return torch.device('cpu').
 
     Returns:
-        torch.device: device object
+        device (torch.device): device object
     """
     if not device:
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
