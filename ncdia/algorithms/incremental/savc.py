@@ -1,29 +1,34 @@
 import copy
 import torch
 import torch.nn as nn
+import numpy as np
+
+from tqdm import tqdm
+
 
 from ncdia.utils.cfg import Configs
 from ncdia.utils.logger import Logger
 from ncdia.utils import INMETHODS
+from .base import BaseLearner
 
 @INMETHODS.register()
-class BaseLearner(object):
-    """ Base Class for incremental learning all the inc methods should follow this class
-        Args:
-        cfg: Configs 
-    """
+class SAVC(BaseLearner):
     def __init__(self, cfg: Configs) -> None:
         self.args = cfg.copy()
-        self._cur_taks = -1
-        self._known_class = 0
-        self._total_class = 0
-        self._old_network = None
-        self._data_memory, self._targets_memory = np.array([]), np.array([])
-        self.topk = 5
+        super().__init__(self.args)
+
+        self._network = None
+
 
         # self._device = self.args
 
     
+    def _init_train(self, trainloader, testloader, optimizer, scheduler):
+        self._network.train()
+
+        loss_avg = 0.0
+        
+
     def _train(self):
         pass
 
