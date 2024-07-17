@@ -226,7 +226,7 @@ def dml(id_gt, id_feat, ood_gt, ood_feat, fc_weight) -> tuple:
     # for computing ood metrics
     ood_gt = -1 * np.ones_like(ood_gt)
 
-    w = fc_weight.clone().detach()
+    w = fc_weight.detach().clone()
     w = F.normalize(w, p=2, dim=1).cpu()
     # TODO: check if this is correct
     w = w[::2,]  # savc使用的是两倍类别数的fc层
