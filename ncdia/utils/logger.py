@@ -36,7 +36,7 @@ class Logger(object):
     def __exit__(self, *args):
         self.close()
 
-    def write(self, msg: str, timestamp: bool = True, end: str = '\n'):
+    def write(self, msg: str, timestamp: bool = False, end: str = '\n'):
         """Write message to console and file
 
         Args:

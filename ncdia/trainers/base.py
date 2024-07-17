@@ -44,6 +44,13 @@ class BaseTrainer(object):
         work_dir (str, optional): Working directory to save logs and checkpoints.
         logger (Logger, optional): Logger for logging information.
 
+    Attributes:
+        model (nn.Module): Neural network models.
+        optimizer (Optimizer): Optimizer.
+        scheduler (lr_scheduler._LRScheduler): Learning rate scheduler.
+        max_epochs (int): Total epochs for training.
+        device (torch.device): Device to use.
+
     """
     def __init__(
             self,
@@ -173,8 +180,6 @@ class BaseTrainer(object):
         Returns:
             model (nn.Module): Trained model.
         """
-        model = self.model
-        
         self.call_hook('before_run')
 
         self.load_ckpt(self._load_from)
@@ -186,7 +191,7 @@ class BaseTrainer(object):
             self.call_hook('before_train_epoch')
 
             tbar = tqdm(
-                self.train_loader, 
+                self.train_loader,
                 desc=f'Epoch {epoch+1}/{self.max_epochs}',
                 dynamic_ncols=True)
 
@@ -199,7 +204,7 @@ class BaseTrainer(object):
 
             self.call_hook('after_train_epoch')
 
-        self.val()
+            self.val()
 
         self.call_hook('before_save_checkpoint')
         self.save_ckpt(os.path.join(self._work_dir, 'latest.pth'))
@@ -210,7 +215,7 @@ class BaseTrainer(object):
 
         self.call_hook('after_run')
 
-        return model
+        return self.model
 
     def val(self):
         """Validation process."""
@@ -419,9 +424,13 @@ class BaseTrainer(object):
             runtime_info=dict(type='RuntimeInfoHook'),
             timer=dict(type='IterTimerHook'),
             sampler_seed=dict(type='DistSamplerSeedHook'),
-            logger=dict(type='LoggerHook'),
             param_scheduler=dict(type='ParamSchedulerHook'),
             checkpoint=dict(type='CheckpointHook', interval=1),
+
+            logger=dict(type='LoggerHook'),
+            model=dict(type='ModelHook'),
+            optimizer = dict(type='OptimizerHook'),
+            scheduler = dict(type='SchedulerHook'),
         )
         if hooks is not None:
             for name, hook in hooks.items():

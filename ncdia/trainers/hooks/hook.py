@@ -23,7 +23,7 @@ def is_method_overridden(method: str, base_class: type,
     return derived_method != base_method
 
 
-class Hook:
+class Hook(object):
     """Base hook class.
 
     All hooks should inherit from this class.
@@ -37,206 +37,209 @@ class Hook:
               'after_val', 'before_save_checkpoint', 'after_train',
               'before_test', 'before_test_epoch', 'before_test_iter',
               'after_test_iter', 'after_test_epoch', 'after_test', 'after_run')
+    
+    def __init__(self):
+        super(Hook, self).__init__()
 
-    def before_run(self, runner) -> None:
+    def before_run(self, trainer) -> None:
         """All subclasses should override this method, if they need any
         operations before the training validation or testing process.
 
         Args:
-            runner (Runner): The runner of the training, validation or testing
+            trainer (BaseTrainer): The trainer of the training, validation or testing
                 process.
         """
 
-    def after_run(self, runner) -> None:
+    def after_run(self, trainer) -> None:
         """All subclasses should override this method, if they need any
         operations before the training validation or testing process.
 
         Args:
-            runner (Runner): The runner of the training, validation or testing
+            trainer (BaseTrainer): The trainer of the training, validation or testing
                 process.
         """
 
-    def before_train(self, runner) -> None:
+    def before_train(self, trainer) -> None:
         """All subclasses should override this method, if they need any
         operations before train.
 
         Args:
-            runner (Runner): The runner of the training process.
+            trainer (BaseTrainer): The trainer of the training process.
         """
 
-    def after_train(self, runner) -> None:
+    def after_train(self, trainer) -> None:
         """All subclasses should override this method, if they need any
         operations after train.
 
         Args:
-            runner (Runner): The runner of the training process.
+            trainer (BaseTrainer): The trainer of the training process.
         """
 
-    def before_val(self, runner) -> None:
+    def before_val(self, trainer) -> None:
         """All subclasses should override this method, if they need any
         operations before validation.
 
         Args:
-            runner (Runner): The runner of the validation process.
+            trainer (BaseTrainer): The trainer of the validation process.
         """
 
-    def after_val(self, runner) -> None:
+    def after_val(self, trainer) -> None:
         """All subclasses should override this method, if they need any
         operations after validation.
 
         Args:
-            runner (Runner): The runner of the validation process.
+            trainer (BaseTrainer): The trainer of the validation process.
         """
 
-    def before_test(self, runner) -> None:
+    def before_test(self, trainer) -> None:
         """All subclasses should override this method, if they need any
         operations before testing.
 
         Args:
-            runner (Runner): The runner of the testing process.
+            trainer (BaseTrainer): The trainer of the testing process.
         """
 
-    def after_test(self, runner) -> None:
+    def after_test(self, trainer) -> None:
         """All subclasses should override this method, if they need any
         operations after testing.
 
         Args:
-            runner (Runner): The runner of the testing process.
+            trainer (BaseTrainer): The trainer of the testing process.
         """
 
-    def before_save_checkpoint(self, runner, checkpoint: dict) -> None:
+    def before_save_checkpoint(self, trainer, checkpoint: dict) -> None:
         """All subclasses should override this method, if they need any
         operations before saving the checkpoint.
 
         Args:
-            runner (Runner): The runner of the training, validation or testing
+            trainer (BaseTrainer): The trainer of the training, validation or testing
                 process.
             checkpoint (dict): Model's checkpoint.
         """
 
-    def after_load_checkpoint(self, runner, checkpoint: dict) -> None:
+    def after_load_checkpoint(self, trainer, checkpoint: dict) -> None:
         """All subclasses should override this method, if they need any
         operations after loading the checkpoint.
 
         Args:
-            runner (Runner): The runner of the training, validation or testing
+            trainer (BaseTrainer): The trainer of the training, validation or testing
                 process.
             checkpoint (dict): Model's checkpoint.
         """
 
-    def before_train_epoch(self, runner) -> None:
+    def before_train_epoch(self, trainer) -> None:
         """All subclasses should override this method, if they need any
         operations before each training epoch.
 
         Args:
-            runner (Runner): The runner of the training process.
+            trainer (BaseTrainer): The trainer of the training process.
         """
-        self._before_epoch(runner, mode='train')
+        self._before_epoch(trainer, mode='train')
 
-    def before_val_epoch(self, runner) -> None:
+    def before_val_epoch(self, trainer) -> None:
         """All subclasses should override this method, if they need any
         operations before each validation epoch.
 
         Args:
-            runner (Runner): The runner of the validation process.
+            trainer (BaseTrainer): The trainer of the validation process.
         """
-        self._before_epoch(runner, mode='val')
+        self._before_epoch(trainer, mode='val')
 
-    def before_test_epoch(self, runner) -> None:
+    def before_test_epoch(self, trainer) -> None:
         """All subclasses should override this method, if they need any
         operations before each test epoch.
 
         Args:
-            runner (Runner): The runner of the testing process.
+            trainer (BaseTrainer): The trainer of the testing process.
         """
-        self._before_epoch(runner, mode='test')
+        self._before_epoch(trainer, mode='test')
 
-    def after_train_epoch(self, runner) -> None:
+    def after_train_epoch(self, trainer) -> None:
         """All subclasses should override this method, if they need any
         operations after each training epoch.
 
         Args:
-            runner (Runner): The runner of the training process.
+            trainer (BaseTrainer): The trainer of the training process.
         """
-        self._after_epoch(runner, mode='train')
+        self._after_epoch(trainer, mode='train')
 
     def after_val_epoch(self,
-                        runner,
+                        trainer,
                         metrics: Optional[Dict[str, float]] = None) -> None:
         """All subclasses should override this method, if they need any
         operations after each validation epoch.
 
         Args:
-            runner (Runner): The runner of the validation process.
+            trainer (BaseTrainer): The trainer of the validation process.
             metrics (Dict[str, float], optional): Evaluation results of all
                 metrics on validation dataset. The keys are the names of the
                 metrics, and the values are corresponding results.
         """
-        self._after_epoch(runner, mode='val')
+        self._after_epoch(trainer, mode='val')
 
     def after_test_epoch(self,
-                         runner,
+                         trainer,
                          metrics: Optional[Dict[str, float]] = None) -> None:
         """All subclasses should override this method, if they need any
         operations after each test epoch.
 
         Args:
-            runner (Runner): The runner of the testing process.
+            trainer (BaseTrainer): The trainer of the testing process.
             metrics (Dict[str, float], optional): Evaluation results of all
                 metrics on test dataset. The keys are the names of the
                 metrics, and the values are corresponding results.
         """
-        self._after_epoch(runner, mode='test')
+        self._after_epoch(trainer, mode='test')
 
     def before_train_iter(self,
-                          runner,
+                          trainer,
                           batch_idx: int,
                           data_batch: DATA_BATCH = None) -> None:
         """All subclasses should override this method, if they need any
         operations before each training iteration.
 
         Args:
-            runner (Runner): The runner of the training process.
+            trainer (BaseTrainer): The trainer of the training process.
             batch_idx (int): The index of the current batch in the train loop.
             data_batch (dict or tuple or list, optional): Data from dataloader.
         """
         self._before_iter(
-            runner, batch_idx=batch_idx, data_batch=data_batch, mode='train')
+            trainer, batch_idx=batch_idx, data_batch=data_batch, mode='train')
 
     def before_val_iter(self,
-                        runner,
+                        trainer,
                         batch_idx: int,
                         data_batch: DATA_BATCH = None) -> None:
         """All subclasses should override this method, if they need any
         operations before each validation iteration.
 
         Args:
-            runner (Runner): The runner of the validation process.
+            trainer (BaseTrainer): The trainer of the validation process.
             batch_idx (int): The index of the current batch in the val loop.
             data_batch (dict, optional): Data from dataloader.
                 Defaults to None.
         """
         self._before_iter(
-            runner, batch_idx=batch_idx, data_batch=data_batch, mode='val')
+            trainer, batch_idx=batch_idx, data_batch=data_batch, mode='val')
 
     def before_test_iter(self,
-                         runner,
+                         trainer,
                          batch_idx: int,
                          data_batch: DATA_BATCH = None) -> None:
         """All subclasses should override this method, if they need any
         operations before each test iteration.
 
         Args:
-            runner (Runner): The runner of the testing process.
+            trainer (BaseTrainer): The trainer of the testing process.
             batch_idx (int): The index of the current batch in the test loop.
             data_batch (dict or tuple or list, optional): Data from dataloader.
                 Defaults to None.
         """
         self._before_iter(
-            runner, batch_idx=batch_idx, data_batch=data_batch, mode='test')
+            trainer, batch_idx=batch_idx, data_batch=data_batch, mode='test')
 
     def after_train_iter(self,
-                         runner,
+                         trainer,
                          batch_idx: int,
                          data_batch: DATA_BATCH = None,
                          outputs: Optional[dict] = None) -> None:
@@ -244,20 +247,20 @@ class Hook:
         operations after each training iteration.
 
         Args:
-            runner (Runner): The runner of the training process.
+            trainer (BaseTrainer): The trainer of the training process.
             batch_idx (int): The index of the current batch in the train loop.
             data_batch (dict tuple or list, optional): Data from dataloader.
             outputs (dict, optional): Outputs from model.
         """
         self._after_iter(
-            runner,
+            trainer,
             batch_idx=batch_idx,
             data_batch=data_batch,
             outputs=outputs,
             mode='train')
 
     def after_val_iter(self,
-                       runner,
+                       trainer,
                        batch_idx: int,
                        data_batch: DATA_BATCH = None,
                        outputs: Optional[Sequence] = None) -> None:
@@ -265,20 +268,20 @@ class Hook:
         operations after each validation iteration.
 
         Args:
-            runner (Runner): The runner of the validation process.
+            trainer (BaseTrainer): The trainer of the validation process.
             batch_idx (int): The index of the current batch in the val loop.
             data_batch (dict or tuple or list, optional): Data from dataloader.
             outputs (Sequence, optional): Outputs from model.
         """
         self._after_iter(
-            runner,
+            trainer,
             batch_idx=batch_idx,
             data_batch=data_batch,
             outputs=outputs,
             mode='val')
 
     def after_test_iter(self,
-                        runner,
+                        trainer,
                         batch_idx: int,
                         data_batch: DATA_BATCH = None,
                         outputs: Optional[Sequence] = None) -> None:
@@ -286,40 +289,40 @@ class Hook:
         operations after each test iteration.
 
         Args:
-            runner (Runner): The runner of the training  process.
+            trainer (BaseTrainer): The trainer of the training  process.
             batch_idx (int): The index of the current batch in the test loop.
             data_batch (dict or tuple or list, optional): Data from dataloader.
             outputs (Sequence, optional): Outputs from model.
         """
         self._after_iter(
-            runner,
+            trainer,
             batch_idx=batch_idx,
             data_batch=data_batch,
             outputs=outputs,
             mode='test')
 
-    def _before_epoch(self, runner, mode: str = 'train') -> None:
+    def _before_epoch(self, trainer, mode: str = 'train') -> None:
         """All subclasses should override this method, if they need any
         operations before each epoch.
 
         Args:
-            runner (Runner): The runner of the training, validation or testing
+            trainer (BaseTrainer): The trainer of the training, validation or testing
                 process.
-            mode (str): Current mode of runner. Defaults to 'train'.
+            mode (str): Current mode of trainer. Defaults to 'train'.
         """
 
-    def _after_epoch(self, runner, mode: str = 'train') -> None:
+    def _after_epoch(self, trainer, mode: str = 'train') -> None:
         """All subclasses should override this method, if they need any
         operations after each epoch.
 
         Args:
-            runner (Runner): The runner of the training, validation or testing
+            trainer (BaseTrainer): The trainer of the training, validation or testing
                 process.
-            mode (str): Current mode of runner. Defaults to 'train'.
+            mode (str): Current mode of trainer. Defaults to 'train'.
         """
 
     def _before_iter(self,
-                     runner,
+                     trainer,
                      batch_idx: int,
                      data_batch: DATA_BATCH = None,
                      mode: str = 'train') -> None:
@@ -327,15 +330,15 @@ class Hook:
         operations before each iter.
 
         Args:
-            runner (Runner): The runner of the training, validation or testing
+            trainer (BaseTrainer): The trainer of the training, validation or testing
                 process.
             batch_idx (int): The index of the current batch in the loop.
             data_batch (dict or tuple or list, optional): Data from dataloader.
-            mode (str): Current mode of runner. Defaults to 'train'.
+            mode (str): Current mode of trainer. Defaults to 'train'.
         """
 
     def _after_iter(self,
-                    runner,
+                    trainer,
                     batch_idx: int,
                     data_batch: DATA_BATCH = None,
                     outputs: Optional[Union[Sequence, dict]] = None,
@@ -344,19 +347,19 @@ class Hook:
         operations after each epoch.
 
         Args:
-            runner (Runner): The runner of the training, validation or testing
+            trainer (BaseTrainer): The trainer of the training, validation or testing
                 process.
             batch_idx (int): The index of the current batch in the loop.
             data_batch (dict or tuple or list, optional): Data from dataloader.
             outputs (dict or Sequence, optional): Outputs from model.
-            mode (str): Current mode of runner. Defaults to 'train'.
+            mode (str): Current mode of trainer. Defaults to 'train'.
         """
 
-    def every_n_epochs(self, runner, n: int, start: int = 0) -> bool:
+    def every_n_epochs(self, trainer, n: int, start: int = 0) -> bool:
         """Test whether current epoch can be evenly divided by n.
 
         Args:
-            runner (Runner): The runner of the training, validation or testing
+            trainer (BaseTrainer): The trainer of the training, validation or testing
                 process.
             n (int): Whether current epoch can be evenly divided by n.
             start (int): Starting from `start` to check the logic for
@@ -365,7 +368,7 @@ class Hook:
         Returns:
             bool: Whether current epoch can be evenly divided by n.
         """
-        dividend = runner.epoch + 1 - start
+        dividend = trainer.epoch + 1 - start
         return dividend % n == 0 if dividend >= 0 and n > 0 else False
 
     def every_n_inner_iters(self, batch_idx: int, n: int) -> bool:
@@ -383,11 +386,11 @@ class Hook:
         """
         return (batch_idx + 1) % n == 0 if n > 0 else False
 
-    def every_n_train_iters(self, runner, n: int, start: int = 0) -> bool:
+    def every_n_train_iters(self, trainer, n: int, start: int = 0) -> bool:
         """Test whether current training iteration can be evenly divided by n.
 
         Args:
-            runner (Runner): The runner of the training, validation or testing
+            trainer (BaseTrainer): The trainer of the training, validation or testing
                 process.
             n (int): Whether current iteration can be evenly divided by n.
             start (int): Starting from `start` to check the logic for
@@ -397,7 +400,7 @@ class Hook:
             bool: Return True if the current iteration can be evenly divided
             by n, otherwise False.
         """
-        dividend = runner.iter + 1 - start
+        dividend = trainer.iter + 1 - start
         return dividend % n == 0 if dividend >= 0 and n > 0 else False
 
     def end_of_epoch(self, dataloader, batch_idx: int) -> bool:
@@ -413,27 +416,27 @@ class Hook:
         """
         return batch_idx + 1 == len(dataloader)
 
-    def is_last_train_epoch(self, runner) -> bool:
+    def is_last_train_epoch(self, trainer) -> bool:
         """Test whether current epoch is the last train epoch.
 
         Args:
-            runner (Runner): The runner of the training process.
+            trainer (BaseTrainer): The trainer of the training process.
 
         Returns:
             bool: Whether reaches the end of training epoch.
         """
-        return runner.epoch + 1 == runner.max_epochs
+        return trainer.epoch + 1 == trainer.max_epochs
 
-    def is_last_train_iter(self, runner) -> bool:
+    def is_last_train_iter(self, trainer) -> bool:
         """Test whether current iteration is the last train iteration.
 
         Args:
-            runner (Runner): The runner of the training process.
+            trainer (BaseTrainer): The trainer of the training process.
 
         Returns:
             bool: Whether current iteration is the last train iteration.
         """
-        return runner.iter + 1 == runner.max_iters
+        return trainer.iter + 1 == trainer.max_iters
 
     def get_triggered_stages(self) -> list:
         """Get all triggered stages with method name of the hook.
