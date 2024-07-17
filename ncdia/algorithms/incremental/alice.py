@@ -1,4 +1,3 @@
-import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -9,20 +8,22 @@ from ncdia.utils.logger import Logger
 from ncdia.utils import INMETHODS
 from ncdia.models.resnet.resnet_models import *
 from .base import BaseLearner
-from .net.fact_net import FACTNET
+from .losses.angular_loss import AngularPenaltySMLoss
+from .net.alice_net import AliceNET
+
+
 
 
     
 
 @INMETHODS.register()
-class FACT(BaseLearner):
+class Alice(BaseLearner):
     def __init__(self, cfg: Configs) -> None:
         self.args = cfg.copy()
         super().__init__(self.args)
 
-        self._network = FACTNET(self.args)
-        self.loss = nn.CrossEntropyLoss().cuda()
-        self.beta = 0.5
+        self._network = AliceNET(self.args)
+        self.loss = AngularPenaltySMLoss().cuda()
 
 
     

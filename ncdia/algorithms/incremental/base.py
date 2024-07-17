@@ -2,6 +2,8 @@ import copy
 import torch
 import torch.nn as nn
 
+import numpy as np
+
 from ncdia.utils.cfg import Configs
 from ncdia.utils.logger import Logger
 from ncdia.utils import INMETHODS
