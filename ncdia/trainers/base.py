@@ -8,8 +8,8 @@ from torch.utils.data import DataLoader
 from torch.optim import Optimizer, lr_scheduler
 
 from ncdia.utils import (
-    TRAINERS, HOOKS, Logger,
-    mkdir_if_missing, auto_device,
+    TRAINERS, HOOKS, LOSSES, ALGORITHMS,
+    Logger, mkdir_if_missing, auto_device,
 )
 from hooks import Hook
 from priority import get_priority
@@ -23,18 +23,19 @@ class BaseTrainer(object):
     Args:
         model (nn.Module): Model to be trained.
         cfg (dict, optional): Configuration for trainer, Contains:
-            'optimizer':
-            - 'name' (str): Name of optimizer.
-            - 'param_groups' (dict | None): If provided, directly optimize
-                param_groups and abandon model.
-            - 'kwargs' (dict): Arguments for optimizer.
-            'scheduler':
-            - 'name' (str): Name of scheduler.
-            - 'kwargs' (dict): Arguments for scheduler.
-            'keys':
+            - 'algorithm' (str): Algorithm name.
             - `max_epochs` (int): Total epochs for training.
-            - 'device' (str | torch.device | None): Device to use. If None,
-                use 'cuda' if available.
+            - 'criterion' (str): Criterion for training.
+            - 'optimizer':
+                - 'name' (str): Name of optimizer.
+                - 'param_groups' (dict | None): If provided, directly optimize
+                    param_groups and abandon model.
+                - 'kwargs' (dict): Arguments for optimizer.
+            - 'scheduler':
+                - 'name' (str): Name of scheduler.
+                - 'kwargs' (dict): Arguments for scheduler.
+            - 'device' (str | torch.device | None): Device to use.
+                If None, use 'cuda' if available.
         train_loader (DataLoader, optional): Training data loader.
         val_loader (DataLoader, optional): Validation data loader.
         test_loader (DataLoader, optional): Test data loader.
@@ -48,6 +49,7 @@ class BaseTrainer(object):
         model (nn.Module): Neural network models.
         optimizer (Optimizer): Optimizer.
         scheduler (lr_scheduler._LRScheduler): Learning rate scheduler.
+        criterion (Callable): Criterion for training.
         max_epochs (int): Total epochs for training.
         device (torch.device): Device to use.
 
@@ -68,8 +70,6 @@ class BaseTrainer(object):
         super(BaseTrainer, self).__init__()
         self._model = model
         self._cfg = cfg
-        if 'keys' not in self._cfg:
-            self._cfg['keys'] = {}
 
         if 'optimizer' in self._cfg:
             self._optimizer = dict(self._cfg['optimizer'])
@@ -80,6 +80,16 @@ class BaseTrainer(object):
             self._scheduler = dict(self._cfg['scheduler'])
         else:
             self._scheduler = {'name': 'constant'}
+        
+        if 'criterion' in self._cfg:
+            self._criterion = str(self._cfg['criterion'])
+        else:
+            raise KeyError("Criterion is not found in `cfg`.")
+        
+        if 'algorithm' in self._cfg:
+            self._algorithm = str(self._cfg['algorithm'])
+        else:
+            raise KeyError("Algorithm is not found in `cfg`.")
 
         self.train_loader = train_loader
         self.val_loader = val_loader
@@ -128,13 +138,27 @@ class BaseTrainer(object):
         return self._scheduler
     
     @property
+    def criterion(self):
+        """Callable: Criterion for training."""
+        if isinstance(self._criterion, str):
+            self._criterion = LOSSES.build(dict(type=self._criterion))
+        return self._criterion
+    
+    @property
+    def algorithm(self):
+        """object: Algorithm for training."""
+        if isinstance(self._algorithm, str):
+            self._algorithm = ALGORITHMS.build(dict(type=self._algorithm))
+        return self._algorithm
+    
+    @property
     def max_epochs(self):
         """int: Total epochs for training."""
         if not hasattr(self, '_max_epochs'):
-            if not 'max_epochs' in self._cfg['keys']:
+            if not 'max_epochs' in self._cfg:
                 self._max_epochs = 1
             else:
-                self._max_epochs = int(self._cfg['keys']['max_epochs'])
+                self._max_epochs = int(self._cfg['max_epochs'])
 
         return self._max_epochs
     
@@ -142,10 +166,10 @@ class BaseTrainer(object):
     def device(self):
         """torch.device: Device to use."""
         if not hasattr(self, '_device'):
-            if not 'device' in self._cfg['keys']:
+            if not 'device' in self._cfg:
                 _device = None
             else:
-                _device = self._cfg['keys']['device']
+                _device = self._cfg['device']
             self._device = auto_device(_device)
         
         return self._device
@@ -155,6 +179,16 @@ class BaseTrainer(object):
         
         Args:
             batch (dict | tuple | list): A batch of data from the data loader.
+
+        Returns:
+            results (dict): Contains the following:
+            {
+                "key1": value1,
+                "key2": value2,
+                ...
+            }
+            keys denote the description of the value, such as "loss", "acc", "ccr", etc.
+            values are the corresponding values of the keys, can be int, float, str, etc.
         """
         raise NotImplementedError
     
@@ -163,6 +197,16 @@ class BaseTrainer(object):
         
         Args:
             batch (dict | tuple | list): A batch of data from the data loader.
+
+        Returns:
+            results (dict): Contains the following:
+            {
+                "key1": value1,
+                "key2": value2,
+                ...
+            }
+            keys denote the description of the value, such as "loss", "acc", "ccr", etc.
+            values are the corresponding values of the keys, can be int, float, str, etc.
         """
         raise NotImplementedError
     
@@ -171,6 +215,16 @@ class BaseTrainer(object):
         
         Args:
             batch (dict | tuple | list): A batch of data from the data loader.
+
+        Returns:
+            results (dict): Contains the following:
+            {
+                "key1": value1,
+                "key2": value2,
+                ...
+            }
+            keys denote the description of the value, such as "loss", "acc", "ccr", etc.
+            values are the corresponding values of the keys, can be int, float, str, etc.
         """
         raise NotImplementedError
 

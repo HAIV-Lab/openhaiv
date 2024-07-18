@@ -1,5 +1,3 @@
-import torch
-
 from ncdia.utils import TRAINERS
 from .base import BaseTrainer
 
@@ -8,9 +6,6 @@ from .base import BaseTrainer
 class PreTrainer(BaseTrainer):
     """PreTrainer class for pre-training a model on session 0.
 
-    Args:
-    
-    
     """
     def __init__(self, *args, **kwargs):
         super(PreTrainer, self).__init__(*args, **kwargs)
@@ -20,24 +15,36 @@ class PreTrainer(BaseTrainer):
 
         Args:
             batch (dict | tuple | list): A batch of data.
+
+        Returns:
+            results (dict): Test result.
         """
         data, label, attribute, imgpath = self.batch_parser(batch)
+        return self.algorithm.train_step(self, data, label, attribute, imgpath)
 
-    def eval_step(self, batch, **kwargs):
-        """Evaluation step.
+    def val_step(self, batch, **kwargs):
+        """Validation step.
 
         Args:
             batch (dict | tuple | list): A batch of data.
+
+        Returns:
+            results (dict): Test result.
         """
         data, label, attribute, imgpath = self.batch_parser(batch)
+        return self.algorithm.val_step(self, data, label, attribute, imgpath)
 
     def test_step(self, batch, **kwargs):
         """Test step.
 
         Args:
             batch (dict | tuple | list): A batch of data.
+        
+        Returns:
+            results (dict): Test result.
         """
         data, label, attribute, imgpath = self.batch_parser(batch)
+        return self.algorithm.test_step(self, data, label, attribute, imgpath)
 
     @staticmethod
     def batch_parser(batch):
