@@ -227,6 +227,7 @@ class remote(Dataset):
         sample['data'] = total_image
         sample['label'] = targets
         sample['imgpath'] = path
+        sample['attribute'] = None
 
         return sample
 
