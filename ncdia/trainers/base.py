@@ -182,13 +182,13 @@ class BaseTrainer(object):
 
         Returns:
             results (dict): Contains the following:
-            {
-                "key1": value1,
-                "key2": value2,
-                ...
-            }
-            keys denote the description of the value, such as "loss", "acc", "ccr", etc.
-            values are the corresponding values of the keys, can be int, float, str, etc.
+                {
+                    "key1": value1,
+                    "key2": value2,
+                    ...
+                }
+                keys denote the description of the value, such as "loss", "acc", "ccr", etc.
+                values are the corresponding values of the keys, can be int, float, str, etc.
         """
         raise NotImplementedError
     
@@ -200,13 +200,13 @@ class BaseTrainer(object):
 
         Returns:
             results (dict): Contains the following:
-            {
-                "key1": value1,
-                "key2": value2,
-                ...
-            }
-            keys denote the description of the value, such as "loss", "acc", "ccr", etc.
-            values are the corresponding values of the keys, can be int, float, str, etc.
+                {
+                    "key1": value1,
+                    "key2": value2,
+                    ...
+                }
+                keys denote the description of the value, such as "loss", "acc", "ccr", etc.
+                values are the corresponding values of the keys, can be int, float, str, etc.
         """
         raise NotImplementedError
     
@@ -218,13 +218,13 @@ class BaseTrainer(object):
 
         Returns:
             results (dict): Contains the following:
-            {
-                "key1": value1,
-                "key2": value2,
-                ...
-            }
-            keys denote the description of the value, such as "loss", "acc", "ccr", etc.
-            values are the corresponding values of the keys, can be int, float, str, etc.
+                {
+                    "key1": value1,
+                    "key2": value2,
+                    ...
+                }
+                keys denote the description of the value, such as "loss", "acc", "ccr", etc.
+                values are the corresponding values of the keys, can be int, float, str, etc.
         """
         raise NotImplementedError
 

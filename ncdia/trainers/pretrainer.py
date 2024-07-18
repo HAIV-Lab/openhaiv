@@ -17,7 +17,7 @@ class PreTrainer(BaseTrainer):
             batch (dict | tuple | list): A batch of data.
 
         Returns:
-            results (dict): Test result.
+            results (dict): Training result.
         """
         data, label, attribute, imgpath = self.batch_parser(batch)
         return self.algorithm.train_step(self, data, label, attribute, imgpath)
@@ -29,7 +29,7 @@ class PreTrainer(BaseTrainer):
             batch (dict | tuple | list): A batch of data.
 
         Returns:
-            results (dict): Test result.
+            results (dict): Validation result.
         """
         data, label, attribute, imgpath = self.batch_parser(batch)
         return self.algorithm.val_step(self, data, label, attribute, imgpath)

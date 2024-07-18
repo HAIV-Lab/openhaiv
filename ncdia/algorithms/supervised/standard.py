@@ -19,8 +19,8 @@ class StandardSupervised(BaseAlg):
             trainer (object): Trainer object.
             data (torch.Tensor): Input data.
             label (torch.Tensor): Label data.
-            *args: Additional arguments.
-            **kwargs: Additional keyword arguments.
+            args (tuple): Additional arguments.
+            kwargs (dict): Additional keyword arguments.
 
         Returns:
             results (dict): Training results. Contains the following keys:
@@ -47,8 +47,8 @@ class StandardSupervised(BaseAlg):
             trainer (object): Trainer object.
             data (torch.Tensor): Input data.
             label (torch.Tensor): Label data.
-            *args: Additional arguments.
-            **kwargs: Additional keyword arguments.
+            args (tuple): Additional arguments.
+            kwargs (dict): Additional keyword arguments.
 
         Returns:
             results (dict): Validation results. Contains the following:
@@ -74,8 +74,8 @@ class StandardSupervised(BaseAlg):
             trainer (object): Trainer object.
             data (torch.Tensor): Input data.
             label (torch.Tensor): Label data.
-            *args: Additional arguments.
-            **kwargs: Additional keyword arguments.
+            args (tuple): Additional arguments.
+            kwargs (dict): Additional keyword arguments.
 
         Returns:
             results (dict): Test results. Contains the following:
