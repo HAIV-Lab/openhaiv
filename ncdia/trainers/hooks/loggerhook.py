@@ -82,6 +82,14 @@ class LoggerHook(Hook):
             self.out_dir, f'{self.exp_name}{self.out_suffix}')
         self.logger = Logger(self.log_file)
 
+        # Create config file and save to disk in the form of yaml
+        self.logger.create_config(trainer.cfg['cfg'])
+
+        # Print config and save to log file
+        self.logger.write(trainer.cfg)
+
+        trainer.cfg.logger = self.logger
+
     def after_train_iter(
             self,
             trainer: object,

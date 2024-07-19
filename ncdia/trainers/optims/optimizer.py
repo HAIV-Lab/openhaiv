@@ -3,7 +3,7 @@ import torch.nn as nn
 
 
 def build_optimizer(
-        name: str,
+        type: str,
         model: nn.Module,
         param_groups: dict | None = None,
         **kwargs
@@ -11,7 +11,7 @@ def build_optimizer(
     """Build optimizer.
 
     Args:
-        name (str): name of optimizer
+        type (str): type of optimizer
         model (nn.Module | dict): model or param_groups
         param_groups (dict | None): 
             if provided, directly optimize param_groups and abandon model
@@ -33,16 +33,16 @@ def build_optimizer(
         else:
             param_groups = model
 
-    name = name.lower()
-    if name == 'adam':
+    type = type.lower()
+    if type == 'adam':
         optimizer = torch.optim.Adam(param_groups, **kwargs)
-    elif name == 'adamw':
+    elif type == 'adamw':
         optimizer = torch.optim.AdamW(param_groups, **kwargs)
-    elif name == 'sgd':
+    elif type == 'sgd':
         optimizer = torch.optim.SGD(param_groups, **kwargs)
-    elif name == 'rmsprop':
+    elif type == 'rmsprop':
         optimizer = torch.optim.RMSprop(param_groups, **kwargs)
     else:
-        raise NotImplementedError(f"Optimizer {name} not supported")
+        raise NotImplementedError(f"Optimizer {type} not supported")
 
     return optimizer

@@ -23,22 +23,27 @@ class BaseTrainer(object):
     Args:
         model (nn.Module): Model to be trained.
         cfg (dict, optional): Configuration for trainer, Contains:
-            - 'algorithm' (str): Algorithm name.
+            - 'algorithm' (dict):
+                - 'type' (str): Type of algorithm.
             - `max_epochs` (int): Total epochs for training.
-            - 'criterion' (str): Criterion for training.
+            - 'criterion' (dict):
+                - 'type' (str): Type of criterion for training.
             - 'optimizer':
-                - 'name' (str): Name of optimizer.
+                - 'type' (str): Name of optimizer.
                 - 'param_groups' (dict | None): If provided, directly optimize
                     param_groups and abandon model.
                 - 'kwargs' (dict): Arguments for optimizer.
             - 'scheduler':
-                - 'name' (str): Name of scheduler.
+                - 'type' (str): Name of scheduler.
                 - 'kwargs' (dict): Arguments for scheduler.
             - 'device' (str | torch.device | None): Device to use.
                 If None, use 'cuda' if available.
-        train_loader (DataLoader, optional): Training data loader.
-        val_loader (DataLoader, optional): Validation data loader.
-        test_loader (DataLoader, optional): Test data loader.
+            - 'trainloader':
+
+            - 'valloader':
+
+            - 'testloader':
+
         default_hooks (dict, optional): Default hooks to be registered.
         custom_hooks (list, optional): Custom hooks to be registered.
         load_from (str, optional): Checkpoint file path to load.
@@ -50,6 +55,9 @@ class BaseTrainer(object):
         optimizer (Optimizer): Optimizer.
         scheduler (lr_scheduler._LRScheduler): Learning rate scheduler.
         criterion (Callable): Criterion for training.
+        algorithm (object): Algorithm for training.
+        cfg (dict): Configuration for trainer.
+        hooks (List[Hook]): List of registered hooks.
         max_epochs (int): Total epochs for training.
         device (torch.device): Device to use.
 
@@ -58,9 +66,6 @@ class BaseTrainer(object):
             self,
             model: nn.Module,
             cfg: dict | None = None,
-            train_loader: DataLoader | None = None,
-            val_loader: DataLoader | None = None,
-            test_loader: DataLoader | None = None,
             default_hooks: Dict[str, Hook | dict] | None = None,
             custom_hooks: List[Hook | dict] | None = None,
             load_from: str | None = None,
@@ -82,18 +87,29 @@ class BaseTrainer(object):
             self._scheduler = {'name': 'constant'}
         
         if 'criterion' in self._cfg:
-            self._criterion = str(self._cfg['criterion'])
+            self._criterion = dict(self._cfg['criterion'])
         else:
             raise KeyError("Criterion is not found in `cfg`.")
         
         if 'algorithm' in self._cfg:
-            self._algorithm = str(self._cfg['algorithm'])
+            self._algorithm = dict(self._cfg['algorithm'])
         else:
             raise KeyError("Algorithm is not found in `cfg`.")
-
-        self.train_loader = train_loader
-        self.val_loader = val_loader
-        self.test_loader = test_loader
+        
+        if 'trainloader' in self._cfg:
+            self.train_loader = self._cfg['trainloader']
+        else:
+            raise KeyError("Trainloader is not found in `cfg`.")
+        
+        if 'valloader' in self._cfg:
+            self.val_loader = self._cfg['valloader']
+        else:
+            raise KeyError("Valloader is not found in `cfg`.")
+        
+        if 'testloader' in self._cfg:
+            self.test_loader = self._cfg['testloader']
+        else:
+            raise KeyError("Testloader is not found in `cfg`.")
 
         # load checkpoint
         self._load_from = load_from
@@ -112,6 +128,11 @@ class BaseTrainer(object):
         # log hooks information
         self.logger.write(f'Hooks will be executed in the following '
                           f'order:\n{self.get_hooks_info()}')
+    
+    @property
+    def cfg(self):
+        """Configs: Configuration for trainer."""
+        return self._cfg
 
     @property
     def hooks(self):
@@ -140,15 +161,15 @@ class BaseTrainer(object):
     @property
     def criterion(self):
         """Callable: Criterion for training."""
-        if isinstance(self._criterion, str):
-            self._criterion = LOSSES.build(dict(type=self._criterion))
+        if isinstance(self._criterion, dict):
+            self._criterion = LOSSES.build(self._criterion)
         return self._criterion
     
     @property
     def algorithm(self):
         """object: Algorithm for training."""
-        if isinstance(self._algorithm, str):
-            self._algorithm = ALGORITHMS.build(dict(type=self._algorithm))
+        if isinstance(self._algorithm, dict):
+            self._algorithm = ALGORITHMS.build(self._algorithm)
         return self._algorithm
     
     @property
@@ -274,39 +295,29 @@ class BaseTrainer(object):
     def val(self):
         """Validation process."""
         self.call_hook('before_val')
-
         self.call_hook('before_val_epoch')
 
         tbar = tqdm(self.val_loader, desc='Validation', dynamic_ncols=True)
-
         for batch in tbar:
             self.call_hook('before_val_iter')
-
             self.val_step(batch)
-
             self.call_hook('after_val_iter')
 
         self.call_hook('after_val_epoch')
-
         self.call_hook('after_val')
 
     def test(self):
         """Test process."""
         self.call_hook('before_test')
-
         self.call_hook('before_test_epoch')
 
         tbar = tqdm(self.test_loader, desc='Testing', dynamic_ncols=True)
-
         for batch in tbar:
             self.call_hook('before_test_iter')
-
             self.test_step(batch)
-
             self.call_hook('after_test_iter')
 
         self.call_hook('after_test_epoch')
-
         self.call_hook('after_test')
     
     def load_ckpt(self, fpath: str, device: str| None = 'cpu'):

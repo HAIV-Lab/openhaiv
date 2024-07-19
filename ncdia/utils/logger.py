@@ -1,7 +1,8 @@
-import sys
-import time
 import os
 import os.path as osp
+import sys
+import time
+import yaml
 
 from .tools import mkdir_if_missing
 
@@ -21,10 +22,13 @@ class Logger(object):
         >>> sys.stdout = Logger(osp.join(save_dir, log_name))
     """
     def __init__(self, fpath: str | None = None):
+        self.fpath = fpath
+        self.fdir = osp.dirname(fpath) if fpath is not None else None
+
         self.console = sys.stdout
         self.file = None
         if fpath is not None:
-            mkdir_if_missing(osp.dirname(fpath))
+            mkdir_if_missing(self.fdir)
             self.file = open(fpath, 'w')
 
     def __del__(self):
@@ -69,6 +73,17 @@ class Logger(object):
             >>> logger.info('Hello, world!')
         """
         self.write(msg, timestamp=True, end=end)
+
+    def create_config(self, cfg: dict):
+        """Create config file and save to disk in the form of yaml
+
+        Args:
+            cfg (dict): arguments to be wrote
+        """
+        fpath = osp.join(self.fdir, 'cfg.yaml')
+
+        with open(fpath, 'w', encoding='utf-8') as f:
+            yaml.dump(cfg, f, allow_unicode=True)
 
     def flush(self):
         """Flush the buffer to external file

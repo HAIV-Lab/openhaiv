@@ -137,14 +137,14 @@ class ConstantLR(_LRScheduler):
 
 
 def build_scheduler(
-        name: str,
+        type: str,
         optimizer: torch.optim.Optimizer,
         **kwargs
     ) -> _LRScheduler:
     """Build learning rate scheduler.
 
     Args:
-        name (str): name of scheduler
+        type (str): type of scheduler
         optimizer (torch.optim.Optimizer): optimizer
         kwargs (dict): arguments for scheduler
 
@@ -158,22 +158,22 @@ def build_scheduler(
         >>> optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
         >>> scheduler = build_scheduler('cosine', optimizer)
     """
-    name = name.lower()
-    if name == 'step':
+    type = type.lower()
+    if type == 'step':
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, **kwargs)
-    elif name == 'multistep':
+    elif type == 'multistep':
         lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, **kwargs)
-    elif name == 'exponential':
+    elif type == 'exponential':
         lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, **kwargs)
-    elif name == 'cosine':
+    elif type == 'cosine':
         lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, **kwargs)
-    elif name == 'cosine_warmup':
+    elif type == 'cosine_warmup':
         lr_scheduler = CosineWarmupLR(optimizer, **kwargs)
-    elif name == 'linear_warmup':
+    elif type == 'linear_warmup':
         lr_scheduler = LinearWarmupLR(optimizer, **kwargs)
-    elif name == 'constant':
+    elif type == 'constant':
         lr_scheduler = ConstantLR(optimizer, **kwargs)
     else:
-        raise NotImplementedError(f"LR scheduler {name} not supported")
+        raise NotImplementedError(f"LR scheduler {type} not supported")
 
     return lr_scheduler

@@ -267,3 +267,47 @@ class Configs():
             return object.__getattribute__(self, name)
         except AttributeError:
             return None
+
+
+def setup_cfg(args, default: dict = {}):
+    """Setup config with parsed arguments.
+
+    Args:
+        args (argparse.Namespace): parsed arguments
+        default (dict): default config
+
+    Returns:
+        cfg (Configs): config
+    """
+    cfg = Configs()
+
+    # Update default config
+    default_cfg = {
+        'seed': -1,
+        'device': 'cuda',
+        'work_dir': "./results/",
+    }
+    for key, value in default.items():
+        default_cfg[key] = value
+
+    # Set default vaules
+    cfg.merge_from_dict(default_cfg)
+
+    # Load config from file
+    for opt in args.opts:
+        if opt.startswith('_base_'):
+            cfg.merge_from_yaml(opt.split('=')[1])
+            args.opts.remove(opt)
+
+    for cfg_file in args.config_files:
+        cfg.merge_from_yaml(cfg_file)
+
+    # Load config from input arguments
+    cfg.merge_from_dict(vars(args))
+
+    # Load config from command line
+    cfg.merge_from_list(args.opts)
+
+    cfg.freeze()
+
+    return cfg
