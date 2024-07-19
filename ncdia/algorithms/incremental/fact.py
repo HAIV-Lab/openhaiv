@@ -14,7 +14,7 @@ from .net.fact_net import FACTNET
 
     
 
-@INMETHODS.register()
+@INMETHODS.register
 class FACT(BaseLearner):
     def __init__(self, cfg: Configs) -> None:
         self.args = cfg.copy()

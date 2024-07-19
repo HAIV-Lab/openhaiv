@@ -5,7 +5,7 @@ from ncdia.utils import HOOKS, Logger
 from .hook import Hook
 
 
-@HOOKS.register()
+@HOOKS.register
 class LoggerHook(Hook):
     """A hook to log information during training and evaluation.
     

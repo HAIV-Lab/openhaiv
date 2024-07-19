@@ -2,7 +2,7 @@ from ncdia.utils import HOOKS
 from .hook import Hook
 
 
-@HOOKS.register()
+@HOOKS.register
 class SchedulerHook(Hook):
     """A hook to change learning rate during training.
     """

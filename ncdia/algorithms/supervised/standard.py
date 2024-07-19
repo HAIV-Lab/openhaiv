@@ -2,8 +2,8 @@ from ncdia.utils import accuracy, ALGORITHMS
 from ncdia.algorithms.base import BaseAlg
 
 
-@ALGORITHMS.register()
-class StandardSupervised(BaseAlg):
+@ALGORITHMS.register
+class StandardSL(BaseAlg):
     """Standard supervised learning algorithm.
 
     Containing:

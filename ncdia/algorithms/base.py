@@ -1,7 +1,7 @@
 from ncdia.utils import ALGORITHMS
 
 
-@ALGORITHMS.register()
+@ALGORITHMS.register
 class BaseAlg(object):
     """Basic algorithm class to define the interface of an algorithm.
 

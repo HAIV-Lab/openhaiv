@@ -11,13 +11,13 @@ from ncdia.utils import (
     TRAINERS, HOOKS, LOSSES, ALGORITHMS,
     mkdir_if_missing, auto_device,
 )
-from hooks import Hook
-from priority import get_priority
-from optims import build_optimizer, build_scheduler
+from .hooks import Hook
+from .priority import get_priority
+from .optims import build_optimizer, build_scheduler
 from ncdia.datasets import build_dataloader
 
 
-@TRAINERS.register()
+@TRAINERS.register
 class BaseTrainer(object):
     """Basic trainer class for training models.
 
@@ -54,6 +54,8 @@ class BaseTrainer(object):
                     - 'type' (str): Type of dataset.
                     - kwargs (dict) for dataset, such as 'root', 'split', etc.
                 - kwargs (dict) for DataLoader, such as 'batch_size', 'shuffle', etc.
+            - 'exp_name' (str): Experiment name.
+            - 'work_dir' (str): Working directory to save logs and checkpoints.
         train_loader (DataLoader | dict, optional): DataLoader for training.
         val_loader (DataLoader | dict, optional): DataLoader for validation.
         test_loader (DataLoader | dict, optional): DataLoader for testing.
@@ -77,6 +79,7 @@ class BaseTrainer(object):
         logger (Logger): Logger for logging information.
         device (torch.device): Device to use.
         work_dir (str): Working directory to save logs and checkpoints.
+        exp_name (str): Experiment name.
         load_from (str): Checkpoint file path to load.
 
     """
@@ -90,6 +93,7 @@ class BaseTrainer(object):
             default_hooks: Dict[str, Hook | dict] | None = None,
             custom_hooks: List[Hook | dict] | None = None,
             load_from: str | None = None,
+            exp_name: str | None = None,
             work_dir: str | None = None,
     ):
         super(BaseTrainer, self).__init__()
@@ -150,8 +154,9 @@ class BaseTrainer(object):
         self.load_from = load_from
 
         # work directory
-        mkdir_if_missing(work_dir)
-        self.work_dir = work_dir
+        self._work_dir = work_dir or str(self._cfg['work_dir']) or 'output'
+        self._exp_name = exp_name or str(self._cfg['exp_name']) or 'exp'
+        mkdir_if_missing(self.work_dir)
 
         self._hooks: List[Hook] = []
         # register hooks to `self._hooks`
@@ -179,6 +184,11 @@ class BaseTrainer(object):
             return None
         else:
             return self._logger
+    
+    @property
+    def work_dir(self):
+        """str: Working directory to save logs and checkpoints."""
+        return os.path.join(self._work_dir, self._exp_name)        
     
     @property
     def model(self) -> nn.Module:
@@ -548,11 +558,11 @@ class BaseTrainer(object):
                 to be registered.
         """
         default_hooks: dict = dict(
-            runtime_info=dict(type='RuntimeInfoHook'),
-            timer=dict(type='IterTimerHook'),
-            sampler_seed=dict(type='DistSamplerSeedHook'),
-            param_scheduler=dict(type='ParamSchedulerHook'),
-            checkpoint=dict(type='CheckpointHook', interval=1),
+            # runtime_info=dict(type='RuntimeInfoHook'),
+            # timer=dict(type='IterTimerHook'),
+            # sampler_seed=dict(type='DistSamplerSeedHook'),
+            # param_scheduler=dict(type='ParamSchedulerHook'),
+            # checkpoint=dict(type='CheckpointHook', interval=1),
 
             logger=dict(type='LoggerHook'),
             model=dict(type='ModelHook'),

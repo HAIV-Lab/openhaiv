@@ -2,7 +2,7 @@ import torch.nn as nn
 from ncdia.utils import LOSSES
 
 
-@LOSSES.register()
+@LOSSES.register
 class CrossEntropyLoss(nn.CrossEntropyLoss):
     """CrossEntropyLoss with label smoothing.
     

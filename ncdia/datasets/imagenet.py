@@ -5,7 +5,7 @@ from torchvision.datasets import ImageFolder
 from ncdia.utils import DATASETS
 
 
-@DATASETS.register()
+@DATASETS.register
 class ImageNet(ImageFolder):
     """ImageNet dataset.
 
@@ -22,8 +22,8 @@ class ImageNet(ImageFolder):
         >>> dataset = ImageNet(root='/datasets/imagenet/', split='train')
         >>> print(len(dataset))
         1281167
-        >>> img, target, attribute, imgpath = dataset[0]
-        >>> print(img.size, target)
+        >>> batch = dataset[0]
+        >>> print(batch['data'].size, batch['label'])
         (3, 224, 224) 0
     
     """
@@ -43,16 +43,17 @@ class ImageNet(ImageFolder):
             target_transform,
         )
 
-    def __getitem__(self, index: int) -> Tuple[Any, Any, Any, Any]:
+    def __getitem__(self, index: int) -> dict:
         """
         Args:
             index (int): Index
 
         Returns:
-            batch (tuple): (image, target, attribute, imgpath), where 
-                target is class_index of the target class,
-                attribute is the attribute of the image,
-                imgpath is the path of the image.
+            batch (dict):
+                - 'data': image data,
+                - 'target': class_index of the target class,
+                - 'attribute': attribute of the image,
+                - 'imgpath': path of the image.
         """
         path, target = self.samples[index]
         sample = self.loader(path)
@@ -63,4 +64,9 @@ class ImageNet(ImageFolder):
         if self.target_transform is not None:
             target = self.target_transform(target)
 
-        return sample, target, None, path
+        return {
+            'data': sample,
+            'label': target,
+            'attribute': None,
+            'imgpath': path,
+        }

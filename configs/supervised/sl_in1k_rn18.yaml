@@ -1,0 +1,49 @@
+trainloader:
+  dataset:
+    type: ImageNet
+    root: /data/hdd/datasets/ImageNet
+    split: train
+  batch_size: 128
+  num_workers: 4
+  shuffle: True
+
+valloader:
+  dataset:
+    type: ImageNet
+    root: /data/hdd/datasets/ImageNet
+    split: val
+  batch_size: 128
+  num_workers: 4
+  shuffle: False
+
+testloader:
+  dataset:
+    type: ImageNet
+    root: /data/hdd/datasets/ImageNet
+    split: val
+  batch_size: 128
+  num_workers: 4
+  shuffle: False
+
+algorithm:
+  type: StandardSL
+
+max_epochs: 10
+
+criterion:
+  type: CrossEntropyLoss
+
+optimizer:
+  type: Adam
+  lr: 0.0003
+  weight_decay: 0.0001
+
+scheduler:
+  type: Constant
+
+seed: 0
+
+device: cuda
+
+exp_name: exp
+work_dir: ./output/supervised/sl_in1k_rn18

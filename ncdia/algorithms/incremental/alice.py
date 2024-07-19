@@ -16,7 +16,7 @@ from .net.alice_net import AliceNET
 
     
 
-@INMETHODS.register()
+@INMETHODS.register
 class Alice(BaseLearner):
     def __init__(self, cfg: Configs) -> None:
         self.args = cfg.copy()

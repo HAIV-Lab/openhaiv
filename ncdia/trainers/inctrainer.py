@@ -2,7 +2,7 @@ from ncdia.utils import TRAINERS
 from .base import BaseTrainer
 
 
-@TRAINERS.register()
+@TRAINERS.register
 class IncTrainer(BaseTrainer):
     """IncTrainer class for incremental training a model on session > 0.
 

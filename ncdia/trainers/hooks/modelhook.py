@@ -2,7 +2,7 @@ from ncdia.utils import HOOKS
 from .hook import Hook
 
 
-@HOOKS.register()
+@HOOKS.register
 class ModelHook(Hook):
     """A hook to change model state in the pipeline, 
     such as setting device, changing model to eval mode, etc.

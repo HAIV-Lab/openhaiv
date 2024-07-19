@@ -2,7 +2,7 @@ from ncdia.utils import HOOKS
 from .hook import Hook
 
 
-@HOOKS.register()
+@HOOKS.register
 class OptimizerHook(Hook):
     """A hook to put optimizer to zero_grad and step during training.
     """

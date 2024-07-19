@@ -1,4 +1,5 @@
 import warnings
+from typing import Callable
 
 
 class Registry(dict):
@@ -88,7 +89,7 @@ class Registry(dict):
                 warnings.warn(f"Target {key} is already registered.")
             self[key] = value
 
-    def register(self, target: callable | dict):
+    def register(self, target: Callable | dict):
         """Register a target.
 
         Args:
@@ -133,6 +134,7 @@ class Registry(dict):
         self._dict[key] = value
 
     def __getitem__(self, key):
+        key = key.lower()
         return self._dict[key]
 
     def __contains__(self, key):

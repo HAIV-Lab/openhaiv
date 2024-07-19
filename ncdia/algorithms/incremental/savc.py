@@ -17,7 +17,7 @@ from .losses.angular_loss import AngularPenaltySMLoss
 import fantasy
 
 
-@INMETHODS.register()
+@INMETHODS.register
 class SAVC(BaseLearner, BaseAlg):
     def __init__(self, cfg: Configs) -> None:
         self.args = cfg.copy()
