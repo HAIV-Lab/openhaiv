@@ -18,3 +18,6 @@ ALGORITHMS = Registry()
 
 # mange all kinds of inc algorithms
 INMETHODS = Registry()
+
+# manage all kinds of datasets
+DATASETS = Registry()

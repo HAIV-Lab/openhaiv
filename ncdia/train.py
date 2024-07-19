@@ -1,6 +1,8 @@
 import argparse
 from utils.cfg import setup_cfg
 from utils.tools import set_random_seed
+from trainers import PreTrainer, IncTrainer
+from torchvision.models import resnet18
 
 
 parser = argparse.ArgumentParser()
@@ -22,6 +24,14 @@ def main(args):
     # Setup random seed
     if cfg.seed >= 0:
         set_random_seed(cfg.seed)
+
+    # Build the trainer from config
+    # trainer = PreTrainer(cfg) if cfg.session == 0 else IncTrainer(cfg)
+    model = resnet18(pretrained=True)
+    trainer = PreTrainer(model, cfg)
+
+    # Start training
+    trainer.train()
 
 
 if __name__ == '__main__':

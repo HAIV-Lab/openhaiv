@@ -24,25 +24,3 @@ testloader:
   batch_size: 128
   num_workers: 4
   shuffle: False
-
-algorithm:
-  type: StandardSupervised
-
-max_epochs: 10
-
-criterion:
-  type: CrossEntropyLoss
-
-optimizer:
-  type: Adam
-  lr: 0.0003
-  weight_decay: 0.0001
-
-scheduler:
-  type: Constant
-
-seed: -1
-
-device: 'cuda'
-
-work_dir: "./work_dirs/template"

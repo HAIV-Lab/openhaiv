@@ -14,6 +14,7 @@ from ncdia.utils import (
 from hooks import Hook
 from priority import get_priority
 from optims import build_optimizer, build_scheduler
+from ncdia.datasets import build_dataloader
 
 
 @TRAINERS.register()
@@ -32,18 +33,30 @@ class BaseTrainer(object):
                 - 'type' (str): Name of optimizer.
                 - 'param_groups' (dict | None): If provided, directly optimize
                     param_groups and abandon model.
-                - 'kwargs' (dict): Arguments for optimizer.
+                - kwargs (dict) for optimizer, such as 'lr', 'weight_decay', etc.
             - 'scheduler':
                 - 'type' (str): Name of scheduler.
-                - 'kwargs' (dict): Arguments for scheduler.
+                - kwargs (dict) for scheduler, such as 'step_size', 'gamma', etc.
             - 'device' (str | torch.device | None): Device to use.
                 If None, use 'cuda' if available.
             - 'trainloader':
-
+                - 'dataset': 
+                    - 'type' (str): Type of dataset.
+                    - kwargs (dict) for dataset, such as 'root', 'split', etc.
+                - kwargs (dict) for DataLoader, such as 'batch_size', 'shuffle', etc.
             - 'valloader':
-
+                - 'dataset': 
+                    - 'type' (str): Type of dataset.
+                    - kwargs (dict) for dataset, such as 'root', 'split', etc.
+                - kwargs (dict) for DataLoader, such as 'batch_size', 'shuffle', etc.
             - 'testloader':
-
+                - 'dataset':
+                    - 'type' (str): Type of dataset.
+                    - kwargs (dict) for dataset, such as 'root', 'split', etc.
+                - kwargs (dict) for DataLoader, such as 'batch_size', 'shuffle', etc.
+        train_loader (DataLoader | dict, optional): DataLoader for training.
+        val_loader (DataLoader | dict, optional): DataLoader for validation.
+        test_loader (DataLoader | dict, optional): DataLoader for testing.
         default_hooks (dict, optional): Default hooks to be registered.
         custom_hooks (list, optional): Custom hooks to be registered.
         load_from (str, optional): Checkpoint file path to load.
@@ -51,6 +64,9 @@ class BaseTrainer(object):
 
     Attributes:
         model (nn.Module): Neural network models.
+        train_loader (DataLoader): DataLoader for training.
+        val_loader (DataLoader): DataLoader for validation.
+        test_loader (DataLoader): DataLoader for testing.
         optimizer (Optimizer): Optimizer.
         scheduler (lr_scheduler._LRScheduler): Learning rate scheduler.
         criterion (Callable): Criterion for training.
@@ -60,12 +76,17 @@ class BaseTrainer(object):
         hooks (List[Hook]): List of registered hooks.
         logger (Logger): Logger for logging information.
         device (torch.device): Device to use.
+        work_dir (str): Working directory to save logs and checkpoints.
+        load_from (str): Checkpoint file path to load.
 
     """
     def __init__(
             self,
             model: nn.Module,
             cfg: dict | None = None,
+            train_loader: DataLoader | dict | None = None,
+            val_loader: DataLoader | dict | None = None,
+            test_loader: DataLoader | dict | None = None,
             default_hooks: Dict[str, Hook | dict] | None = None,
             custom_hooks: List[Hook | dict] | None = None,
             load_from: str | None = None,
@@ -95,19 +116,34 @@ class BaseTrainer(object):
         else:
             raise KeyError("Algorithm is not found in `cfg`.")
         
+        self._train_loader = {}
         if 'trainloader' in self._cfg:
-            self.train_loader = self._cfg['trainloader']
-        else:
+            self._train_loader.update(dict(self._cfg['trainloader']))
+        if isinstance(train_loader, dict):
+            self._train_loader.update(train_loader)
+        elif isinstance(train_loader, DataLoader):
+            self._train_loader = train_loader
+        if not self._train_loader:
             raise KeyError("Trainloader is not found in `cfg`.")
         
+        self._val_loader = {}
         if 'valloader' in self._cfg:
-            self.val_loader = self._cfg['valloader']
-        else:
+            self._val_loader.update(dict(self._cfg['valloader']))
+        if isinstance(val_loader, dict):
+            self._val_loader.update(val_loader)
+        elif isinstance(val_loader, DataLoader):
+            self._val_loader = val_loader
+        if not self._val_loader:
             raise KeyError("Valloader is not found in `cfg`.")
         
+        self._test_loader = {}
         if 'testloader' in self._cfg:
-            self.test_loader = self._cfg['testloader']
-        else:
+            self._test_loader.update(dict(self._cfg['testloader']))
+        if isinstance(test_loader, dict):
+            self._test_loader.update(test_loader)
+        elif isinstance(test_loader, DataLoader):
+            self._test_loader = test_loader
+        if not self._test_loader:
             raise KeyError("Testloader is not found in `cfg`.")
 
         # load checkpoint
@@ -148,6 +184,27 @@ class BaseTrainer(object):
     def model(self) -> nn.Module:
         """nn.Module: Model to be trained."""
         return self._model
+    
+    @property
+    def train_loader(self) -> DataLoader:
+        """DataLoader: DataLoader for training."""
+        if isinstance(self._train_loader, dict):
+            self._train_loader = build_dataloader(self._train_loader)
+        return self._train_loader
+    
+    @property
+    def val_loader(self) -> DataLoader:
+        """DataLoader: DataLoader for validation."""
+        if isinstance(self._val_loader, dict):
+            self._val_loader = build_dataloader(self._val_loader)
+        return self._val_loader
+    
+    @property
+    def test_loader(self) -> DataLoader:
+        """DataLoader: DataLoader for testing."""
+        if isinstance(self._test_loader, dict):
+            self._test_loader = build_dataloader(self._test_loader)
+        return self._test_loader
     
     @property
     def optimizer(self) -> Optimizer:
