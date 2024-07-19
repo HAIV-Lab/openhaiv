@@ -95,6 +95,9 @@ class Registry(dict):
         Args:
             target (callable | dict): target to be registered.
 
+        Returns:
+            target (object): Registered target.
+
         Raises:
             TypeError: If target is not callable or dict.
         """
@@ -104,6 +107,7 @@ class Registry(dict):
             self.register_dict(target)
         else:
             raise TypeError(f"Target {target} is not callable or dict.")
+        return target
         
     def build(self, target: dict):
         """Build a target with configs.

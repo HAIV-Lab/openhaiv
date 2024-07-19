@@ -168,17 +168,17 @@ class BaseTrainer(object):
                           f'order:\n{self.get_hooks_info()}')
     
     @property
-    def cfg(self):
+    def cfg(self) -> object:
         """Configs: Configuration for trainer."""
         return self._cfg
 
     @property
-    def hooks(self):
+    def hooks(self) -> List[Hook]:
         """List[Hook]: List of registered hooks."""
         return self._hooks
     
     @property
-    def logger(self):
+    def logger(self) -> object:
         """Logger: Logger for logging information."""
         if '_logger' not in self.__dict__:
             return None
@@ -186,7 +186,7 @@ class BaseTrainer(object):
             return self._logger
     
     @property
-    def work_dir(self):
+    def work_dir(self) -> str:
         """str: Working directory to save logs and checkpoints."""
         return os.path.join(self._work_dir, self._exp_name)        
     
@@ -231,21 +231,21 @@ class BaseTrainer(object):
         return self._scheduler
     
     @property
-    def criterion(self):
+    def criterion(self) -> nn.Module:
         """Callable: Criterion for training."""
         if isinstance(self._criterion, dict):
             self._criterion = LOSSES.build(self._criterion)
         return self._criterion
     
     @property
-    def algorithm(self):
+    def algorithm(self) -> object:
         """object: Algorithm for training."""
         if isinstance(self._algorithm, dict):
             self._algorithm = ALGORITHMS.build(self._algorithm)
         return self._algorithm
     
     @property
-    def max_epochs(self):
+    def max_epochs(self) -> int:
         """int: Total epochs for training."""
         if not hasattr(self, '_max_epochs'):
             if not 'max_epochs' in self._cfg:
@@ -256,7 +256,7 @@ class BaseTrainer(object):
         return self._max_epochs
     
     @property
-    def device(self):
+    def device(self) -> torch.device:
         """torch.device: Device to use."""
         if not hasattr(self, '_device'):
             if not 'device' in self._cfg:

@@ -1,5 +1,5 @@
 import os
-from typing import Dict
+from typing import Dict, Sequence
 
 from ncdia.utils import HOOKS, Logger
 from .hook import Hook
@@ -111,7 +111,7 @@ class LoggerHook(Hook):
             trainer: object,
             batch_idx: int,
             data_batch: dict | tuple | list | None = None,
-            outputs: os.Sequence | None = None
+            outputs: Sequence | None = None
     ) -> None:
         """
         
@@ -122,7 +122,7 @@ class LoggerHook(Hook):
             trainer: object,
             batch_idx: int,
             data_batch: dict | tuple | list | None = None,
-            outputs: os.Sequence | None = None
+            outputs: Sequence | None = None
     ) -> None:
         """
         
