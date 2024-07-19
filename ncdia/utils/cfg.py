@@ -267,6 +267,21 @@ class Configs():
             return object.__getattribute__(self, name)
         except AttributeError:
             return None
+    
+    def __contains__(self, key):
+        return key in self.cfg
+    
+    def __len__(self):
+        return len(self.cfg)
+    
+    def keys(self):
+        return self.cfg.keys()
+    
+    def values(self):
+        return self.cfg.values()
+    
+    def items(self):
+        return self.cfg.items()
 
 
 def setup_cfg(args, default: dict = {}):

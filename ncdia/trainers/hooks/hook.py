@@ -1,3 +1,4 @@
+from ncdia.utils import HOOKS
 from typing import Dict, Optional, Sequence, Union, Any
 
 DATA_BATCH = Optional[Union[dict, tuple, list]]
@@ -23,6 +24,7 @@ def is_method_overridden(method: str, base_class: type,
     return derived_method != base_method
 
 
+@HOOKS.register
 class Hook(object):
     """Base hook class.
 
