@@ -12,7 +12,7 @@ from ncdia.utils import (
     mkdir_if_missing, auto_device,
 )
 from .hooks import Hook
-from .priority import get_priority
+from .priority import get_priority, Priority
 from .optims import build_optimizer, build_scheduler
 from ncdia.datasets import build_dataloader
 
@@ -329,8 +329,9 @@ class BaseTrainer(object):
         """
         self.call_hook('before_run')
 
-        self.load_ckpt(self.load_from)
-        self.call_hook('after_load_checkpoint')
+        if self.load_from:
+            self.load_ckpt(self.load_from)
+            self.call_hook('after_load_checkpoint')
 
         self.call_hook('before_train')
 

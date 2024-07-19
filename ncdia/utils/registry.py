@@ -123,12 +123,12 @@ class Registry(dict):
         if 'type' not in target:
             raise KeyError(f"Key 'type' is not found in target {target}.")
         
-        target_type = target['type']
+        target_type = target['type'].lower()
         if target_type not in self._dict:
             raise KeyError(f"Target type {target_type} is not registered.")
         
         target.pop('type')
-        target = self._dict[target_type](**target)
+        target = self[target_type](**target)
         return target
     
     def __call__(self, target):

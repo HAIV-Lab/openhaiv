@@ -51,6 +51,8 @@ class Logger(object):
         Examples:
             >>> logger.write('Hello, world!')
         """
+        msg = str(msg)
+        
         if timestamp:
             time_stamp = time.strftime(
                 "%Y-%m-%d %H:%M:%S", 

@@ -188,4 +188,7 @@ poetry.toml
 # LSP config files
 pyrightconfig.json
 
+# Output directory
+output/
+
 # End of https://www.toptal.com/developers/gitignore/api/python,linux
