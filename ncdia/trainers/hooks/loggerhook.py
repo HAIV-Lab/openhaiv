@@ -67,9 +67,9 @@ class LoggerHook(Hook):
         else:
             self.logger.write(msg, **kwargs)
 
-    def before_run(self, trainer) -> None:
-        """Log the start of training.
-        
+    def init_trainer(self, trainer) -> None:
+        """Create logger and save to trainer.
+
         Args:
             trainer (BaseTrainer): Trainer object.
         """
@@ -88,7 +88,12 @@ class LoggerHook(Hook):
         # Print config and save to log file
         self.logger.write(trainer.cfg)
 
-        trainer.cfg.logger = self.logger
+        trainer._logger = self.logger
+
+    def before_run(self, trainer) -> None:
+        """
+
+        """
 
     def after_train_iter(
             self,

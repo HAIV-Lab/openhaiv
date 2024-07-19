@@ -9,7 +9,7 @@ from torch.optim import Optimizer, lr_scheduler
 
 from ncdia.utils import (
     TRAINERS, HOOKS, LOSSES, ALGORITHMS,
-    Logger, mkdir_if_missing, auto_device,
+    mkdir_if_missing, auto_device,
 )
 from hooks import Hook
 from priority import get_priority
@@ -48,7 +48,6 @@ class BaseTrainer(object):
         custom_hooks (list, optional): Custom hooks to be registered.
         load_from (str, optional): Checkpoint file path to load.
         work_dir (str, optional): Working directory to save logs and checkpoints.
-        logger (Logger, optional): Logger for logging information.
 
     Attributes:
         model (nn.Module): Neural network models.
@@ -56,9 +55,10 @@ class BaseTrainer(object):
         scheduler (lr_scheduler._LRScheduler): Learning rate scheduler.
         criterion (Callable): Criterion for training.
         algorithm (object): Algorithm for training.
+        max_epochs (int): Total epochs for training.
         cfg (dict): Configuration for trainer.
         hooks (List[Hook]): List of registered hooks.
-        max_epochs (int): Total epochs for training.
+        logger (Logger): Logger for logging information.
         device (torch.device): Device to use.
 
     """
@@ -70,7 +70,6 @@ class BaseTrainer(object):
             custom_hooks: List[Hook | dict] | None = None,
             load_from: str | None = None,
             work_dir: str | None = None,
-            logger: Logger | None = None,
     ):
         super(BaseTrainer, self).__init__()
         self._model = model
@@ -112,19 +111,17 @@ class BaseTrainer(object):
             raise KeyError("Testloader is not found in `cfg`.")
 
         # load checkpoint
-        self._load_from = load_from
+        self.load_from = load_from
 
         # work directory
         mkdir_if_missing(work_dir)
-        self._work_dir = work_dir
-
-        if not logger:
-            logger = Logger(os.path.join(work_dir, 'log.txt'))
-        self.logger = logger
+        self.work_dir = work_dir
 
         self._hooks: List[Hook] = []
         # register hooks to `self._hooks`
         self.register_hooks(default_hooks, custom_hooks)
+        # call hooks to initialize trainer
+        self.call_hook('init_trainer')
         # log hooks information
         self.logger.write(f'Hooks will be executed in the following '
                           f'order:\n{self.get_hooks_info()}')
@@ -138,6 +135,14 @@ class BaseTrainer(object):
     def hooks(self):
         """List[Hook]: List of registered hooks."""
         return self._hooks
+    
+    @property
+    def logger(self):
+        """Logger: Logger for logging information."""
+        if '_logger' not in self.__dict__:
+            return None
+        else:
+            return self._logger
     
     @property
     def model(self) -> nn.Module:
@@ -257,7 +262,7 @@ class BaseTrainer(object):
         """
         self.call_hook('before_run')
 
-        self.load_ckpt(self._load_from)
+        self.load_ckpt(self.load_from)
         self.call_hook('after_load_checkpoint')
 
         self.call_hook('before_train')
@@ -282,7 +287,7 @@ class BaseTrainer(object):
             self.val()
 
         self.call_hook('before_save_checkpoint')
-        self.save_ckpt(os.path.join(self._work_dir, 'latest.pth'))
+        self.save_ckpt(os.path.join(self.work_dir, 'latest.pth'))
 
         self.call_hook('after_train')
 

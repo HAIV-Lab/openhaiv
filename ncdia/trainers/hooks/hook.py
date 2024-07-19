@@ -41,6 +41,15 @@ class Hook(object):
     def __init__(self):
         super(Hook, self).__init__()
 
+    def init_trainer(self, trainer) -> None:
+        """All subclasses should override this method, if they need any
+        operations to initialize the trainer.
+
+        Args:
+            trainer (BaseTrainer): The trainer of the training, validation or testing
+                process.
+        """
+
     def before_run(self, trainer) -> None:
         """All subclasses should override this method, if they need any
         operations before the training validation or testing process.
