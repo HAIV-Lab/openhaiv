@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 from ncdia.utils import DATASETS
 
 
-def build_dataloader(**kwargs):
+def build_dataloader(kwargs):
     """Build data loader.
 
     Args:

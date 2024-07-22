@@ -220,14 +220,16 @@ class BaseTrainer(object):
     def optimizer(self) -> Optimizer:
         """Optimizer: Optimizer to optimize model parameters."""
         if isinstance(self._optimizer, dict):
-            self._optimizer = build_optimizer(self._optimizer, self.model)
+            self._optimizer = build_optimizer(
+                model=self.model, **self._optimizer)
         return self._optimizer
     
     @property
     def scheduler(self) -> lr_scheduler._LRScheduler:
         """lr_scheduler._LRScheduler: Learning rate scheduler."""
         if isinstance(self._scheduler, dict):
-            self._scheduler = build_scheduler(self._scheduler, self.optimizer)
+            self._scheduler = build_scheduler(
+                optimizer=self.optimizer, **self._scheduler)
         return self._scheduler
     
     @property
@@ -331,30 +333,28 @@ class BaseTrainer(object):
 
         if self.load_from:
             self.load_ckpt(self.load_from)
-            self.call_hook('after_load_checkpoint')
 
         self.call_hook('before_train')
 
         for epoch in range(self.max_epochs):
             self.call_hook('before_train_epoch')
 
+            batch_idx = 0
             tbar = tqdm(
                 self.train_loader,
                 desc=f'Epoch {epoch+1}/{self.max_epochs}',
                 dynamic_ncols=True)
 
             for batch in tbar:
-                self.call_hook('before_train_iter')
-
+                self.call_hook('before_train_iter', batch_idx=batch_idx)
                 self.train_step(batch)
-
-                self.call_hook('after_train_iter')
+                self.call_hook('after_train_iter', batch_idx=batch_idx)
+                batch_idx += 1
 
             self.call_hook('after_train_epoch')
 
             self.val()
 
-        self.call_hook('before_save_checkpoint')
         self.save_ckpt(os.path.join(self.work_dir, 'latest.pth'))
 
         self.call_hook('after_train')
@@ -370,11 +370,13 @@ class BaseTrainer(object):
         self.call_hook('before_val')
         self.call_hook('before_val_epoch')
 
+        batch_idx = 0
         tbar = tqdm(self.val_loader, desc='Validation', dynamic_ncols=True)
         for batch in tbar:
-            self.call_hook('before_val_iter')
+            self.call_hook('before_val_iter', batch_idx=batch_idx)
             self.val_step(batch)
-            self.call_hook('after_val_iter')
+            self.call_hook('after_val_iter', batch_idx=batch_idx)
+            batch_idx += 1
 
         self.call_hook('after_val_epoch')
         self.call_hook('after_val')
@@ -384,11 +386,13 @@ class BaseTrainer(object):
         self.call_hook('before_test')
         self.call_hook('before_test_epoch')
 
+        batch_idx = 0
         tbar = tqdm(self.test_loader, desc='Testing', dynamic_ncols=True)
         for batch in tbar:
-            self.call_hook('before_test_iter')
+            self.call_hook('before_test_iter', batch_idx=batch_idx)
             self.test_step(batch)
-            self.call_hook('after_test_iter')
+            self.call_hook('after_test_iter', batch_idx=batch_idx)
+            batch_idx += 1
 
         self.call_hook('after_test_epoch')
         self.call_hook('after_test')
@@ -412,6 +416,7 @@ class BaseTrainer(object):
         checkpoint = torch.load(fpath, map_location=device)
         self.model.load_state_dict(checkpoint['state_dict'])
         self.logger.info(f'Checkpoint loaded from {fpath}')
+        self.call_hook('after_load_checkpoint', checkpoint=checkpoint)
 
         return self.model
     
@@ -425,6 +430,7 @@ class BaseTrainer(object):
 
         checkpoint = {
             'state_dict': self.model.state_dict()}
+        self.call_hook('before_save_checkpoint', checkpoint=checkpoint)
         torch.save(checkpoint, fpath)
 
         self.logger.info(f'Checkpoint saved to {fpath}')

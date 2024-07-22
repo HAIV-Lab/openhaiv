@@ -21,3 +21,5 @@ INMETHODS = Registry()
 
 # manage all kinds of datasets
 DATASETS = Registry()
+
+from .losses import CrossEntropyLoss

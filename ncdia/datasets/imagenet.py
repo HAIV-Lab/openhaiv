@@ -1,5 +1,5 @@
 import os
-from typing import Any, Tuple
+from typing import Callable
 
 from torchvision.datasets import ImageFolder
 from ncdia.utils import DATASETS
@@ -31,8 +31,8 @@ class ImageNet(ImageFolder):
             self,
             root: str,
             split: str = "train",
-            transform: callable | None = None,
-            target_transform: callable | None = None,
+            transform: Callable | None = None,
+            target_transform: Callable | None = None,
     ):
         assert split in ['train', 'val'], f"Unsupported split: {split}"
         root = os.path.join(root, split)
@@ -67,6 +67,6 @@ class ImageNet(ImageFolder):
         return {
             'data': sample,
             'label': target,
-            'attribute': None,
+            'attribute': [],
             'imgpath': path,
         }
