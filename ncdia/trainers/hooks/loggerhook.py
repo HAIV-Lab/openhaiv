@@ -25,7 +25,7 @@ class LoggerHook(Hook):
 
     def __init__(
             self,
-            interval: int = 10,
+            interval: int = 50,
             ignore_last: bool = True,
             exp_name: str = 'exp',
             out_dir: str = None,
@@ -123,7 +123,7 @@ class LoggerHook(Hook):
                 for key, value in outputs.items():
                     if isinstance(value, float):
                         msg += f'| {key}: {value:.4f} '
-                    elif isinstance(value, int, str):
+                    elif isinstance(value, (int, str)):
                         msg += f'| {key}: {value} '
             self.info(msg)
 
@@ -154,7 +154,7 @@ class LoggerHook(Hook):
                 for key, value in outputs.items():
                     if isinstance(value, float):
                         msg += f'| {key}: {value:.4f} '
-                    elif isinstance(value, int, str):
+                    elif isinstance(value, (int, str)):
                         msg += f'| {key}: {value} '
             self.info(msg)
         
@@ -185,7 +185,7 @@ class LoggerHook(Hook):
                 for key, value in outputs.items():
                     if isinstance(value, float):
                         msg += f'| {key}: {value:.4f} '
-                    elif isinstance(value, int, str):
+                    elif isinstance(value, (int, str)):
                         msg += f'| {key}: {value} '
             self.info(msg)
 
@@ -215,7 +215,7 @@ class LoggerHook(Hook):
         for key, value in metrics.items():
             if isinstance(value, float):
                 msg += f'| {key}: {value:.4f} '
-            elif isinstance(value, int, str):
+            elif isinstance(value, (int, str)):
                 msg += f'| {key}: {value} '
         self.info(msg)
     
@@ -245,6 +245,6 @@ class LoggerHook(Hook):
         for key, value in metrics.items():
             if isinstance(value, float):
                 msg += f'| {key}: {value:.4f} '
-            elif isinstance(value, int, str):
+            elif isinstance(value, (int, str)):
                 msg += f'| {key}: {value} '
         self.info(msg)

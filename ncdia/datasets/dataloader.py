@@ -23,7 +23,7 @@ def build_dataloader(kwargs):
     
     dataset_cfg = dict(kwargs.pop('dataset'))
     dataset_cfg['transform'] = transforms.Compose([
-        transforms.Resize((256, 256)),
+        transforms.Resize((224, 224)),
         transforms.CenterCrop(224),
         transforms.ToTensor(),
         transforms.Normalize(

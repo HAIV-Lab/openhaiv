@@ -9,6 +9,14 @@ class SchedulerHook(Hook):
 
     priority = 'NORMAL'
 
+    def init_trainer(self, trainer) -> None:
+        """Initialize scheduler for trainer.
+
+        Args:
+            trainer (BaseTrainer): Trainer object.
+        """
+        trainer.scheduler
+
     def after_train_epoch(self, trainer) -> None:
         """Change learning rate after training epoch.
 

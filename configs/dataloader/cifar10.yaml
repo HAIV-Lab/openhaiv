@@ -1,0 +1,29 @@
+trainloader:
+  dataset:
+    type: CIFAR10
+    root: /data/hdd/datasets/cifar10/
+    train: True
+    download: True
+  batch_size: 128
+  num_workers: 4
+  shuffle: True
+
+valloader:
+  dataset:
+    type: CIFAR10
+    root: /data/hdd/datasets/cifar10/
+    train: False
+    download: True
+  batch_size: 128
+  num_workers: 4
+  shuffle: False
+
+testloader:
+  dataset:
+    type: CIFAR10
+    root: /data/hdd/datasets/cifar10/
+    train: False
+    download: True
+  batch_size: 128
+  num_workers: 4
+  shuffle: False

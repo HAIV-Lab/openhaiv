@@ -1,9 +1,9 @@
-_base_: configs/dataloader/imagenet.yaml
+_base_: configs/dataloader/cifar10.yaml
 
 algorithm:
   type: StandardSL
 
-max_epochs: 1
+max_epochs: 10
 
 criterion:
   type: CrossEntropyLoss
@@ -21,4 +21,4 @@ seed: 0
 device: cuda
 
 exp_name: exp
-work_dir: ./output/supervised/sl_in1k_rn18
+work_dir: ./output/supervised/sl_cifar10_rn18
