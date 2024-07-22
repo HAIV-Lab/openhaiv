@@ -85,8 +85,8 @@ class Registry(dict):
             if not callable(value):
                 raise TypeError(f"Target {value} is not callable.")
             key = key.lower()
-            if key in self._dict:
-                warnings.warn(f"Target {key} is already registered.")
+            # if key in self._dict:
+            #     warnings.warn(f"Target {key} is already registered.")
             self[key] = value
 
     def register(self, target: Callable | dict):

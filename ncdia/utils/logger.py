@@ -63,6 +63,7 @@ class Logger(object):
         self.console.write(msg)
         if self.file is not None:
             self.file.write(msg)
+        self.flush()
 
     def info(self, msg: str, end: str = '\n'):
         """Write message to console and file with timestamp
