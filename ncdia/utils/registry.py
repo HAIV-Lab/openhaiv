@@ -63,8 +63,8 @@ class Registry(dict):
         
         key = target.__name__.lower()
         value = target
-        if key in self._dict:
-            warnings.warn(f"Target {key} is already registered.")
+        # if key in self._dict:
+        #     warnings.warn(f"Target {key} is already registered.")
         self[key] = value
 
     def register_dict(self, target: dict):

@@ -1,5 +1,4 @@
 import os
-from tqdm import tqdm
 from typing import List, Dict
 
 import torch
@@ -73,7 +72,13 @@ class BaseTrainer(object):
         scheduler (lr_scheduler._LRScheduler): Learning rate scheduler.
         criterion (Callable): Criterion for training.
         algorithm (object): Algorithm for training.
+        metrics (dict): Metrics for evaluation and testing.
         max_epochs (int): Total epochs for training.
+        max_train_iters (int): Iterations on one epoch for training.
+        max_val_iters (int): Iterations on one epoch for validation.
+        max_test_iters (int): Iterations on one epoch for testing.
+        epoch (int): Current training epoch.
+        iter (int): Current iteration or index of the current batch.
         cfg (dict): Configuration for trainer.
         hooks (List[Hook]): List of registered hooks.
         logger (Logger): Logger for logging information.
@@ -245,6 +250,13 @@ class BaseTrainer(object):
         if isinstance(self._algorithm, dict):
             self._algorithm = ALGORITHMS.build(self._algorithm)
         return self._algorithm
+
+    @property
+    def metrics(self) -> dict:
+        """dict: Metrics for evaluation and testing."""
+        if not hasattr(self, '_metrics'):
+            return {}
+        return self._metrics
     
     @property
     def max_epochs(self) -> int:
@@ -256,6 +268,21 @@ class BaseTrainer(object):
                 self._max_epochs = int(self._cfg['max_epochs'])
 
         return self._max_epochs
+    
+    @property
+    def max_train_iters(self) -> int:
+        """int: Iterations on one epoch for training."""
+        return len(self.train_loader)
+    
+    @property
+    def max_val_iters(self) -> int:
+        """int: Iterations on one epoch for validation."""
+        return len(self.val_loader)
+    
+    @property
+    def max_test_iters(self) -> int:
+        """int: Iterations on one epoch for testing."""
+        return len(self.test_loader)
     
     @property
     def device(self) -> torch.device:
@@ -337,19 +364,18 @@ class BaseTrainer(object):
         self.call_hook('before_train')
 
         for epoch in range(self.max_epochs):
+            self.epoch = epoch
             self.call_hook('before_train_epoch')
 
-            batch_idx = 0
-            tbar = tqdm(
-                self.train_loader,
-                desc=f'Epoch {epoch+1}/{self.max_epochs}',
-                dynamic_ncols=True)
+            for batch_idx, batch in enumerate(self.train_loader):
+                self.iter = batch_idx
+                self.call_hook('before_train_iter',
+                    batch_idx=batch_idx, data_batch=batch)
+                
+                outputs = self.train_step(batch)
 
-            for batch in tbar:
-                self.call_hook('before_train_iter', batch_idx=batch_idx)
-                self.train_step(batch)
-                self.call_hook('after_train_iter', batch_idx=batch_idx)
-                batch_idx += 1
+                self.call_hook('after_train_iter',
+                    batch_idx=batch_idx, data_batch=batch, outputs=outputs)
 
             self.call_hook('after_train_epoch')
 
@@ -370,15 +396,17 @@ class BaseTrainer(object):
         self.call_hook('before_val')
         self.call_hook('before_val_epoch')
 
-        batch_idx = 0
-        tbar = tqdm(self.val_loader, desc='Validation', dynamic_ncols=True)
-        for batch in tbar:
-            self.call_hook('before_val_iter', batch_idx=batch_idx)
-            self.val_step(batch)
-            self.call_hook('after_val_iter', batch_idx=batch_idx)
-            batch_idx += 1
+        for batch_idx, batch in enumerate(self.val_loader):
+            self.iter = batch_idx
+            self.call_hook('before_val_iter',
+                batch_idx=batch_idx, data_batch=batch)
+            
+            outputs = self.val_step(batch)
 
-        self.call_hook('after_val_epoch')
+            self.call_hook('after_val_iter',
+                batch_idx=batch_idx, data_batch=batch, outputs=outputs)
+
+        self.call_hook('after_val_epoch', metrics=self.metrics)
         self.call_hook('after_val')
 
     def test(self):
@@ -386,15 +414,17 @@ class BaseTrainer(object):
         self.call_hook('before_test')
         self.call_hook('before_test_epoch')
 
-        batch_idx = 0
-        tbar = tqdm(self.test_loader, desc='Testing', dynamic_ncols=True)
-        for batch in tbar:
-            self.call_hook('before_test_iter', batch_idx=batch_idx)
-            self.test_step(batch)
-            self.call_hook('after_test_iter', batch_idx=batch_idx)
-            batch_idx += 1
+        for batch_idx, batch in enumerate(self.test_loader):
+            self.iter = batch_idx
+            self.call_hook('before_test_iter',
+                batch_idx=batch_idx, data_batch=batch)
+            
+            outputs = self.test_step(batch)
 
-        self.call_hook('after_test_epoch')
+            self.call_hook('after_test_iter',
+                batch_idx=batch_idx, data_batch=batch, outputs=outputs)
+
+        self.call_hook('after_test_epoch', metrics=self.metrics)
         self.call_hook('after_test')
     
     def load_ckpt(self, fpath: str, device: str| None = 'cpu'):
@@ -575,6 +605,7 @@ class BaseTrainer(object):
             model=dict(type='ModelHook'),
             optimizer = dict(type='OptimizerHook'),
             scheduler = dict(type='SchedulerHook'),
+            metric = dict(type='MetricHook'),
         )
         if hooks is not None:
             for name, hook in hooks.items():

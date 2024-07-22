@@ -1,7 +1,6 @@
 from .registry import Registry
 from .logger import Logger
 from .tools import *
-from .accuracy import accuracy
 
 
 # manage all kinds of trainers
@@ -13,6 +12,9 @@ HOOKS = Registry()
 # manage all kinds of losses
 LOSSES = Registry()
 
+# manage all kinds of metrics
+METRICS = Registry()
+
 # manage all kinds of algorithms
 ALGORITHMS = Registry()
 
@@ -23,3 +25,4 @@ INMETHODS = Registry()
 DATASETS = Registry()
 
 from .losses import CrossEntropyLoss
+from .metrics import accuracy

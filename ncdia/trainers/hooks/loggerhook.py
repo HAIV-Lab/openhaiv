@@ -102,9 +102,30 @@ class LoggerHook(Hook):
             data_batch: dict | tuple | list | None = None,
             outputs: dict | None = None
     ) -> None:
+        """Print output information every `interval` train steps.
+
+        Args:
+            trainer (object): Trainer object.
+            batch_idx (int): Index of the current batch.
+            data_batch (dict | tuple | list): Data batch.
+            outputs (dict): Output results.
         """
-        
-        """
+        if self.interval <= 0:
+            return
+
+        if self.ignore_last and batch_idx == trainer.max_train_iters - 1:
+            return
+
+        if (batch_idx + 1) % self.interval == 0:
+            msg = f'Epoch(train) [{trainer.epoch + 1}/{trainer.max_epochs}] ' \
+                  f'Iter [{batch_idx + 1}/{trainer.max_train_iters}] '
+            if outputs:
+                for key, value in outputs.items():
+                    if isinstance(value, float):
+                        msg += f'| {key}: {value:.4f} '
+                    elif isinstance(value, int, str):
+                        msg += f'| {key}: {value} '
+            self.info(msg)
 
     def after_val_iter(
             self,
@@ -113,9 +134,29 @@ class LoggerHook(Hook):
             data_batch: dict | tuple | list | None = None,
             outputs: Sequence | None = None
     ) -> None:
+        """Print output information every `interval` validation steps.
+
+        Args:
+            trainer (object): Trainer object.
+            batch_idx (int): Index of the current batch.
+            data_batch (dict | tuple | list): Data batch.
+            outputs (Sequence): Output results.
         """
+        if self.interval <= 0:
+            return
         
-        """
+        if self.ignore_last and batch_idx == trainer.max_val_iters - 1:
+            return
+
+        if (batch_idx + 1) % self.interval == 0:
+            msg = f'Epoch(val) Iter [{batch_idx + 1}/{trainer.max_val_iters}] '
+            if outputs:
+                for key, value in outputs.items():
+                    if isinstance(value, float):
+                        msg += f'| {key}: {value:.4f} '
+                    elif isinstance(value, int, str):
+                        msg += f'| {key}: {value} '
+            self.info(msg)
         
     def after_test_iter(
             self,
@@ -124,25 +165,86 @@ class LoggerHook(Hook):
             data_batch: dict | tuple | list | None = None,
             outputs: Sequence | None = None
     ) -> None:
+        """Print output information every `interval` test steps.
+
+        Args:
+            trainer (object): Trainer object.
+            batch_idx (int): Index of the current batch.
+            data_batch (dict | tuple | list): Data batch.
+            outputs (Sequence): Output results.
         """
+        if self.interval <= 0:
+            return
         
+        if self.ignore_last and batch_idx == trainer.max_test_iters - 1:
+            return
+
+        if (batch_idx + 1) % self.interval == 0:
+            msg = f'Epoch(test) Iter [{batch_idx + 1}/{trainer.max_test_iters}] '
+            if outputs:
+                for key, value in outputs.items():
+                    if isinstance(value, float):
+                        msg += f'| {key}: {value:.4f} '
+                    elif isinstance(value, int, str):
+                        msg += f'| {key}: {value} '
+            self.info(msg)
+
+    def before_val_epoch(self, trainer) -> None:
+        """Print information before each validation epoch.
+
+        Args:
+            trainer (object): Trainer object.
         """
+        self.info('Evaluating...')
         
     def after_val_epoch(
             self,
             trainer: object,
             metrics: Dict[str, float] | None = None
     ) -> None:
+        """Print evaluation results after each validation epoch.
+
+        Args:
+            trainer (object): Trainer object.
+            metrics (dict): Evaluation metrics.
         """
+        if not isinstance(metrics, dict) or not metrics:
+            return
         
+        msg = f'Epoch(val) '
+        for key, value in metrics.items():
+            if isinstance(value, float):
+                msg += f'| {key}: {value:.4f} '
+            elif isinstance(value, int, str):
+                msg += f'| {key}: {value} '
+        self.info(msg)
+    
+    def before_test_epoch(self, trainer) -> None:
+        """Print information before each test epoch.
+
+        Args:
+            trainer (object): Trainer object.
         """
-        
+        self.info('Evaluating...')
+
     def after_test_epoch(
             self,
             trainer: object,
             metrics: Dict[str, float] | None = None
     ) -> None:
+        """Print evaluation results after each test epoch.
+
+        Args:
+            trainer (object): Trainer object.
+            metrics (dict): Evaluation metrics.
         """
+        if not isinstance(metrics, dict) or not metrics:
+            return
         
-        """
-        
+        msg = f'Epoch(test) '
+        for key, value in metrics.items():
+            if isinstance(value, float):
+                msg += f'| {key}: {value:.4f} '
+            elif isinstance(value, int, str):
+                msg += f'| {key}: {value} '
+        self.info(msg)
