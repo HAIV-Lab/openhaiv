@@ -3,10 +3,18 @@
 class BaseMeter(object):
     """Base class for meters.
 
+    Attributes:
+        value (Any): Value of meter.
+        
     """
     def __init__(self):
         super(BaseMeter, self).__init__()
         self.reset()
+
+    @property
+    def value(self):
+        """Get value of meter."""
+        raise NotImplementedError
 
     def reset(self):
         """Reset meter."""
@@ -30,6 +38,7 @@ class AverageMeter(BaseMeter):
         avg (Any): Average value.
         sum (Any): Sum of values.
         count (int): Number of values.
+        value (Any): Average value.
 
     Example:
         >>> meter = AverageMeter()
@@ -41,6 +50,10 @@ class AverageMeter(BaseMeter):
         1.5
         
     """
+    @property
+    def value(self):
+        return self.avg
+
     def reset(self):
         self.val = 0
         self.avg = 0

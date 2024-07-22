@@ -1,5 +1,6 @@
 from .registry import Registry
 from .logger import Logger
+from .cfg import Configs
 from .tools import *
 
 

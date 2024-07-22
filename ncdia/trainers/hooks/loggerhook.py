@@ -212,11 +212,12 @@ class LoggerHook(Hook):
             return
         
         msg = f'Epoch(val) '
-        for key, value in metrics.items():
+        for name, metric in metrics.items():
+            value = metric.value
             if isinstance(value, float):
-                msg += f'| {key}: {value:.4f} '
+                msg += f'| {name}: {value:.4f} '
             elif isinstance(value, (int, str)):
-                msg += f'| {key}: {value} '
+                msg += f'| {name}: {value} '
         self.info(msg)
     
     def before_test_epoch(self, trainer) -> None:
@@ -242,9 +243,10 @@ class LoggerHook(Hook):
             return
         
         msg = f'Epoch(test) '
-        for key, value in metrics.items():
+        for name, metric in metrics.items():
+            value = metric.value
             if isinstance(value, float):
-                msg += f'| {key}: {value:.4f} '
+                msg += f'| {name}: {value:.4f} '
             elif isinstance(value, (int, str)):
-                msg += f'| {key}: {value} '
+                msg += f'| {name}: {value} '
         self.info(msg)
