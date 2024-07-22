@@ -79,7 +79,7 @@ class BaseTrainer(object):
         max_test_iters (int): Iterations on one epoch for testing.
         epoch (int): Current training epoch.
         iter (int): Current iteration or index of the current batch.
-        cfg (dict): Configuration for trainer.
+        cfg (Configs): Configuration for trainer.
         hooks (List[Hook]): List of registered hooks.
         logger (Logger): Logger for logging information.
         device (torch.device): Device to use.
