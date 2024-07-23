@@ -248,6 +248,7 @@ class BaseTrainer(object):
     def algorithm(self) -> object:
         """object: Algorithm for training."""
         if isinstance(self._algorithm, dict):
+            self._algorithm['trainer'] = self
             self._algorithm = ALGORITHMS.build(self._algorithm)
         return self._algorithm
 
