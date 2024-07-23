@@ -3,7 +3,7 @@ _base_: ["configs/dataloader/remote.yaml", "configs/incremental/savc.yaml", "/da
 algorithm:
   type: fact
 
-max_epochs: 10
+max_epochs: 30
 
 criterion:
   type: CrossEntropyLoss

@@ -19,10 +19,9 @@ from ncdia.utils.metrics.accuracy import accuracy
 
 @ALGORITHMS.register
 class FACT(BaseAlg):
-    def __init__(self, cfg: Configs) -> None:
-        super(FACT, self).__init__(cfg)
-        print("++++++++++cfg:", cfg)
-        self.args = cfg
+    def __init__(self, trainer) -> None:
+        super(FACT, self).__init__(trainer)
+        self.args = trainer.cfg
         
         
 
@@ -44,34 +43,41 @@ class FACT(BaseAlg):
             attribute: attribute in batch
             imgpath: imgpath in batch
         """
-        self._network = trainer.model
-        self._network.train()
-        
-        masknum = 3
-        mask=np.zeros((self.args.CIL.base_class,self.args.CIL.num_classes))
-        for i in range(self.args.CIL.num_classes-self.args.CIL.base_class):
-            picked_dummy=np.random.choice(self.args.CIL.base_class,masknum,replace=False)
-            mask[:,i+self.args.CIL.base_class][picked_dummy]=1
-        mask=torch.tensor(mask).cuda()
+        session = 0
+        if session==0:
+            self._network = trainer.model
+            self._network.train()
+            
+            masknum = 3
+            mask=np.zeros((self.args.CIL.base_class,self.args.CIL.num_classes))
+            for i in range(self.args.CIL.num_classes-self.args.CIL.base_class):
+                picked_dummy=np.random.choice(self.args.CIL.base_class,masknum,replace=False)
+                mask[:,i+self.args.CIL.base_class][picked_dummy]=1
+            mask=torch.tensor(mask).cuda()
 
 
-        data = data.cuda()
-        labels = label.cuda()
+            data = data.cuda()
+            labels = label.cuda()
 
 
-        logits = self._network(data)
-        logits_ = logits[:, :self.base_class]
-        # _, pred = torch.max(logits_, dim=1)
-        # acc = self._accuracy(labels, pred)
-        acc = accuracy(logits_, labels)[0]
-        loss = self.loss(logits_, labels)
-        loss.backward()
-        
-        ret = {}
-        ret['loss'] = loss.item()
-        ret['acc'] = acc.item()
-        # print(ret)
-
+            logits = self._network(data)
+            logits_ = logits[:, :self.base_class]
+            # _, pred = torch.max(logits_, dim=1)
+            # acc = self._accuracy(labels, pred)
+            acc = accuracy(logits_, labels)[0]
+            loss = self.loss(logits_, labels)
+            loss.backward()
+            
+            ret = {}
+            ret['loss'] = loss.item()
+            ret['acc'] = acc.item()
+            # print(ret)
+        else:
+            self._network = trainer.model
+            trainloader = trainer.dataloader
+            class_list = range(self.args.CIL.base_class+ (session-1)*self.args.CIL.way, self.args.CIL.base_class + self.args.way * session)
+            self._network.update_fc(trainloader, class_list, session)
+            ret = {}
         return ret
 
 
@@ -104,32 +110,52 @@ class FACT(BaseAlg):
             attribute: attribute in batch
             imgpath: imgpath in batch
         """
-        self._network = trainer.model
-        self._network.eval()
-        
-        masknum = 3
-        mask=np.zeros((self.args.CIL.base_class,self.args.CIL.num_classes))
-        for i in range(self.args.CIL.num_classes-self.args.CIL.base_class):
-            picked_dummy=np.random.choice(self.args.CIL.base_class,masknum,replace=False)
-            mask[:,i+self.args.CIL.base_class][picked_dummy]=1
-        mask=torch.tensor(mask).cuda()
-
-        with torch.no_grad():
-            data = data.cuda()
-            labels = label.cuda()
-
-        
-            logits = self._network(data)
-            logits_ = logits[:, :self.base_class]
-            # _, pred = torch.max(logits_, dim=1)
-            # acc = self._accuracy(labels, pred)
-            acc = accuracy(logits_, labels)[0]
-            loss = self.loss(logits_, labels)
+        session = 0
+        if session ==0:
+            self._network = trainer.model
+            self._network.eval()
             
-            ret = {}
-            ret['loss'] = loss.item()
-            ret['acc'] = acc.item()
+            masknum = 3
+            mask=np.zeros((self.args.CIL.base_class,self.args.CIL.num_classes))
+            for i in range(self.args.CIL.num_classes-self.args.CIL.base_class):
+                picked_dummy=np.random.choice(self.args.CIL.base_class,masknum,replace=False)
+                mask[:,i+self.args.CIL.base_class][picked_dummy]=1
+            mask=torch.tensor(mask).cuda()
 
+            with torch.no_grad():
+                data = data.cuda()
+                labels = label.cuda()
+
+            
+                logits = self._network(data)
+                logits_ = logits[:, :self.base_class]
+                # _, pred = torch.max(logits_, dim=1)
+                # acc = self._accuracy(labels, pred)
+                acc = accuracy(logits_, labels)[0]
+                loss = self.loss(logits_, labels)
+                
+                ret = {}
+                ret['loss'] = loss.item()
+                ret['acc'] = acc.item()
+        else: 
+            self._network = trainer.model
+            self._network.eval()
+
+            with torch.no_grad():
+                data = data.cuda()
+                labels = label.cuda()
+
+            
+                logits = self._network(data)
+                logits_ = logits[:, :self.args.CIL.base_class+self.args.CIL.base_class*session]
+                # _, pred = torch.max(logits_, dim=1)
+                # acc = self._accuracy(labels, pred)
+                acc = accuracy(logits_, labels)[0]
+                loss = self.loss(logits_, labels)
+                
+                ret = {}
+                ret['loss'] = loss.item()
+                ret['acc'] = acc.item()
         return ret
 
     def test_step(self, trainer, data, label, *args, **kwargs):

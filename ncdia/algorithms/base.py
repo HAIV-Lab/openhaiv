@@ -14,12 +14,11 @@ class BaseAlg(object):
         - test_step(trainer, data, label, *args, **kwargs)
 
     """
-    def __init__(self, trainer, cfg:Configs):
+    def __init__(self, trainer):
         super(BaseAlg, self).__init__()
         self.trainer = trainer
         self.cfg = trainer.cfg
-        self.args = cfg
-        print("###### BaseAlg args: ", self.args)
+        self.args = self.cfg
 
     def train_step(self, trainer, data, label, *args, **kwargs):
         """Training step.
