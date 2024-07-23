@@ -20,10 +20,11 @@ from ncdia.utils.metrics.accuracy import accuracy
 @ALGORITHMS.register
 class FACT(BaseAlg):
     def __init__(self, cfg: Configs) -> None:
+        super(FACT, self).__init__(cfg)
         print("++++++++++cfg:", cfg)
-        self.args = cfg.copy()
-        # self.config = cfg
-        super().__init__()
+        self.args = cfg
+        
+        
 
         self.base_class = 11
         # self._network = FACTNET(self.args)
@@ -47,11 +48,11 @@ class FACT(BaseAlg):
         self._network.train()
         
         masknum = 3
-        # mask=np.zeros((self.args.CIL.base_class,self.args.CIL.num_classes))
-        # for i in range(self.args.CIL.num_classes-self.args.CIL.base_class):
-        #     picked_dummy=np.random.choice(self.args.CIL.base_class,masknum,replace=False)
-        #     mask[:,i+self.args.CIL.base_class][picked_dummy]=1
-        # mask=torch.tensor(mask).cuda()
+        mask=np.zeros((self.args.CIL.base_class,self.args.CIL.num_classes))
+        for i in range(self.args.CIL.num_classes-self.args.CIL.base_class):
+            picked_dummy=np.random.choice(self.args.CIL.base_class,masknum,replace=False)
+            mask[:,i+self.args.CIL.base_class][picked_dummy]=1
+        mask=torch.tensor(mask).cuda()
 
 
         data = data.cuda()
@@ -107,11 +108,11 @@ class FACT(BaseAlg):
         self._network.eval()
         
         masknum = 3
-        # mask=np.zeros((self.args.CIL.base_class,self.args.CIL.num_classes))
-        # for i in range(self.args.CIL.num_classes-self.args.CIL.base_class):
-        #     picked_dummy=np.random.choice(self.args.CIL.base_class,masknum,replace=False)
-        #     mask[:,i+self.args.CIL.base_class][picked_dummy]=1
-        # mask=torch.tensor(mask).cuda()
+        mask=np.zeros((self.args.CIL.base_class,self.args.CIL.num_classes))
+        for i in range(self.args.CIL.num_classes-self.args.CIL.base_class):
+            picked_dummy=np.random.choice(self.args.CIL.base_class,masknum,replace=False)
+            mask[:,i+self.args.CIL.base_class][picked_dummy]=1
+        mask=torch.tensor(mask).cuda()
 
         with torch.no_grad():
             data = data.cuda()
@@ -165,3 +166,5 @@ class FACT(BaseAlg):
 
     def get_net(self):
         return self._network
+
+

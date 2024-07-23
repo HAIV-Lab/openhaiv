@@ -128,6 +128,11 @@ class Registry(dict):
             raise KeyError(f"Target type {target_type} is not registered.")
         
         target.pop('type')
+        
+        print("#####target: ", target)
+        print("######target_type: ", target_type)
+        print("#######self[target_type]: ",self[target_type])
+        
         target = self[target_type](**target)
         return target
     

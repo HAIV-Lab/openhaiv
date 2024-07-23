@@ -16,7 +16,7 @@ LOSSES = Registry()
 # manage all kinds of metrics
 METRICS = Registry()
 
-# manage all kinds of algorithms
+# manage all kinds of preTraining algorithms
 ALGORITHMS = Registry()
 
 # mange all kinds of inc algorithms
