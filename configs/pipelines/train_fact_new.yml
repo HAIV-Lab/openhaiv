@@ -18,7 +18,7 @@ preprocessor:
 
 network:
   pretrained: True
-  checkpoint: /new_data/dx450/Project/openhaiv/results/remote_fact_base_resnet18_fact_fact_e8_lr0.002_default/s1/ReFc_Final_acc0.9408.ckpt
+  checkpoint: /new_data/dx450/Project/openhaiv/results/remote_alice_base_resnet18_alice_alice_e8_lr0.001_default/s1/ReFc_Final_acc0.9519.ckpt
 
 pipeline:
   name: fact_new
@@ -60,7 +60,7 @@ discoverer:
   ood_type: classification # attribute
   val_ratio: 1.0
   prev_valset_ratio: 0.1
-  precision_bar: 0.95
+  precision_bar: 0.85
   sift_threshold: 0.92
   apply: True
 

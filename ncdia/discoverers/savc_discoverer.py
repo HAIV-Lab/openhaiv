@@ -157,6 +157,9 @@ class SAVCDiscoverer:
         if self.config.discoverer.ood_type == 'classification':
             conf = torch.cat([id_conf[:int(id_len*ratio)], ood_conf[:int(ood_len*ratio)]])
             label = np.concatenate([id_gt[:int(id_len*ratio)], ood_neg_gt[:int(ood_len*ratio)]])
+        elif self.config.discoverer.ood_type == 'DML':
+            conf = None
+            label = None
 
         conf = conf.view(-1)
         threshold, ood_metric = self._search_threshold(conf, label)

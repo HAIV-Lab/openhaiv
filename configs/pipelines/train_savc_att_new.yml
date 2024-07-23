@@ -1,5 +1,5 @@
 exp_name: "'@{dataset.name}'_'@{pipeline.name}'_'@{network.name}'_'@{trainer.name}'_e'@{optimizer.num_epochs}'_lr'@{optimizer.lr}'_'@{mark}'/s'@{seed}'"
-output_dir: ./results_0521/
+output_dir: ./results_0719/
 save_output: True
 merge_option: default
 mark: default
@@ -18,7 +18,7 @@ preprocessor:
 
 network:
   pretrained: True
-  checkpoint: /new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/results_0507/remote_savc_att_base_resnet18_savc_att_q_savc_att_e100_lr0.002_default/s1/ReFc_Final_acc0.9821.ckpt
+  checkpoint: /new_data/dx450/Project/openhaiv/results_0719/remote_savc_att_base_resnet18_savc_att_q_savc_att_e100_lr0.002_default/s1/ReFc_Final_acc0.9897.ckpt
   #"/new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/results_0416/remote_savc_att_base_resnet18_savc_att_q_savc_att_e50_lr0.002_default/s1/ReFc_Final_acc0.9955.ckpt"
   #/new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/results_0416/remote_savc_att_base_resnet18_savc_att_q_savc_att_e35_lr0.002_default/s1/ReFc_Final_acc0.9933.ckpt .
   

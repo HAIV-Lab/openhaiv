@@ -98,7 +98,7 @@ class SAVCEvaluator(BaseEvaluator):
             prototype_cls = torch.stack(prototype_cls)
             print('prototype_cls shape', prototype_cls.shape)  # 8  11  
 
-            return prototype_cls
+            return feature_list, logit_list, prototype_cls, prototype_att
 
         return feature_list, pred_list, logit_list, label_list
 
@@ -120,7 +120,7 @@ class SAVCEvaluator(BaseEvaluator):
 
         # -------- prepare the prototype of training set -------- #
         print(f'Performing inference on {dataset_name} dataset...', flush=True)
-        prototype_cls = self.inference(net, id_data_loaders['train'], session=session, id_split='train')
+        train_feat, train_logit, prototype_cls, prototype_att = self.inference(net, id_data_loaders['train'], session=session, id_split='train')
         prototype_cls = F.normalize(prototype_cls, p=2, dim=1)
 
         # ------------ turn the logit to the conf score ----------- #
@@ -136,7 +136,7 @@ class SAVCEvaluator(BaseEvaluator):
 
         # load nearood data and compute ood metrics
         print(u'\u2500' * 70, flush=True)
-        self._eval_ood(net, [id_feat, id_conf, id_gt, prototype_cls],
+        self._eval_ood(net, [train_feat, train_logit, id_feat, id_conf, id_logit, id_gt, prototype_cls],
                        ood_data_loaders, session)
 
 
@@ -146,7 +146,7 @@ class SAVCEvaluator(BaseEvaluator):
                   ood_data_loader,
                   session: int = -1):
         print(f'Processing ood inference...', flush=True)
-        [id_feat, id_conf, id_gt, prototype_cls] = id_list
+        [train_feat, train_logit, id_feat, id_conf, id_logit, id_gt, prototype_cls] = id_list
         metrics_list = []
 
         # -------- prepare the prototype of training set -------- #
@@ -174,6 +174,122 @@ class SAVCEvaluator(BaseEvaluator):
         plt.ylabel('t-SNE axis 2')
         plt.savefig(os.path.join(self.config.output_dir, 'tSNE.png'))
 
+        ood_gt = -1 * np.ones_like(ood_gt)
+        # ------------  MSP  ------------- #
+        tmp = torch.softmax(id_logit, 1)
+        tid_conf, _ = torch.max(tmp, dim=1, keepdim=True)
+        tmp = torch.softmax(ood_logit, 1)
+        tood_conf, _ = torch.max(tmp, dim=1, keepdim=True)
+
+        print(f'Computing *** MSP *** metrics on OOD (new-train) dataset...')
+        # pred = np.concatenate([id_pred, ood_pred])
+        conf = np.concatenate([tid_conf.cpu(), tood_conf.cpu()])
+        label = np.concatenate([id_gt, ood_gt])
+        ood_metrics_msp = compute_ood_metrics(conf, label)
+        # print(ood_metrics_msp)
+       
+        # ------------  MCM  ------------- #
+        T = 2
+        tmp = torch.softmax(id_logit/T, 1)
+        tid_conf, _ = torch.max(tmp, dim=1, keepdim=True)
+        tmp = torch.softmax(ood_logit/T, 1)
+        tood_conf, _ = torch.max(tmp, dim=1, keepdim=True)
+
+        print(f'Computing *** MCM *** metrics on OOD (new-train) dataset...')
+        # pred = np.concatenate([id_pred, ood_pred])
+        conf = np.concatenate([tid_conf.cpu(), tood_conf.cpu()])
+        label = np.concatenate([id_gt, ood_gt])
+        ood_metrics_mcm = compute_ood_metrics(conf, label)
+        # print(ood_metrics_mcm)
+
+        # ------------  MaxLogit  ------------- #        
+        tid_conf, _ = torch.max(id_logit, dim=1, keepdim=True)
+        tood_conf, _ = torch.max(ood_logit, dim=1, keepdim=True)
+
+        print(f'Computing *** MaxLogit *** metrics on OOD (new-train) dataset...')
+        # pred = np.concatenate([id_pred, ood_pred])
+        conf = np.concatenate([tid_conf.cpu(), tood_conf.cpu()])
+        label = np.concatenate([id_gt, ood_gt])
+        ood_metrics_mls = compute_ood_metrics(conf, label)
+        # print(ood_metrics_mls)
+
+        # ------------  Energy  ------------- #
+        from scipy.special import logsumexp
+        tid_conf = logsumexp(id_logit.cpu(), axis=-1)
+        tood_conf = logsumexp(ood_logit.cpu(), axis=-1)
+
+        print(f'Computing *** Energy *** metrics on OOD (new-train) dataset...')
+        # pred = np.concatenate([id_pred, ood_pred])
+        conf = np.concatenate([tid_conf, tood_conf])
+        label = np.concatenate([id_gt, ood_gt])
+        ood_metrics_energy = compute_ood_metrics(conf, label)
+        # print(ood_metrics_energy)
+
+        # ------------  ViM  ------------- #
+        from numpy.linalg import norm, pinv
+        from scipy.special import logsumexp
+        from sklearn.covariance import EmpiricalCovariance
+        DIM = train_feat.shape[1]//2
+        ec = EmpiricalCovariance(assume_centered=True)
+        ec.fit(train_feat.cpu())
+        eig_vals, eigen_vectors = np.linalg.eig(ec.covariance_)
+        NS = np.ascontiguousarray(
+            (eigen_vectors.T[np.argsort(eig_vals * -1)[DIM:]]).T)
+        vlogit_id_train = norm(np.matmul(train_feat.cpu(), NS), axis=-1)
+        alpha = train_logit.max(axis=-1)[0].mean() / vlogit_id_train.mean()
+        print(f'Computing *** ViM *** metrics on OOD (new-train) dataset...')
+        # print(f'DIM={DIM}, alpha={alpha:.4f}')
+
+        id_energy = logsumexp(id_logit.cpu(), axis=-1)
+        ood_energy = logsumexp(ood_logit.cpu(), axis=-1)
+        id_vlogit = norm(np.matmul(id_feat.numpy(), NS), axis=-1) * alpha.cpu().numpy()
+        ood_vlogit = norm(np.matmul(ood_feat.numpy(), NS), axis=-1) * alpha.cpu().numpy()
+
+        tid_conf = -id_vlogit + id_energy
+        tood_conf = -ood_vlogit + ood_energy
+        conf = np.concatenate([tid_conf, tood_conf])
+        label = np.concatenate([id_gt, ood_gt])
+        ood_metrics_vim = compute_ood_metrics(conf, label)
+        # print(ood_metrics_vim)
+
+        # ------------  DML  ------------- # 直接用featnorm加上logit分数
+        w = net.fc.weight.clone().detach()
+        w = F.normalize(w, p=2, dim=1).cpu()
+        w = w[::2,]  # savc使用的是两倍类别数的fc层
+        id_cosine = F.normalize(id_feat, p=2, dim=1) @ w.T
+        ood_cosine = F.normalize(ood_feat, p=2, dim=1) @ w.T
+        id_mcos, _ = torch.max(id_cosine, dim=1, keepdim=True)
+        ood_mcos, _ = torch.max(ood_cosine, dim=1, keepdim=True)
+        id_norm = torch.norm(id_feat, dim=1)
+        ood_norm = torch.norm(ood_feat, dim=1)
+
+        tid_conf = id_mcos + 0.002 * id_norm.unsqueeze(1)
+        tood_conf = ood_mcos + 0.002 * ood_norm.unsqueeze(1)
+
+        print(f'Computing *** DML *** metrics on OOD (new-train) dataset...')
+        # pred = np.concatenate([id_pred, ood_pred])
+        conf = np.concatenate([tid_conf.cpu(), tood_conf.cpu()])
+        label = np.concatenate([id_gt, ood_gt])
+        ood_metrics_dml = compute_ood_metrics(conf, label)
+        print(ood_metrics_dml)
+
+        ttood_conf = F.normalize(ood_logit, p=2, dim=1) @ prototype_cls.T
+        ttood_conf, _ = torch.max(ttood_conf, dim=1, keepdim=True)
+        ttid_conf = id_conf
+
+        tid_conf = tid_conf + 40 * ttid_conf.cpu()
+        tood_conf = tood_conf + 40 * ttood_conf.cpu()
+
+        print(f'Computing *** DML+ *** metrics on OOD (new-train) dataset...')
+        # pred = np.concatenate([id_pred, ood_pred])
+        conf = np.concatenate([tid_conf.cpu(), tood_conf.cpu()])
+        label = np.concatenate([id_gt, ood_gt])
+        ood_metrics_dmlp = compute_ood_metrics(conf, label)
+        print(ood_metrics_dmlp)
+        # ------------  ？？？  ------------- #
+
+
+        # ------------- Our original OOD methods ------------ #
         ood_conf = F.normalize(ood_logit, p=2, dim=1) @ prototype_cls.T
         ood_conf, _ = torch.max(ood_conf, dim=1, keepdim=True)
         ood_gt = -1 * np.ones_like(ood_gt)  # hard set to -1 as ood
@@ -189,6 +305,14 @@ class SAVCEvaluator(BaseEvaluator):
         ood_metrics_cls = compute_ood_metrics(conf, label) #, pred)
     
         if self.config.recorder.save_csv:
+            self._save_csv(ood_metrics_msp, dataset_name='OOD_MSP')
+            self._save_csv(ood_metrics_mcm, dataset_name='OOD_MCM')
+            self._save_csv(ood_metrics_mls, dataset_name='OOD_MLS')
+            self._save_csv(ood_metrics_energy, dataset_name='ood_Energy')
+            self._save_csv(ood_metrics_dml, dataset_name='OOD_DML')
+            self._save_csv(ood_metrics_dmlp, dataset_name='OOD_DML+')
+            self._save_csv(ood_metrics_vim, dataset_name='OOD_ViM')
+
             self._save_csv(ood_metrics_cls, dataset_name='OOD_cls')
 
         metrics_list.append(ood_metrics_cls)

@@ -538,7 +538,7 @@ class SAVCattEvaluator(BaseEvaluator):
         correct_imgpaths_dict = {}
         merge_imgpaths_dict = {}
         accuracy_per_class = {}
-        for cls in [8, 9, 10]:
+        for cls in [11, 12, 13]:
             cls_indices = torch.where(id_gt == cls)[0]
             tmp_imgpath_list = [imgpath_list[i] for i in cls_indices.tolist()]
 
@@ -562,7 +562,7 @@ class SAVCattEvaluator(BaseEvaluator):
             merge_imgpaths = [tmp_imgpath_list[i] for i in wrong_indices.tolist()[:www] + correct_indices.tolist()]
             merge_imgpaths_dict[cls] = merge_imgpaths
 
-            save_directory = '/new_data/dx450/IRBenchmark/cheat_test_sskm/'+str(cls)
+            save_directory = '/new_data/dx450/ATR-13-pingzhuang/0718/cheat_test/'+str(cls)
             os.makedirs(save_directory, exist_ok=True)
             import shutil
             for img_path in merge_imgpaths:

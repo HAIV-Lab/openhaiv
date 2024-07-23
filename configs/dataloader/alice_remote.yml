@@ -14,10 +14,10 @@ dataloader:
   constrained_cropping: '@{CIL.constrained_cropping}'
   auto_augment: '@{CIL.auto_augment}'
   fantasy: '@{CIL.fantasy}'
-  txt_path: /new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/index_list_0222/
+  txt_path: /new_data/dx450/Project/openhaiv/index_list/
   att_path: /new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/Benckmark/attribute.xlsx
-  split_file_train: /new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/Benckmark/train_0222/
-  split_file_test: /new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/Benckmark/test_0222/  # _cheat
+  split_file_train: /new_data/dx450/ATR-13-pingzhuang/0718/train_0718/
+  split_file_test: /new_data/dx450/ATR-13-pingzhuang/0718/test_0718_1/  # _cheat
   batch_size_base: 128
   batch_size_new: 64
   test_batch_size: 100
