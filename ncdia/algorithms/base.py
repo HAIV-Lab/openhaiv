@@ -1,5 +1,5 @@
 from ncdia.utils import ALGORITHMS
-
+from ncdia.utils.cfg import Configs
 
 @ALGORITHMS.register
 class BaseAlg(object):

@@ -9,8 +9,6 @@ from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
 from .utils import *
-from openpyxl import load_workbook
-from collections import defaultdict
 from .data_util import get_transform
 
 class remote(Dataset):
@@ -24,6 +22,7 @@ class remote(Dataset):
         self.multi_train = False  # training set or test set
         self.crop_transform = crop_transform
         self.secondary_transform = secondary_transform
+        print("=====================remote datasets=================")
        
     
         if isinstance(secondary_transform, list):
@@ -227,7 +226,7 @@ class remote(Dataset):
         sample['data'] = total_image
         sample['label'] = targets
         sample['imgpath'] = path
-        sample['attribute'] = None
+        sample['attribute'] = 1
 
         return sample
 
@@ -240,6 +239,7 @@ def get_base_dataloader(config):
         trainset = remote(config=config, mode='train', index=class_index, base_sess=True,
                           crop_transform=crop_transform, secondary_transform=secondary_transform)
         testset = remote(config=config, mode='test', index=class_index)
+        # print("=====================remote datasets=================")
     else:
         trainset = remote(config=config, mode='train', index=class_index, base_sess=True,
                           crop_transform=crop_transform, secondary_transform=secondary_transform)
@@ -247,9 +247,9 @@ def get_base_dataloader(config):
 
     sampler_train = None
     sampler_test = None
-    if config.dataloader.num_gpus * config.dataloader.num_machines > 1:
-        sampler_train = torch.utils.data.distributed.DistributedSampler(trainset)
-        sampler_test = torch.utils.data.distributed.DistributedSampler(testset)
+    # if config.dataloader.num_gpus * config.dataloader.num_machines > 1:
+    #     sampler_train = torch.utils.data.distributed.DistributedSampler(trainset)
+    #     sampler_test = torch.utils.data.distributed.DistributedSampler(testset)
 
     trainloader = torch.utils.data.DataLoader(dataset=trainset, batch_size=config.dataloader.batch_size_base, shuffle=True,
                                               num_workers=8, pin_memory=True, sampler=sampler_train)

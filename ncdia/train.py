@@ -3,6 +3,8 @@ from utils.cfg import setup_cfg
 from utils.tools import set_random_seed
 from trainers import PreTrainer, IncTrainer
 from torchvision.models import resnet18
+from ncdia.algorithms.incremental.net.savc_net import SAVCNET
+from ncdia.algorithms.incremental.net.fact_net import FACTNET
 
 
 parser = argparse.ArgumentParser()
@@ -27,7 +29,8 @@ def main(args):
 
     # Build the trainer from config
     # trainer = PreTrainer(cfg) if cfg.session == 0 else IncTrainer(cfg)
-    model = resnet18(pretrained=True)
+    # model = resnet18(pretrained=True)
+    model = FACTNET(cfg)
     trainer = PreTrainer(model, cfg)
 
     # Start training

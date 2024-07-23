@@ -10,20 +10,23 @@ from tqdm import tqdm
 from ncdia.utils.cfg import Configs
 from ncdia.utils.logger import Logger
 from ncdia.utils import INMETHODS
+from ncdia.utils import ALGORITHMS
 from ncdia.algorithms.base import BaseAlg
 from .base import BaseLearner
 from .net.savc_net import SAVCNET
 from .losses.angular_loss import AngularPenaltySMLoss
-import fantasy
+from . import fantasy
 
 
-@INMETHODS.register
-class SAVC(BaseLearner, BaseAlg):
+@ALGORITHMS.register
+class SAVC(BaseAlg):
     def __init__(self, cfg: Configs) -> None:
+        print("++++++++++++++++++++++++++cfg:")
         self.args = cfg.copy()
+        self.config = cfg
         super().__init__(self.args)
 
-        self._network = SAVCNET(self.args)
+        self._network = None
         self.loss = AngularPenaltySMLoss()
 
         if self.args.CIL.fantasy is not None:
@@ -31,7 +34,8 @@ class SAVC(BaseLearner, BaseAlg):
         else:
             self.transform = None
             self.num_trans = 0
-    
+        print("++++++++++++++++++++++++++++++++++++++")
+
     def train_step(self, trainer, data, label, attribute, imgpath):
         """
         base train for fact method
@@ -42,6 +46,7 @@ class SAVC(BaseLearner, BaseAlg):
             attribute: attribute in batch
             imgpath: imgpath in batch
         """
+        self._network = trainer.model
         self._network.train()
         device = trainer.device
 

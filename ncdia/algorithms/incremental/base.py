@@ -7,8 +7,9 @@ import numpy as np
 from ncdia.utils.cfg import Configs
 from ncdia.utils.logger import Logger
 from ncdia.utils import INMETHODS
+from ncdia.utils import ALGORITHMS
 
-@INMETHODS.register
+@ALGORITHMS.register
 class BaseLearner(object):
     """ Base Class for incremental learning all the inc methods should follow this class
         Args:

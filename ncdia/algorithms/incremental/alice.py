@@ -6,6 +6,7 @@ import numpy as np
 from ncdia.utils.cfg import Configs
 from ncdia.utils.logger import Logger
 from ncdia.utils import INMETHODS
+from ncdia.utils import ALGORITHMS
 from ncdia.models.resnet.resnet_models import *
 from .base import BaseLearner
 from .losses.angular_loss import AngularPenaltySMLoss
@@ -16,7 +17,7 @@ from .net.alice_net import AliceNET
 
     
 
-@INMETHODS.register
+@ALGORITHMS.register
 class Alice(BaseLearner):
     def __init__(self, cfg: Configs) -> None:
         self.args = cfg.copy()
