@@ -30,7 +30,7 @@ class FACT(BaseAlg):
         self._network = None
         self.loss = nn.CrossEntropyLoss().cuda()
         self.beta = 0.5
-        print("++++++++++++++++++++++++++++++++++++++")
+        
 
 
     
