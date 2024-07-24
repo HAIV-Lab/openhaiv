@@ -143,7 +143,6 @@ class FACTNET(nn.Module):
 
     def update_fc_avg(self,data,labels,class_list,m):
         new_fc=[]
-        print("yes yes!")
         for class_index in class_list:
             for i in range(m):
                 index = class_index*m + i

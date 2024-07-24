@@ -10,7 +10,7 @@ from ncdia.utils import (
     TRAINERS, HOOKS, LOSSES, ALGORITHMS,
     mkdir_if_missing, auto_device,
 )
-from .hooks import Hook
+from ncdia.trainers.hooks import Hook
 from .priority import get_priority, Priority
 from .optims import build_optimizer, build_scheduler
 from ncdia.datasets import build_dataloader

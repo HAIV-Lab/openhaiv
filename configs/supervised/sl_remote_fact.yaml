@@ -5,7 +5,8 @@ algorithm:
 
 num_session: 2
 
-max_epochs: 30
+max_epochs: 50
+inc_epochs: 1
 
 criterion:
   type: CrossEntropyLoss

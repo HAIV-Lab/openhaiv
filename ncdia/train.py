@@ -48,6 +48,7 @@ def main(args):
             # Start training
             trainer.train()
         else:
+            cfg.max_epochs = cfg.inc_epochs
             _, train_loader, test_loader = cli_dataloader(cfg, session)
             trainer = IncTrainer(
                 model, cfg,

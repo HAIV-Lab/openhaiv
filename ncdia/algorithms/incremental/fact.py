@@ -13,6 +13,7 @@ from .base import BaseLearner
 from .net.fact_net import FACTNET
 from ncdia.utils import ALGORITHMS
 from ncdia.utils.metrics.accuracy import accuracy
+from .hook import FACTHook
 
 
     
@@ -22,29 +23,74 @@ class FACT(BaseAlg):
     def __init__(self, trainer) -> None:
         super(FACT, self).__init__(trainer)
         self.args = trainer.cfg
-        
+        self.trainer = trainer
+
         self.transform = None
         self.base_class = 11
         # self._network = FACTNET(self.args)
         self._network = None
         self.loss = nn.CrossEntropyLoss().cuda()
         self.beta = 0.5
+        self.hook = FACTHook()
+        trainer.register_hook(self.hook)
         
         session = trainer.session
         if session==1:
             self._network = trainer.model
             self._network.eval()
             self._network.mode = self.args.CIL.new_mode
-            print("network_fc: ",self._network.fc.weight.data[10])
+            # print("network_fc shape: ", self._network.fc.weight.shape)
+            # print("network_fc: ",self._network.fc.weight.data[12])
             trainloader = trainer.train_loader
             tsfm = trainer.val_loader.dataset.transform
             trainloader.dataset.transform = tsfm
-            print(np.unique(trainloader.dataset.targets))
             class_list = list(range(self.args.CIL.base_class+ (session-1)*self.args.CIL.way, self.args.CIL.base_class + self.args.CIL.way * session))
             self._network.update_fc(trainloader, class_list, session)
-            print("network_fc: ",self._network.fc.weight.data[10])
+            # print("network_fc: ",self._network.fc.weight.data[12])
 
+    def replace_fc(self):
+        session = self.trainer.session
+        if not self.args.CIL.not_data_init and session==0:
+            train_loader = self.trainer.train_loader
+            val_loader = self.trainer.val_loader
+            train_loader.dataset.multi_train = False
+            train_loader.dataset.transform = val_loader.dataset.transform
+            self._network = self.trainer.model
+            self._network.eval()
+            embedding_list = []
+            label_list = []
+            with torch.no_grad():
+                for i, batch in enumerate(train_loader):
+                    data = batch['data'].cuda()
+                    label = batch['label'].cuda()
     
+                    b = data.size()[0]
+                    m = data.size()[0] // b
+                    labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
+                    embedding = self._network.get_features(data)
+
+                    embedding_list.append(embedding.cpu())
+                    label_list.append(labels.cpu())
+            embedding_list = torch.cat(embedding_list, dim=0)
+            label_list = torch.cat(label_list, dim=0)
+
+            proto_list = []
+
+            for class_index in range(self.args.CIL.base_class*m):
+                data_index = (label_list == class_index).nonzero()
+                embedding_this = embedding_list[data_index.squeeze(-1)]
+                embedding_this = embedding_this.mean(0)
+                proto_list.append(embedding_this)
+
+            proto_list = torch.stack(proto_list, dim=0)
+
+            self._network.fc.weight.data[:self.args.CIL.base_class*m] = proto_list
+
+            # return self.net
+            # class_list = list(range(self.args.CIL.base_class))
+            # print(class_list)
+            # self._network.update_fc(train_loader, class_list, 0)
+
     def train_step(self, trainer, data, label, *args, **kwargs):
         """
         base train for fact method
