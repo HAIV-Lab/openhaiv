@@ -14,7 +14,7 @@ dataloader:
   constrained_cropping: False
   auto_augment: []
   fantasy: rotation2
-  txt_path: /new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/index_list/
+  txt_path: /data/datasets/CIL/0718/index/
   att_path: /new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/Benckmark/attribute.xlsx
   split_file_train: /data/datasets/CIL/0718/train_0718/
   split_file_test: /data/datasets/CIL/0718/test_0718/  # _cheat

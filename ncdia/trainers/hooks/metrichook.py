@@ -1,3 +1,4 @@
+from copy import deepcopy
 from ncdia.utils import HOOKS, METRICS
 from .hook import Hook
 
@@ -7,8 +8,9 @@ class MetricHook(Hook):
     """A hook to calculate metrics during evaluation and testing.
 
     Args:
-        metrics (dict): Metrics to be calculated.
+        metrics (dict | None): Metrics to be calculated.
             Each key-value pair is a metric name and its parameters.
+            If None, default metrics will be used.
     
     Example:
         >>> metrics = {
@@ -20,15 +22,19 @@ class MetricHook(Hook):
     """
 
     priority = 'NORMAL'
+    DEFAULT_METRICS = dict({
+        "acc": {"type": "average"},
+        "loss": {"type": "average"},
+    })
 
     def __init__(
             self,
-            metrics: dict = {
-                "acc": {"type": "average"},
-                "loss": {"type": "average"},
-            },
+            metrics: dict | None = None,
     ):
         super(MetricHook, self).__init__()
+        if metrics is None:
+            metrics = deepcopy(self.DEFAULT_METRICS)
+
         if not isinstance(metrics, dict):
             raise TypeError(f"Metrics {metrics} is not a dict.")
         

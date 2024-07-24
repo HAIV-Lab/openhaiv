@@ -43,7 +43,7 @@ class FACT(BaseAlg):
             attribute: attribute in batch
             imgpath: imgpath in batch
         """
-        session = 0
+        session = trainer.session
         if session==0:
             self._network = trainer.model
             self._network.train()
@@ -110,7 +110,7 @@ class FACT(BaseAlg):
             attribute: attribute in batch
             imgpath: imgpath in batch
         """
-        session = 0
+        session = trainer.session
         if session ==0:
             self._network = trainer.model
             self._network.eval()

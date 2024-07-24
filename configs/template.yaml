@@ -25,6 +25,8 @@ testloader:
   num_workers: 4
   shuffle: False
 
+num_session: 2
+
 algorithm:
   type: StandardSupervised
 
