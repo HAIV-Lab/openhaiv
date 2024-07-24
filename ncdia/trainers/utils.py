@@ -9,6 +9,7 @@ from .savc_att_trainer import SAVCattTrainer
 from .savc_trainer import SAVCTrainer
 from .fact_trainer import FACTTrainer
 from .alice_trainer import AliceTrainer
+from .lwf_trainer import LwFTrainer
 
 def get_trainer(net, train_loader: DataLoader, val_loader: DataLoader,
                 config: Config):
@@ -20,7 +21,8 @@ def get_trainer(net, train_loader: DataLoader, val_loader: DataLoader,
             'savc_att': SAVCattTrainer,
             'savc': SAVCTrainer,
             'fact': FACTTrainer,
-            'alice': AliceTrainer
+            'alice': AliceTrainer,
+            'lwf': LwFTrainer,
         }
         if config.trainer.name in ['cider', 'npos']:
             return trainers[config.trainer.name](net, train_loader, val_loader,

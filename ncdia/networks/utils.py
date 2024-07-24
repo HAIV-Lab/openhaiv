@@ -14,6 +14,7 @@ from .resnet18_savc_q_sar import SAVCNET_q2_sar
 from .resnet18_savc_att_q_ir import SAVCNET_q_ir
 from .resnet18_fact import FACTNET
 from .resnet18_alice import AliceNET
+from .resnet18_lwf import LwFNET
 
 
 def get_network(config):
@@ -34,6 +35,8 @@ def get_network(config):
         net = FACTNET(args=config)
     elif network_config.name == 'resnet18_alice':
         net = AliceNET(args=config)
+    elif network_config.name == 'resnet18_lwf':
+        net = LwFNET(args=config)
     else:
         raise Exception('Unexpected Network Architecture!')
 

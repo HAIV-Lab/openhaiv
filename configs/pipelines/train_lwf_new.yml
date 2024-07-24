@@ -18,13 +18,13 @@ preprocessor:
 
 network:
   pretrained: True
-  checkpoint: /new_data/dx450/Project/openhaiv/results/remote_lwf_base_resnet18_lwf_lwf_e8_lr0.002_default/s1/last_epoch8_acc0.9600.ckpt
+  checkpoint: /new_data/dx450/Project/openhaiv/results/remote_lwf_base_resnet18_lwf_lwf_e8_lr0.002_default/s1/best_epoch8_acc0.9577.ckpt
 
 pipeline:
-  name: fact_new
+  name: lwf_new
 
 trainer:
-  name: fact
+  name: lwf
 
 loss:
   cls_loss: ce
@@ -60,7 +60,7 @@ discoverer:
   ood_type: classification # attribute
   val_ratio: 1.0
   prev_valset_ratio: 0.1
-  precision_bar: 0.85
+  precision_bar: 0.65
   sift_threshold: 0.92
   apply: True
 
