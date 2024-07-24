@@ -14,7 +14,6 @@ from .hooks import Hook
 from .priority import get_priority, Priority
 from .optims import build_optimizer, build_scheduler
 from ncdia.datasets import build_dataloader
-from ncdia.datasets.utils import get_dataloader
 
 
 @TRAINERS.register
@@ -56,6 +55,8 @@ class BaseTrainer(object):
                 - kwargs (dict) for DataLoader, such as 'batch_size', 'shuffle', etc.
             - 'exp_name' (str): Experiment name.
             - 'work_dir' (str): Working directory to save logs and checkpoints.
+        session (int): Session number. If == 0, execute pre-training.
+            If > 0, execute incremental training.
         train_loader (DataLoader | dict, optional): DataLoader for training.
         val_loader (DataLoader | dict, optional): DataLoader for validation.
         test_loader (DataLoader | dict, optional): DataLoader for testing.
@@ -81,6 +82,7 @@ class BaseTrainer(object):
         epoch (int): Current training epoch.
         iter (int): Current iteration or index of the current batch.
         cfg (Configs): Configuration for trainer.
+        session (int): Session number.
         hooks (List[Hook]): List of registered hooks.
         logger (Logger): Logger for logging information.
         device (torch.device): Device to use.
@@ -93,6 +95,7 @@ class BaseTrainer(object):
             self,
             model: nn.Module,
             cfg: dict | None = None,
+            session: int = 0,
             train_loader: DataLoader | dict | None = None,
             val_loader: DataLoader | dict | None = None,
             test_loader: DataLoader | dict | None = None,
@@ -105,6 +108,7 @@ class BaseTrainer(object):
         super(BaseTrainer, self).__init__()
         self._model = model
         self._cfg = cfg
+        self._session = session
 
         if 'optimizer' in self._cfg:
             self._optimizer = dict(self._cfg['optimizer'])
@@ -126,38 +130,35 @@ class BaseTrainer(object):
         else:
             raise KeyError("Algorithm is not found in `cfg`.")
         
-        # self._train_loader = {}
-        # if 'trainloader' in self._cfg:
-        #     self._train_loader.update(dict(self._cfg['trainloader']))
-        # if isinstance(train_loader, dict):
-        #     self._train_loader.update(train_loader)
-        # elif isinstance(train_loader, DataLoader):
-        #     self._train_loader = train_loader
-        # if not self._train_loader:
-        #     raise KeyError("Trainloader is not found in `cfg`.")
+        self._train_loader = {}
+        if 'trainloader' in self._cfg:
+            self._train_loader.update(dict(self._cfg['trainloader']))
+        if isinstance(train_loader, dict):
+            self._train_loader.update(train_loader)
+        elif isinstance(train_loader, DataLoader):
+            self._train_loader = train_loader
+        if not self._train_loader:
+            raise KeyError("Trainloader is not found in `cfg`.")
         
-        # self._val_loader = {}
-        # if 'valloader' in self._cfg:
-        #     self._val_loader.update(dict(self._cfg['valloader']))
-        # if isinstance(val_loader, dict):
-        #     self._val_loader.update(val_loader)
-        # elif isinstance(val_loader, DataLoader):
-        #     self._val_loader = val_loader
-        # if not self._val_loader:
-        #     raise KeyError("Valloader is not found in `cfg`.")
+        self._val_loader = {}
+        if 'valloader' in self._cfg:
+            self._val_loader.update(dict(self._cfg['valloader']))
+        if isinstance(val_loader, dict):
+            self._val_loader.update(val_loader)
+        elif isinstance(val_loader, DataLoader):
+            self._val_loader = val_loader
+        if not self._val_loader:
+            raise KeyError("Valloader is not found in `cfg`.")
         
-        # self._test_loader = {}
-        # if 'testloader' in self._cfg:
-        #     self._test_loader.update(dict(self._cfg['testloader']))
-        # if isinstance(test_loader, dict):
-        #     self._test_loader.update(test_loader)
-        # elif isinstance(test_loader, DataLoader):
-        #     self._test_loader = test_loader
-        # if not self._test_loader:
-        #     raise KeyError("Testloader is not found in `cfg`.")
-        cli_dataloader = get_dataloader(config=self._cfg)
-        _, self._train_loader, self._test_loader = cli_dataloader(self._cfg, 0)
-        self._val_loader = self._test_loader
+        self._test_loader = {}
+        if 'testloader' in self._cfg:
+            self._test_loader.update(dict(self._cfg['testloader']))
+        if isinstance(test_loader, dict):
+            self._test_loader.update(test_loader)
+        elif isinstance(test_loader, DataLoader):
+            self._test_loader = test_loader
+        if not self._test_loader:
+            raise KeyError("Testloader is not found in `cfg`.")
 
         # load checkpoint
         self.load_from = load_from
@@ -180,6 +181,12 @@ class BaseTrainer(object):
     def cfg(self) -> object:
         """Configs: Configuration for trainer."""
         return self._cfg
+    
+    @property
+    def session(self) -> int:
+        """int: Session number. If == 0, execute pre-training.
+        If > 0, execute incremental training."""
+        return self._session
 
     @property
     def hooks(self) -> List[Hook]:

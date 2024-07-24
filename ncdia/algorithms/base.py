@@ -1,5 +1,5 @@
 from ncdia.utils import ALGORITHMS
-from ncdia.utils.cfg import Configs
+
 
 @ALGORITHMS.register
 class BaseAlg(object):
@@ -18,7 +18,7 @@ class BaseAlg(object):
         super(BaseAlg, self).__init__()
         self.trainer = trainer
         self.cfg = trainer.cfg
-        self.args = self.cfg
+        self.args = trainer.cfg
 
     def train_step(self, trainer, data, label, *args, **kwargs):
         """Training step.
