@@ -1,3 +1,4 @@
+from ncdia.utils import HOOKS
 from typing import Dict, Optional, Sequence, Union, Any
 
 DATA_BATCH = Optional[Union[dict, tuple, list]]
@@ -23,6 +24,7 @@ def is_method_overridden(method: str, base_class: type,
     return derived_method != base_method
 
 
+@HOOKS.register
 class Hook(object):
     """Base hook class.
 
@@ -30,7 +32,7 @@ class Hook(object):
     """
 
     priority = 'NORMAL'
-    stages = ('before_run', 'after_load_checkpoint', 'before_train',
+    stages = ('init_trainer', 'before_run', 'after_load_checkpoint', 'before_train',
               'before_train_epoch', 'before_train_iter', 'after_train_iter',
               'after_train_epoch', 'before_val', 'before_val_epoch',
               'before_val_iter', 'after_val_iter', 'after_val_epoch',
@@ -40,6 +42,15 @@ class Hook(object):
     
     def __init__(self):
         super(Hook, self).__init__()
+
+    def init_trainer(self, trainer) -> None:
+        """All subclasses should override this method, if they need any
+        operations to initialize the trainer.
+
+        Args:
+            trainer (BaseTrainer): The trainer of the training, validation or testing
+                process.
+        """
 
     def before_run(self, trainer) -> None:
         """All subclasses should override this method, if they need any

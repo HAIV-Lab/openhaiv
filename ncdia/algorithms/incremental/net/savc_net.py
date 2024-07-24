@@ -5,9 +5,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 import math
-from ncdia.models.resnet.resnet_models import *
-from ncdia.algorithms.incremental import fantasy
+from torchvision.models import resnet18
 
+from ncdia.algorithms.incremental import fantasy
+from ncdia.utils import MODELS
+
+@MODELS.register
 class SAVCNET(nn.Module):
     def __init__(self, args):
         super().__init__()
@@ -18,7 +21,7 @@ class SAVCNET(nn.Module):
         
         self.mode = args.network.net_savc.base_mode
         self.args = args
-        self.encoder_q = haiv_resnet18(True, args, num_classes=self.args.network.net_savc.moco_dim)
+        self.encoder_q = resnet18(True, args, num_classes=self.args.network.net_savc.moco_dim)
         self.num_features = 512
 
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))

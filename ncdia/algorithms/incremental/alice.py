@@ -6,6 +6,8 @@ import numpy as np
 from ncdia.utils.cfg import Configs
 from ncdia.utils.logger import Logger
 from ncdia.utils import INMETHODS
+from ncdia.algorithms.base import BaseAlg
+from ncdia.utils import ALGORITHMS
 from ncdia.models.resnet.resnet_models import *
 from .base import BaseLearner
 from .losses.angular_loss import AngularPenaltySMLoss
@@ -16,18 +18,19 @@ from .net.alice_net import AliceNET
 
     
 
-@INMETHODS.register()
-class Alice(BaseLearner):
+@ALGORITHMS.register
+class Alice(BaseAlg):
     def __init__(self, cfg: Configs) -> None:
-        self.args = cfg.copy()
+        self.args = cfg
         super().__init__(self.args)
 
-        self._network = AliceNET(self.args)
+        # self._network = AliceNET(self.args)
+        self._network = None
         self.loss = AngularPenaltySMLoss().cuda()
 
 
     
-    def _init_train(self, data, label, attribute, imgpath):
+    def train_step(self, trainer, data, label, attribute, imgpath):
         """
         base train for fact method
         Args:
@@ -36,6 +39,7 @@ class Alice(BaseLearner):
             attribute: attribute in batch
             imgpath: imgpath in batch
         """
+        self._network = trainer.model
         self._network.train()
         
         masknum = 3
@@ -50,7 +54,7 @@ class Alice(BaseLearner):
         labels = label.cuda()
 
 
-        logits = self.net(data)
+        logits = self._network(data)
         logits_ = logits[:, :self.config.dataloader.base_class]
         pred = F.softmax(logits_, dim=1)
         acc = self._accuracy(labels, pred)
@@ -62,6 +66,78 @@ class Alice(BaseLearner):
 
         return ret
 
+    def val_step(self, trainer, data, label, *args, **kwargs):
+        """Validation step for standard supervised learning.
+
+        Args:
+            trainer (object): Trainer object.
+            data (torch.Tensor): Input data.
+            label (torch.Tensor): Label data.
+            args (tuple): Additional arguments.
+            kwargs (dict): Additional keyword arguments.
+
+        Returns:
+            results (dict): Validation results. Contains the following:
+                - "feature" (numpy.array): features in a batch
+                - "logits" (numpy.array): logits in a batch
+                - "predicts" (numpy.array): predicts in a batch
+                - "confidence" (numpy.array): confidence in a batch
+                - "label" (numpy.array): labels in a batch
+                - "loss": Loss value.
+                - "acc": Accuracy value.
+        """
+        
+        """
+        base train for fact method
+        Args:
+            data: data in batch
+            label: label in batch
+            attribute: attribute in batch
+            imgpath: imgpath in batch
+        """
+        self._network = trainer.model
+        self._network.eval()
+        
+        masknum = 3
+        # mask=np.zeros((self.args.CIL.base_class,self.args.CIL.num_classes))
+        # for i in range(self.args.CIL.num_classes-self.args.CIL.base_class):
+        #     picked_dummy=np.random.choice(self.args.CIL.base_class,masknum,replace=False)
+        #     mask[:,i+self.args.CIL.base_class][picked_dummy]=1
+        # mask=torch.tensor(mask).cuda()
+
+        with torch.no_grad():
+            data = data.cuda()
+            labels = label.cuda()
+
+        
+            logits = self._network(data)
+            logits_ = logits[:, :self.base_class]
+            _, pred = torch.max(logits_, dim=1)
+            acc = self._accuracy(labels, pred)
+            loss = self.loss(logits_, labels)
+            
+            ret = {}
+            ret['loss'] = loss.item()
+            ret['acc'] = acc.item()
+
+        return ret
+
+    def test_step(self, trainer, data, label, *args, **kwargs):
+        """Test step for standard supervised learning.
+
+        Args:
+            trainer (object): Trainer object.
+            data (torch.Tensor): Input data.
+            label (torch.Tensor): Label data.
+            args (tuple): Additional arguments.
+            kwargs (dict): Additional keyword arguments.
+
+        Returns:
+            results (dict): Test results. Contains the following:
+                - "loss": Loss value.
+                - "acc": Accuracy value.
+        """
+        return self.val_step(trainer, data, label, *args, **kwargs)
 
     def _accuracy(self, labels, preds):
         """

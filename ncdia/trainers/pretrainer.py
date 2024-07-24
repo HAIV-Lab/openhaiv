@@ -2,7 +2,7 @@ from ncdia.utils import TRAINERS
 from .base import BaseTrainer
 
 
-@TRAINERS.register()
+@TRAINERS.register
 class PreTrainer(BaseTrainer):
     """PreTrainer class for pre-training a model on session 0.
 

@@ -1,0 +1,26 @@
+trainloader:
+  dataset:
+    type: ImageNet
+    root: /data/hdd/datasets/ImageNet/
+    split: train
+  batch_size: 128
+  num_workers: 4
+  shuffle: True
+
+valloader:
+  dataset:
+    type: ImageNet
+    root: /data/hdd/datasets/ImageNet/
+    split: val
+  batch_size: 128
+  num_workers: 4
+  shuffle: False
+
+testloader:
+  dataset:
+    type: ImageNet
+    root: /data/hdd/datasets/ImageNet/
+    split: val
+  batch_size: 128
+  num_workers: 4
+  shuffle: False

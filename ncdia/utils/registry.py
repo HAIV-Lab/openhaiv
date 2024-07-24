@@ -1,4 +1,5 @@
 import warnings
+from typing import Callable
 
 
 class Registry(dict):
@@ -62,8 +63,8 @@ class Registry(dict):
         
         key = target.__name__.lower()
         value = target
-        if key in self._dict:
-            warnings.warn(f"Target {key} is already registered.")
+        # if key in self._dict:
+        #     warnings.warn(f"Target {key} is already registered.")
         self[key] = value
 
     def register_dict(self, target: dict):
@@ -84,15 +85,18 @@ class Registry(dict):
             if not callable(value):
                 raise TypeError(f"Target {value} is not callable.")
             key = key.lower()
-            if key in self._dict:
-                warnings.warn(f"Target {key} is already registered.")
+            # if key in self._dict:
+            #     warnings.warn(f"Target {key} is already registered.")
             self[key] = value
 
-    def register(self, target: callable | dict):
+    def register(self, target: Callable | dict):
         """Register a target.
 
         Args:
             target (callable | dict): target to be registered.
+
+        Returns:
+            target (object): Registered target.
 
         Raises:
             TypeError: If target is not callable or dict.
@@ -103,6 +107,7 @@ class Registry(dict):
             self.register_dict(target)
         else:
             raise TypeError(f"Target {target} is not callable or dict.")
+        return target
         
     def build(self, target: dict):
         """Build a target with configs.
@@ -118,12 +123,14 @@ class Registry(dict):
         if 'type' not in target:
             raise KeyError(f"Key 'type' is not found in target {target}.")
         
-        target_type = target['type']
+        target_type = target['type'].lower()
         if target_type not in self._dict:
             raise KeyError(f"Target type {target_type} is not registered.")
         
         target.pop('type')
-        target = self._dict[target_type](**target)
+        
+        
+        target = self[target_type](**target)
         return target
     
     def __call__(self, target):
@@ -133,6 +140,7 @@ class Registry(dict):
         self._dict[key] = value
 
     def __getitem__(self, key):
+        key = key.lower()
         return self._dict[key]
 
     def __contains__(self, key):

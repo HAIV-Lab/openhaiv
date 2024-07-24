@@ -1,9 +1,12 @@
 from ncdia.utils import ALGORITHMS
 
 
-@ALGORITHMS.register()
+@ALGORITHMS.register
 class BaseAlg(object):
     """Basic algorithm class to define the interface of an algorithm.
+
+    Args:
+        trainer (object): Trainer object.
 
     Containing:
         - train_step(trainer, data, label, *args, **kwargs)
@@ -11,8 +14,11 @@ class BaseAlg(object):
         - test_step(trainer, data, label, *args, **kwargs)
 
     """
-    def __init__(self):
+    def __init__(self, trainer):
         super(BaseAlg, self).__init__()
+        self.trainer = trainer
+        self.cfg = trainer.cfg
+        self.args = trainer.cfg
 
     def train_step(self, trainer, data, label, *args, **kwargs):
         """Training step.
