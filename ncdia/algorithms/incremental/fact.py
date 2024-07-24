@@ -23,15 +23,26 @@ class FACT(BaseAlg):
         super(FACT, self).__init__(trainer)
         self.args = trainer.cfg
         
-        
-
+        self.transform = None
         self.base_class = 11
         # self._network = FACTNET(self.args)
         self._network = None
         self.loss = nn.CrossEntropyLoss().cuda()
         self.beta = 0.5
         
-
+        session = trainer.session
+        if session==1:
+            self._network = trainer.model
+            self._network.eval()
+            self._network.mode = self.args.CIL.new_mode
+            print("network_fc: ",self._network.fc.weight.data[10])
+            trainloader = trainer.train_loader
+            tsfm = trainer.val_loader.dataset.transform
+            trainloader.dataset.transform = tsfm
+            print(np.unique(trainloader.dataset.targets))
+            class_list = list(range(self.args.CIL.base_class+ (session-1)*self.args.CIL.way, self.args.CIL.base_class + self.args.CIL.way * session))
+            self._network.update_fc(trainloader, class_list, session)
+            print("network_fc: ",self._network.fc.weight.data[10])
 
     
     def train_step(self, trainer, data, label, *args, **kwargs):
@@ -73,10 +84,6 @@ class FACT(BaseAlg):
             ret['acc'] = acc.item()
             # print(ret)
         else:
-            self._network = trainer.model
-            trainloader = trainer.dataloader
-            class_list = range(self.args.CIL.base_class+ (session-1)*self.args.CIL.way, self.args.CIL.base_class + self.args.way * session)
-            self._network.update_fc(trainloader, class_list, session)
             ret = {}
         return ret
 
@@ -138,20 +145,33 @@ class FACT(BaseAlg):
                 ret['loss'] = loss.item()
                 ret['acc'] = acc.item()
         else: 
-            self._network = trainer.model
-            self._network.eval()
+            test_class = self.args.CIL.base_class + session * self.args.CIL.way
+            # self._network = trainer.model
+            # self._network.eval()
 
             with torch.no_grad():
                 data = data.cuda()
                 labels = label.cuda()
 
-            
-                logits = self._network(data)
-                logits_ = logits[:, :self.args.CIL.base_class+self.args.CIL.base_class*session]
-                # _, pred = torch.max(logits_, dim=1)
-                # acc = self._accuracy(labels, pred)
-                acc = accuracy(logits_, labels)[0]
-                loss = self.loss(logits_, labels)
+                b = data.size()[0]
+                # 20240711 
+                if self.transform is not None:
+                    data = self.transform(data)
+                m = data.size()[0] // b
+                joint_preds = self._network(data)
+                feat = self._network.get_features(data)
+                joint_preds = joint_preds[:, :test_class*m]
+                
+                agg_preds = 0
+                agg_feat = feat.view(-1, m, feat.size(1)).mean(dim=1)
+                for j in range(m):
+                    agg_preds = agg_preds + joint_preds[j::m, j::m] / m
+
+                acc = accuracy(agg_preds, labels)[0]
+                # logits = self._network(data)
+                # logits_ = logits[:, :self.args.CIL.base_class+self.args.CIL.base_class*session]
+                # acc = accuracy(logits_, labels)[0]
+                loss = self.loss(agg_preds, labels)
                 
                 ret = {}
                 ret['loss'] = loss.item()

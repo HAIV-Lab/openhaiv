@@ -35,7 +35,6 @@ class FACTNET(nn.Module):
             
             x1 = F.linear(F.normalize(x, p=2, dim=-1), F.normalize(self.fc.weight, p=2, dim=-1))
             x = x1
-            
             x = self.args.network.net_fact.temperature * x
             
         elif 'dot' in self.mode:
@@ -144,6 +143,7 @@ class FACTNET(nn.Module):
 
     def update_fc_avg(self,data,labels,class_list,m):
         new_fc=[]
+        print("yes yes!")
         for class_index in class_list:
             for i in range(m):
                 index = class_index*m + i

@@ -274,9 +274,9 @@ def get_new_dataloader(config, session):
 
     sampler_train = None
     sampler_test = None
-    if config.dataloader.num_gpus * config.dataloader.num_machines > 1:
-        sampler_train = torch.utils.data.distributed.DistributedSampler(trainset)
-        sampler_test = torch.utils.data.distributed.DistributedSampler(testset)
+    # if config.dataloader.num_gpus * config.dataloader.num_machines > 1:
+    #     sampler_train = torch.utils.data.distributed.DistributedSampler(trainset)
+    #     sampler_test = torch.utils.data.distributed.DistributedSampler(testset)
         
     if config.dataloader.batch_size_new == 0:
         batch_size_new = trainset.__len__()

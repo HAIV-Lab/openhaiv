@@ -20,6 +20,8 @@ scheduler:
 
 seed: 0
 
+num_session: 2
+
 device: cuda
 
 exp_name: exp
