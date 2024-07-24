@@ -358,8 +358,8 @@ class SAVCattEvaluator(BaseEvaluator):
             self._save_csv(ood_metrics_dmlp, dataset_name='OOD_DML+')
             self._save_csv(ood_metrics_vim, dataset_name='OOD_ViM')
             
-            self._save_csv(ood_metrics_cls, dataset_name='OOD_cls')
-            self._save_csv(ood_metrics_att, dataset_name='OOD_att')
+            self._save_csv(ood_metrics_cls, dataset_name='OOD_PatternMatching')
+            self._save_csv(ood_metrics_att, dataset_name='OOD_Attr')
             self._save_csv(ood_metrics_merge, dataset_name='OOD_merge')
 
 

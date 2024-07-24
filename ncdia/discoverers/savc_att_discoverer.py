@@ -212,10 +212,102 @@ class SAVCattDiscoverer:
         # 这个conf是id的大，ood的小
         id_len, ood_len = id_conf.shape[0], ood_conf.shape[0]
         ratio = self.config.discoverer.val_ratio
-        if self.config.discoverer.ood_type == 'classification':
+        if self.config.discoverer.ood_type == 'MLS':
+            tid_conf, _ = torch.max(id_logit.cpu(), dim=1, keepdim=True)
+            tood_conf, _ = torch.max(ood_logit.cpu(), dim=1, keepdim=True)
+            conf = torch.cat([tid_conf[:int(id_len * ratio)], tood_conf[:int(ood_len * ratio)]])
+            label = np.concatenate([id_gt[:int(id_len * ratio)], ood_neg_gt[:int(ood_len * ratio)]])
+
+        elif self.config.discoverer.ood_type == 'MSP':
+            tmp = torch.softmax(id_logit.cpu(), 1)
+            tid_conf, _ = torch.max(tmp, dim=1, keepdim=True)
+            tmp = torch.softmax(ood_logit.cpu(), 1)
+            tood_conf, _ = torch.max(tmp, dim=1, keepdim=True)
+            conf = torch.cat([tid_conf[:int(id_len * ratio)], tood_conf[:int(ood_len * ratio)]])
+            label = np.concatenate([id_gt[:int(id_len * ratio)], ood_neg_gt[:int(ood_len * ratio)]])
+
+        elif self.config.discoverer.ood_type == 'MCM':
+            T = 2
+            tmp = torch.softmax(id_logit.cpu() / T, 1)
+            tid_conf, _ = torch.max(tmp, dim=1, keepdim=True)
+            tmp = torch.softmax(ood_logit.cpu() / T, 1)
+            tood_conf, _ = torch.max(tmp, dim=1, keepdim=True)
+            conf = torch.cat([tid_conf[:int(id_len * ratio)], tood_conf[:int(ood_len * ratio)]])
+            label = np.concatenate([id_gt[:int(id_len * ratio)], ood_neg_gt[:int(ood_len * ratio)]])
+
+        elif self.config.discoverer.ood_type == 'Energy':
+            from scipy.special import logsumexp
+            tid_conf = torch.tensor(logsumexp(id_logit.cpu(), axis=-1))
+            tood_conf = torch.tensor(logsumexp(ood_logit.cpu(), axis=-1))
+            conf = torch.cat([tid_conf[:int(id_len * ratio)], tood_conf[:int(ood_len * ratio)]])
+            label = np.concatenate([id_gt[:int(id_len * ratio)], ood_neg_gt[:int(ood_len * ratio)]])
+
+        elif self.config.discoverer.ood_type == 'ViM':
+            from numpy.linalg import norm, pinv
+            from scipy.special import logsumexp
+            from sklearn.covariance import EmpiricalCovariance
+            DIM = id_feat.shape[1] // 2
+            ec = EmpiricalCovariance(assume_centered=True)
+            ec.fit(id_feat.cpu())
+            eig_vals, eigen_vectors = np.linalg.eig(ec.covariance_)
+            NS = np.ascontiguousarray(
+                (eigen_vectors.T[np.argsort(eig_vals * -1)[DIM:]]).T)
+            vlogit_id_train = norm(np.matmul(id_feat.cpu(), NS), axis=-1)
+            alpha = id_logit.max(axis=-1)[0].mean() / vlogit_id_train.mean()
+            print(f'Computing *** ViM *** metrics on OOD (new-train) dataset...')
+            # print(f'DIM={DIM}, alpha={alpha:.4f}')
+
+            id_energy = logsumexp(id_logit.cpu(), axis=-1)
+            ood_energy = logsumexp(ood_logit.cpu(), axis=-1)
+            id_vlogit = norm(np.matmul(id_feat.numpy(), NS), axis=-1) * alpha.cpu().numpy()
+            ood_vlogit = norm(np.matmul(ood_feat.numpy(), NS), axis=-1) * alpha.cpu().numpy()
+
+            tid_conf = torch.tensor(-id_vlogit + id_energy)
+            tood_conf = torch.tensor(-ood_vlogit + ood_energy)
+
+            conf = torch.cat([tid_conf[:int(id_len * ratio)], tood_conf[:int(ood_len * ratio)]])
+            label = np.concatenate([id_gt[:int(id_len * ratio)], ood_neg_gt[:int(ood_len * ratio)]])
+
+        elif self.config.discoverer.ood_type == 'DML':
+            w = net.fc.weight.clone().detach()
+            w = F.normalize(w, p=2, dim=1).cpu()
+            w = w[::2, ]  # savc使用的是两倍类别数的fc层
+            id_cosine = F.normalize(id_feat, p=2, dim=1) @ w.T
+            ood_cosine = F.normalize(ood_feat, p=2, dim=1) @ w.T
+            id_mcos, _ = torch.max(id_cosine, dim=1, keepdim=True)
+            ood_mcos, _ = torch.max(ood_cosine, dim=1, keepdim=True)
+            id_norm = torch.norm(id_feat, dim=1)
+            ood_norm = torch.norm(ood_feat, dim=1)
+            tid_conf = id_mcos + 0.002 * id_norm.unsqueeze(1)
+            tood_conf = ood_mcos + 0.002 * ood_norm.unsqueeze(1)
+            conf = torch.cat([tid_conf[:int(id_len * ratio)], tood_conf[:int(ood_len * ratio)]])
+            label = np.concatenate([id_gt[:int(id_len * ratio)], ood_neg_gt[:int(ood_len * ratio)]])
+
+        elif self.config.discoverer.ood_type == 'DMLplus':
+            w = net.fc.weight.clone().detach()
+            w = F.normalize(w, p=2, dim=1).cpu()
+            w = w[::2, ]  # savc使用的是两倍类别数的fc层
+            id_cosine = F.normalize(id_feat, p=2, dim=1) @ w.T
+            ood_cosine = F.normalize(ood_feat, p=2, dim=1) @ w.T
+            id_mcos, _ = torch.max(id_cosine, dim=1, keepdim=True)
+            ood_mcos, _ = torch.max(ood_cosine, dim=1, keepdim=True)
+            id_norm = torch.norm(id_feat, dim=1)
+            ood_norm = torch.norm(ood_feat, dim=1)
+            tid_conf = id_mcos + 0.002 * id_norm.unsqueeze(1)
+            tood_conf = ood_mcos + 0.002 * ood_norm.unsqueeze(1)
+            ttood_conf = F.normalize(ood_logit, p=2, dim=1) @ prototype_cls.T
+            ttood_conf, _ = torch.max(ttood_conf, dim=1, keepdim=True)
+            ttid_conf = id_conf
+            tid_conf = tid_conf + 40 * ttid_conf.cpu()
+            tood_conf = tood_conf + 40 * ttood_conf.cpu()
+            conf = torch.cat([tid_conf[:int(id_len * ratio)], tood_conf[:int(ood_len * ratio)]])
+            label = np.concatenate([id_gt[:int(id_len * ratio)], ood_neg_gt[:int(ood_len * ratio)]])
+
+        elif self.config.discoverer.ood_type == 'PatternMatching':
             conf = torch.cat([id_conf[:int(id_len*ratio)], ood_conf[:int(ood_len*ratio)]])
             label = np.concatenate([id_gt[:int(id_len*ratio)], ood_neg_gt[:int(ood_len*ratio)]])
-        elif self.config.discoverer.ood_type == 'attribute':
+
+        elif self.config.discoverer.ood_type == 'Attr':
             conf = torch.cat([id_att_conf[:int(id_len*ratio)], ood_att_conf[:int(ood_len*ratio)]])
             label = np.concatenate([id_gt[:int(id_len*ratio)], ood_neg_gt[:int(ood_len*ratio)]])
         conf = conf.view(-1)
@@ -224,10 +316,99 @@ class SAVCattDiscoverer:
 
         # --------- Using threshold to get the novel samples ----------- #
         total_feat = torch.cat((id_feat, ood_feat), dim=0)
-        if self.config.discoverer.ood_type == 'classification':
+        if self.config.discoverer.ood_type == 'MLS':
+            tid_conf, _ = torch.max(id_logit.cpu(), dim=1, keepdim=True)
+            tood_conf, _ = torch.max(ood_logit.cpu(), dim=1, keepdim=True)
+            conf = torch.cat([tid_conf, tood_conf])
+            label = np.concatenate([id_gt, ood_gt])
+        elif self.config.discoverer.ood_type == 'MSP':
+            tmp = torch.softmax(id_logit.cpu(), 1)
+            tid_conf, _ = torch.max(tmp, dim=1, keepdim=True)
+            tmp = torch.softmax(ood_logit.cpu(), 1)
+            tood_conf, _ = torch.max(tmp, dim=1, keepdim=True)
+            conf = torch.cat([tid_conf, tood_conf])
+            label = np.concatenate([id_gt, ood_gt])
+
+        elif self.config.discoverer.ood_type == 'MCM':
+            T = 2
+            tmp = torch.softmax(id_logit.cpu() / T, 1)
+            tid_conf, _ = torch.max(tmp, dim=1, keepdim=True)
+            tmp = torch.softmax(ood_logit.cpu() / T, 1)
+            tood_conf, _ = torch.max(tmp, dim=1, keepdim=True)
+            conf = torch.cat([tid_conf, tood_conf])
+            label = np.concatenate([id_gt, ood_gt])
+        elif self.config.discoverer.ood_type == 'Energy':
+            tid_conf = torch.tensor(logsumexp(id_logit.cpu(), axis=-1))
+            tood_conf = torch.tensor(logsumexp(ood_logit.cpu(), axis=-1))
+            conf = torch.cat([tid_conf, tood_conf])
+            label = np.concatenate([id_gt, ood_gt])
+
+        elif self.config.discoverer.ood_type == 'ViM':
+            from numpy.linalg import norm, pinv
+            from scipy.special import logsumexp
+            from sklearn.covariance import EmpiricalCovariance
+            DIM = id_feat.shape[1] // 2
+            ec = EmpiricalCovariance(assume_centered=True)
+            ec.fit(id_feat.cpu())
+            eig_vals, eigen_vectors = np.linalg.eig(ec.covariance_)
+            NS = np.ascontiguousarray(
+                (eigen_vectors.T[np.argsort(eig_vals * -1)[DIM:]]).T)
+            vlogit_id_train = norm(np.matmul(id_feat.cpu(), NS), axis=-1)
+            alpha = id_logit.max(axis=-1)[0].mean() / vlogit_id_train.mean()
+            print(f'Computing *** ViM *** metrics on OOD (new-train) dataset...')
+            # print(f'DIM={DIM}, alpha={alpha:.4f}')
+
+            id_energy = logsumexp(id_logit.cpu(), axis=-1)
+            ood_energy = logsumexp(ood_logit.cpu(), axis=-1)
+            id_vlogit = norm(np.matmul(id_feat.numpy(), NS), axis=-1) * alpha.cpu().numpy()
+            ood_vlogit = norm(np.matmul(ood_feat.numpy(), NS), axis=-1) * alpha.cpu().numpy()
+
+            tid_conf = torch.tensor(-id_vlogit + id_energy)
+            tood_conf = torch.tensor(-ood_vlogit + ood_energy)
+            conf = torch.cat([tid_conf, tood_conf])
+            label = np.concatenate([id_gt, ood_gt])
+        elif self.config.discoverer.ood_type == 'DML':
+            w = net.fc.weight.clone().detach()
+            w = F.normalize(w, p=2, dim=1).cpu()
+            w = w[::2, ]  # savc使用的是两倍类别数的fc层
+            id_cosine = F.normalize(id_feat, p=2, dim=1) @ w.T
+            ood_cosine = F.normalize(ood_feat, p=2, dim=1) @ w.T
+            id_mcos, _ = torch.max(id_cosine, dim=1, keepdim=True)
+            ood_mcos, _ = torch.max(ood_cosine, dim=1, keepdim=True)
+            id_norm = torch.norm(id_feat, dim=1)
+            ood_norm = torch.norm(ood_feat, dim=1)
+
+            tid_conf = id_mcos + 0.002 * id_norm.unsqueeze(1)
+            tood_conf = ood_mcos + 0.002 * ood_norm.unsqueeze(1)
+
+            conf = torch.cat([tid_conf, tood_conf])
+            label = np.concatenate([id_gt, ood_gt])
+
+
+        elif self.config.discoverer.ood_type == 'DMLplus':
+
+            w = net.fc.weight.clone().detach()
+            w = F.normalize(w, p=2, dim=1).cpu()
+            w = w[::2, ]  # savc使用的是两倍类别数的fc层
+            id_cosine = F.normalize(id_feat, p=2, dim=1) @ w.T
+            ood_cosine = F.normalize(ood_feat, p=2, dim=1) @ w.T
+            id_mcos, _ = torch.max(id_cosine, dim=1, keepdim=True)
+            ood_mcos, _ = torch.max(ood_cosine, dim=1, keepdim=True)
+            id_norm = torch.norm(id_feat, dim=1)
+            ood_norm = torch.norm(ood_feat, dim=1)
+            tid_conf = id_mcos + 0.002 * id_norm.unsqueeze(1)
+            tood_conf = ood_mcos + 0.002 * ood_norm.unsqueeze(1)
+            ttood_conf = F.normalize(ood_logit, p=2, dim=1) @ prototype_cls.T
+            ttood_conf, _ = torch.max(ttood_conf, dim=1, keepdim=True)
+            ttid_conf = id_conf
+            tid_conf = tid_conf + 40 * ttid_conf.cpu()
+            tood_conf = tood_conf + 40 * ttood_conf.cpu()
+            conf = torch.cat([tid_conf, tood_conf])
+            label = np.concatenate([id_gt, ood_gt])
+        elif self.config.discoverer.ood_type == 'PatternMatching':
             conf = torch.cat([id_conf, ood_conf])
             label = np.concatenate([id_gt, ood_gt])  # Using the number label not -1
-        elif self.config.discoverer.ood_type == 'attribute':
+        elif self.config.discoverer.ood_type == 'Attr':
             conf = torch.cat([id_att_conf, ood_att_conf])
             label = np.concatenate([id_gt, ood_gt])
         total_imgpath_list = id_imgpath_list + ood_imgpath_list
@@ -435,8 +616,11 @@ class SAVCattDiscoverer:
 
         sift_indices = torch.tensor([i for i in range(len(max_similarities)) \
                                      if max_similarities[i] > sift_threshold])
-        assert sift_indices.numel() > 0, "There is no novel samples."
-        novel_target = novel_target[sift_indices] # 真实的新标签
+        try:
+            assert sift_indices.numel() > 0, "There is no novel samples."
+        except:
+            sift_indices = torch.tensor([i for i in range(len(max_similarities))])
+        novel_target = novel_target[sift_indices]
         novel_feat = novel_feat[sift_indices]
 
         sift_indices = sift_indices.tolist()
