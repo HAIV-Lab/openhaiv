@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ncdia.models.resnet.resnet_models import *
+from ncdia.models.resnet.resnet import *
 
 class AliceNET(nn.Module):
 
@@ -13,9 +13,8 @@ class AliceNET(nn.Module):
         self.mode = mode
         self.args = args
        
-        if self.args.dataset.name in ['remote']:
-            self.encoder = haiv_resnet18(True, args, num_classes=self.args.network.net_alice.moco_dim)  # pretrained=True follow TOPIC, models for cub is imagenet pre-trained. https://github.com/xyutao/fscil/issues/11#issuecomment-687548790
-            self.num_features = 512
+        self.encoder = resnet18(True, args, num_classes=self.args.network.net_alice.moco_dim)  # pretrained=True follow TOPIC, models for cub is imagenet pre-trained. https://github.com/xyutao/fscil/issues/11#issuecomment-687548790
+        self.num_features = 512
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
 

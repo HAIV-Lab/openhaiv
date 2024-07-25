@@ -5,6 +5,7 @@ from trainers import PreTrainer, IncTrainer
 from torchvision.models import resnet18
 from ncdia.algorithms.incremental.net.savc_net import SAVCNET
 from ncdia.algorithms.incremental.net.fact_net import FACTNET
+from ncdia.algorithms.incremental.net.alice_net import AliceNET
 from ncdia.datasets.utils import get_dataloader
 
 
@@ -31,7 +32,8 @@ def main(args):
     # Build the trainer from config
     # trainer = PreTrainer(cfg) if cfg.session == 0 else IncTrainer(cfg)
     # model = resnet18(pretrained=True)
-    model = FACTNET(cfg)
+    # model = FACTNET(cfg)
+    model = AliceNET(cfg)
     cli_dataloader = get_dataloader(config=cfg)
 
     num_session = cfg.num_session or 1

@@ -1,0 +1,29 @@
+_base_: ["configs/dataloader/remote.yaml", "configs/incremental/alice.yaml", "/data/zqh/openhaiv/configs/network/alice.yaml"]
+
+algorithm:
+  type: alice
+
+num_session: 2
+
+max_epochs: 50
+inc_epochs: 1
+
+criterion:
+  type: CrossEntropyLoss
+
+optimizer:
+  type: sgd
+  lr: 0.001
+  weight_decay: 0.0001
+
+scheduler:
+  type: Constant
+
+seed: 0
+
+num_session: 2
+
+device: cuda
+
+exp_name: exp
+work_dir: ./output/supervised/sl_remote_alice
