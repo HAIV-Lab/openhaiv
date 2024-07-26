@@ -8,6 +8,7 @@ from .methods import (
     msp, mcm, max_logit, energy, vim, dml, dmlp, prot
 )
 
+from ncdia.utils.cfg import Configs
 
 class AutoOOD(object):
     """AutoOOD class for evaluating OOD detection methods.
@@ -16,9 +17,11 @@ class AutoOOD(object):
         device (torch.device): device to run the evaluation
 
     """
-    def __init__(self, device: torch.device):
+    def __init__(self, device: torch.device, cfg: Configs):
         super(AutoOOD, self).__init__()
         self.device = device
+        self.config = cfg
+        self.transform = None
 
     @torch.no_grad()
     def inference(
@@ -46,27 +49,28 @@ class AutoOOD(object):
         model.eval()
         test_class = self.config.CIL.base_class + session * self.config.CIL.way
         logit_list, pred_list, conf_list, label_list = [], [], [], []
-        logit_att_list, pred_att_list, conf_att_list, label_att_list = [], [], [], []
+        # logit_att_list, pred_att_list, conf_att_list, label_att_list = [], [], [], []
         feature_list = []
 
         for batch in tqdm(dataloader, dynamic_ncols=True):
             data = batch['data'].to(self.device)
             label = batch['label'].to(self.device)
-            attribute = batch['attribute'].to(self.device)
+            # attribute = batch['attribute'].to(self.device)
             
             b = data.size(0)
-            data = self.transform(data)
+            if self.transform is not None:
+                data = self.transform(data)
             m = data.size(0) // b
-            joint_preds, joint_preds_att = model(data)
+            joint_preds = model(data)
             feat = model.get_features(data)
             joint_preds = joint_preds[:, :test_class*m]
             
             agg_preds = 0
-            agg_preds_att = 0
+            # agg_preds_att = 0
             agg_feat = feat.view(-1, m, feat.size(1)).mean(dim=1)
             for j in range(m):
                 agg_preds = agg_preds + joint_preds[j::m, j::m] / m
-                agg_preds_att = agg_preds_att + joint_preds_att[j::m, :] / m
+                # agg_preds_att = agg_preds_att + joint_preds_att[j::m, :] / m
 
             feature_list.append(agg_feat)
             logit_list.append(agg_preds)
@@ -76,12 +80,12 @@ class AutoOOD(object):
             conf_list.append(conf.cpu())
             label_list.append(label.cpu())
 
-            logit_att_list.append(agg_preds_att)
-            pred = (torch.sigmoid(agg_preds_att) > 0.5).type(torch.int)
-            conf = pred
-            pred_att_list.append(pred.cpu())
-            conf_att_list.append(conf.cpu())
-            label_att_list.append(attribute.cpu())
+            # logit_att_list.append(agg_preds_att)
+            # pred = (torch.sigmoid(agg_preds_att) > 0.5).type(torch.int)
+            # conf = pred
+            # pred_att_list.append(pred.cpu())
+            # conf_att_list.append(conf.cpu())
+            # label_att_list.append(attribute.cpu())
 
         # convert values into numpy array
         feature_list = torch.cat(feature_list, dim=0).cpu()
@@ -90,26 +94,26 @@ class AutoOOD(object):
         conf_list = torch.cat(conf_list).numpy()
         label_list = torch.cat(label_list).numpy().astype(int)
         
-        logit_att_list = torch.cat(logit_att_list, dim=0)
-        pred_att_list = torch.cat(pred_att_list).numpy()
-        conf_att_list = torch.cat(conf_att_list).numpy()
-        label_att_list = torch.cat(label_att_list).numpy().astype(int)
+        # logit_att_list = torch.cat(logit_att_list, dim=0)
+        # pred_att_list = torch.cat(pred_att_list).numpy()
+        # conf_att_list = torch.cat(conf_att_list).numpy()
+        # label_att_list = torch.cat(label_att_list).numpy().astype(int)
 
         if split == 'train':
             label_list = torch.tensor(label_list)
             classes = torch.unique(label_list)
-            prototype_cls, prototype_att = [], []
+            prototype_cls = []
 
             for cls in classes:
                 cls_indices = torch.where(label_list == cls)
                 cls_predictions = logit_list[cls_indices]
-                att_predictions = logit_att_list[cls_indices]
+                # att_predictions = logit_att_list[cls_indices]
                 prototype_cls.append(torch.mean(cls_predictions, dim=0))
-                prototype_att.append(torch.mean(att_predictions, dim=0))
+                # prototype_att.append(torch.mean(att_predictions, dim=0))
 
-            return feature_list, logit_list, torch.stack(prototype_cls), torch.stack(prototype_att)
+            return feature_list, logit_list, torch.stack(prototype_cls)
 
-        return feature_list, pred_list, logit_list, label_list, pred_att_list, logit_att_list, label_att_list
+        return feature_list, pred_list, logit_list, label_list
 
     def eval(
             self, 
@@ -136,44 +140,43 @@ class AutoOOD(object):
         model.eval()
 
         # prepare prototype of training data
-        train_feat, train_logit, prototype_cls, prototype_att = \
+        train_feat, train_logit, prototype_cls = \
             self.inference(model, id_trainloader, session=session, split='train')
         prototype_cls = F.normalize(prototype_cls, p=2, dim=1)
-        prototype_att = F.normalize(prototype_att, p=2, dim=1)
+        # prototype_att = F.normalize(prototype_att, p=2, dim=1)
         
         # prepare id statistics from test data
-        id_feat, id_pred, id_logit, id_gt, id_att_pred, id_att_logit, id_att_gt = \
+        id_feat, id_pred, id_logit, id_gt = \
             self.inference(model, id_testloader, session=session, split='test')
         id_logit = id_logit.detach().clone()
-        id_att_logit = id_att_logit.detach().clone()
+        # id_att_logit = id_att_logit.detach().clone()
 
         # prepare ood statistics from ood data
-        ood_feat, ood_pred, ood_logit, ood_gt, ood_att_pred, ood_att_logit, ood_att_gt = \
+        ood_feat, ood_pred, ood_logit, ood_gt = \
             self.inference(model, ood_dataloader, session=session, split='test')
         ood_logit = ood_logit.detach().clone()
-        ood_att_logit = ood_att_logit.detach().clone()
+        # ood_att_logit = ood_att_logit.detach().clone()
 
         # calculate ood score
         ood_msp = msp(id_gt, id_logit, ood_gt, ood_logit)
-        ood_mcm = mcm(id_gt, id_logit, ood_gt, ood_logit)
-        ood_maxlogit = max_logit(id_gt, id_logit, ood_gt, ood_logit)
-        ood_energy = energy(id_gt, id_logit, ood_gt,ood_logit)
-        ood_vim = vim(id_gt, id_logit, id_feat, ood_gt, ood_logit, ood_feat, train_logit, train_feat)
-        ood_dml = dml(id_gt, id_feat, ood_gt, ood_feat, model.fc.weight)
-        ood_dmlp = dmlp(id_gt, id_logit, id_feat, ood_gt, ood_logit, ood_feat, model.fc.weight, prototype_cls)
-        ood_cls = prot(id_gt, [id_logit], ood_gt, [ood_logit], [prototype_cls])
-        ood_att = prot(id_gt, [id_att_logit], ood_gt, [ood_att_logit], [prototype_att])
-        ood_merge = prot(id_gt, [id_logit, id_att_logit], ood_gt, [ood_logit, ood_att_logit], [prototype_cls, prototype_att])
+        # ood_mcm = mcm(id_gt, id_logit, ood_gt, ood_logit)
+        # ood_maxlogit = max_logit(id_gt, id_logit, ood_gt, ood_logit)
+        # ood_energy = energy(id_gt, id_logit, ood_gt,ood_logit)
+        # ood_vim = vim(id_gt, id_logit, id_feat, ood_gt, ood_logit, ood_feat, train_logit, train_feat)
+        # ood_dml = dml(id_gt, id_feat, ood_gt, ood_feat, model.fc.weight)
+        # ood_dmlp = dmlp(id_gt, id_logit, id_feat, ood_gt, ood_logit, ood_feat, model.fc.weight, prototype_cls)
+        # ood_cls = prot(id_gt, [id_logit], ood_gt, [ood_logit], [prototype_cls])
+        # ood_att = prot(id_gt, [id_att_logit], ood_gt, [ood_att_logit], [prototype_att])
+        # ood_merge = prot(id_gt, [id_logit, id_att_logit], ood_gt, [ood_logit, ood_att_logit], [prototype_cls, prototype_att])
 
         return {
             'msp': ood_msp,
-            'mcm': ood_mcm,
-            'maxlogit': ood_maxlogit,
-            'energy': ood_energy,
-            'vim': ood_vim,
-            'dml': ood_dml,
-            'dmlp': ood_dmlp,
-            'cls': ood_cls,
-            'att': ood_att,
-            'merge': ood_merge,
+            # 'mcm': ood_mcm,
+            # 'maxlogit': ood_maxlogit,
+            # 'energy': ood_energy,
+            # 'vim': ood_vim,
+            # 'dml': ood_dml,
+            # 'dmlp': ood_dmlp,
+            # 'cls': ood_cls,
+            # 'merge': ood_merge,
         }

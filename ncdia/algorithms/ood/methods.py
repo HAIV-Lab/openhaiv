@@ -40,7 +40,7 @@ def msp(id_gt, id_logits, ood_gt, ood_logits) -> tuple:
         torch.softmax(ood_logits, dim=1), dim=1)
     
     conf = np.concatenate([id_conf.cpu(), ood_conf.cpu()])
-    label = np.concatenate([id_gt.cpu(), ood_gt])
+    label = np.concatenate([id_gt, ood_gt])
 
     return ood_metrics(conf, label)
 

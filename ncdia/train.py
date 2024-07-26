@@ -6,6 +6,7 @@ from torchvision.models import resnet18
 from ncdia.algorithms.incremental.net.savc_net import SAVCNET
 from ncdia.algorithms.incremental.net.fact_net import FACTNET
 from ncdia.algorithms.incremental.net.alice_net import AliceNET
+from ncdia.algorithms.ood.autoood import AutoOOD
 from ncdia.datasets.utils import get_dataloader
 
 
@@ -51,7 +52,11 @@ def main(args):
             trainer.train()
         else:
             cfg.max_epochs = cfg.inc_epochs
+            ood_detecter = AutoOOD(cfg.device, cfg)
+            _, pre_trainloader, pre_test_loader = cli_dataloader(cfg, session-1)
             _, train_loader, test_loader = cli_dataloader(cfg, session)
+            ood_detecter.eval(model, pre_trainloader, pre_test_loader, train_loader, session)
+
             trainer = IncTrainer(
                 model, cfg,
                 session=session,
