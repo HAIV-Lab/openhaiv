@@ -60,6 +60,7 @@ def main(args):
             ood_detecter.eval(model, pre_train_loader, pre_test_loader, train_loader, session)
             ncd_dataloader = ncd_detecter.get_pseudo_newloader(model, {{'train': pre_train_loader, 'test': pre_test_loader}}, train_loader, pre_train_loader.dataset.transform, session-1)
 
+
             trainer = IncTrainer(
                 model, cfg,
                 session=session,
