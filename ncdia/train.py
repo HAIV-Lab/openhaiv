@@ -7,6 +7,7 @@ from ncdia.algorithms.incremental.net.savc_net import SAVCNET
 from ncdia.algorithms.incremental.net.fact_net import FACTNET
 from ncdia.algorithms.incremental.net.alice_net import AliceNET
 from ncdia.algorithms.ood.autoood import AutoOOD
+from ncdia.algorithms.ncd.ncd_discover import NCDDiscover
 from ncdia.datasets.utils import get_dataloader
 
 
@@ -53,9 +54,11 @@ def main(args):
         else:
             cfg.max_epochs = cfg.inc_epochs
             ood_detecter = AutoOOD(cfg.device, cfg)
-            _, pre_trainloader, pre_test_loader = cli_dataloader(cfg, session-1)
+            ncd_detecter = NCDDiscover(cfg)
+            _, pre_train_loader, pre_test_loader = cli_dataloader(cfg, session-1)
             _, train_loader, test_loader = cli_dataloader(cfg, session)
-            ood_detecter.eval(model, pre_trainloader, pre_test_loader, train_loader, session)
+            ood_detecter.eval(model, pre_train_loader, pre_test_loader, train_loader, session)
+            ncd_dataloader = ncd_detecter.get_pseudo_newloader(model, {{'train': pre_train_loader, 'test': pre_test_loader}}, train_loader, pre_train_loader.dataset.transform, session-1)
 
             trainer = IncTrainer(
                 model, cfg,

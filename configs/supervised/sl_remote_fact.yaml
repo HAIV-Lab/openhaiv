@@ -25,5 +25,6 @@ num_session: 2
 
 device: cuda
 
+ood_type: MLS
 exp_name: exp
 work_dir: ./output/supervised/sl_remote_savc
