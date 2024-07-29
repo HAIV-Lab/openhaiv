@@ -11,8 +11,8 @@ from ncdia.utils import (
     mkdir_if_missing, auto_device,
 )
 from ncdia.trainers.hooks import Hook
-from .priority import get_priority, Priority
-from .optims import build_optimizer, build_scheduler
+from ncdia.trainers.priority import get_priority, Priority
+from ncdia.trainers.optims import build_optimizer, build_scheduler
 from ncdia.datasets import build_dataloader
 
 
