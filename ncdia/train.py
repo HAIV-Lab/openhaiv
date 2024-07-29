@@ -54,12 +54,12 @@ def main(args):
             ncd_detecter = NCDDiscover(cfg)
             _, pre_train_loader, pre_test_loader = cli_dataloader(cfg, session-1)
             _, train_loader, test_loader = cli_dataloader(cfg, session)
-            ood_detecter.eval(model, pre_train_loader, pre_test_loader, train_loader, session)
-            ncd_dataloader = ncd_detecter.get_pseudo_newloader(model, {'train': pre_train_loader, 'test': pre_test_loader}, train_loader, pre_train_loader.dataset.transform, session-1)
+            ood_detecter.eval(trainer.model, pre_train_loader, pre_test_loader, train_loader, session)
+            ncd_dataloader = ncd_detecter.get_pseudo_newloader(trainer.model, {'train': pre_train_loader, 'test': pre_test_loader}, train_loader, pre_train_loader.dataset.transform, session-1)
             train_loader = ncd_dataloader
 
             trainer = IncTrainer(
-                None, cfg,
+                trainer.model, cfg,
                 session=session,
                 train_loader=train_loader,
                 val_loader=test_loader,
