@@ -3,7 +3,7 @@ import torch.nn.functional as F
 
 from ncdia.utils import ALGORITHMS
 from ncdia.algorithms.base import BaseAlg
-from .losses.angular_loss import AngularPenaltySMLoss
+from ncdia.utils.losses import AngularPenaltySMLoss
 from . import fantasy
 
 

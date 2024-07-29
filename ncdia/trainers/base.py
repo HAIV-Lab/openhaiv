@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from torch.optim import Optimizer, lr_scheduler
 
 from ncdia.utils import (
-    TRAINERS, HOOKS, LOSSES, ALGORITHMS,
+    TRAINERS, HOOKS, LOSSES, ALGORITHMS, MODELS,
     mkdir_if_missing, auto_device,
 )
 from ncdia.trainers.hooks import Hook
@@ -106,9 +106,18 @@ class BaseTrainer(object):
             work_dir: str | None = None,
     ):
         super(BaseTrainer, self).__init__()
-        self._model = model
         self._cfg = cfg
         self._session = session
+
+        self._model = {}
+        if 'model' in self._cfg:
+            self._model.update(dict(self._cfg['model']))
+        if isinstance(model, dict):
+            self._model.update(model)
+        elif isinstance(model, nn.Module):
+            self._model = model
+        if not self._model:
+            raise KeyError("Model is not found in `cfg`.")
 
         if 'optimizer' in self._cfg:
             self._optimizer = dict(self._cfg['optimizer'])
@@ -209,6 +218,8 @@ class BaseTrainer(object):
     @property
     def model(self) -> nn.Module:
         """nn.Module: Model to be trained."""
+        if isinstance(self._model, dict):
+            self._model = MODELS.build(self._model)
         return self._model
     
     @property

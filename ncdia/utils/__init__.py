@@ -24,3 +24,7 @@ DATASETS = Registry()
 
 # manage all kinds of inc network
 MODELS = Registry()
+
+
+from .losses import *
+from .metrics import *

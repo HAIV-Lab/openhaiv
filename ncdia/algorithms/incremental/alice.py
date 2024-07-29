@@ -1,12 +1,11 @@
 import torch
 import numpy as np
 
-from ncdia.algorithms.base import BaseAlg
 from ncdia.utils import ALGORITHMS
-from .losses.angular_loss import AngularPenaltySMLoss
+from ncdia.algorithms.base import BaseAlg
+from ncdia.utils.losses import AngularPenaltySMLoss
 from ncdia.utils.metrics import accuracy
-from .hook import AliceHook
-
+from .hooks import AliceHook
 
 
 @ALGORITHMS.register

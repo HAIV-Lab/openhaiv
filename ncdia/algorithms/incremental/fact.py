@@ -3,10 +3,9 @@ import torch.nn as nn
 import numpy as np
 
 from ncdia.algorithms.base import BaseAlg
-from .net.fact_net import FACTNET
 from ncdia.utils import ALGORITHMS
 from ncdia.utils.metrics import accuracy
-from .hook import FACTHook
+from .hooks import FACTHook
 
 
 @ALGORITHMS.register
@@ -18,7 +17,6 @@ class FACT(BaseAlg):
 
         self.transform = None
         self.base_class = 11
-        # self._network = FACTNET(self.args)
         self._network = None
         self.loss = nn.CrossEntropyLoss().cuda()
         self.beta = 0.5

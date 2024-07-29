@@ -10,6 +10,14 @@ class ModelHook(Hook):
 
     priority = 'HIGHEST'
 
+    def init_trainer(self, trainer) -> None:
+        """Initialize model for trainer.
+
+        Args:
+            trainer (BaseTrainer): Trainer object.
+        """
+        trainer.model
+
     def before_run(self, trainer) -> None:
         """Set model to device before running.
 

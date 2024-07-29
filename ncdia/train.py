@@ -33,9 +33,6 @@ def main(args):
 
     # Build the trainer from config
     # trainer = PreTrainer(cfg) if cfg.session == 0 else IncTrainer(cfg)
-    # model = resnet18(pretrained=True)
-    # model = FACTNET(cfg)
-    model = AliceNET(cfg)
     cli_dataloader = get_dataloader(config=cfg)
 
     num_session = cfg.num_session or 1
@@ -43,7 +40,7 @@ def main(args):
         if session == 0:
             _, train_loader, test_loader = cli_dataloader(cfg, 0)
             trainer = PreTrainer(
-                model, cfg,
+                None, cfg,
                 session=0,
                 train_loader=train_loader,
                 val_loader=test_loader,
@@ -62,7 +59,7 @@ def main(args):
             train_loader = ncd_dataloader
 
             trainer = IncTrainer(
-                model, cfg,
+                None, cfg,
                 session=session,
                 train_loader=train_loader,
                 val_loader=test_loader,

@@ -1,19 +1,20 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+from ncdia.utils import LOSSES
 
+
+@LOSSES.register
 class AngularPenaltySMLoss(nn.Module):
+    '''Angular Penalty Softmax Loss
+    Three 'loss_types' available: ['arcface', 'sphereface', 'cosface']
+    These losses are described in the following papers:
+
+    ArcFace: https://arxiv.org/abs/1801.07698
+    SphereFace: https://arxiv.org/abs/1704.08063
+    CosFace/Ad Margin: https://arxiv.org/abs/1801.05599
+    
+    '''
     def __init__(self, loss_type='arcface', eps=1e-7, s=None, m=None):
-        '''
-        Angular Penalty Softmax Loss
-        Three 'loss_types' available: ['arcface', 'sphereface', 'cosface']
-        These losses are described in the following papers:
-
-        ArcFace: https://arxiv.org/abs/1801.07698
-        SphereFace: https://arxiv.org/abs/1704.08063
-        CosFace/Ad Margin: https://arxiv.org/abs/1801.05599
-        '''
-
         super(AngularPenaltySMLoss, self).__init__()
         loss_type = loss_type.lower()
         assert loss_type in ['arcface', 'sphereface', 'cosface', 'crossentropy']
