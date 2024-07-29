@@ -19,14 +19,8 @@ METRICS = Registry()
 # manage all kinds of preTraining algorithms
 ALGORITHMS = Registry()
 
-# mange all kinds of inc algorithms
-INMETHODS = Registry()
-
 # manage all kinds of datasets
 DATASETS = Registry()
 
 # manage all kinds of inc network
 MODELS = Registry()
-
-from .losses import CrossEntropyLoss
-from .metrics import accuracy

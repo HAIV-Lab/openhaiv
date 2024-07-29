@@ -119,6 +119,10 @@ class Registry(dict):
 
         Returns:
             target (object): A built target.
+
+        Raises:
+            KeyError: If key 'type' is not found in target.
+            KeyError: If target type is not registered.
         """
         if 'type' not in target:
             raise KeyError(f"Key 'type' is not found in target {target}.")
@@ -128,9 +132,8 @@ class Registry(dict):
             raise KeyError(f"Target type {target_type} is not registered.")
         
         target.pop('type')
-        
-        
         target = self[target_type](**target)
+        
         return target
     
     def __call__(self, target):

@@ -3,7 +3,9 @@ from torchvision.models._meta import _IMAGENET_CATEGORIES
 from torchvision.models._api import Weights,WeightsEnum
 from torchvision.transforms._presets import ImageClassification,InterpolationMode
 from typing import Any, Dict
-###VIT pre-weights
+
+__all__ = ['ViT_B_16_Weights', 'ViT_B_32_Weights', 'ViT_L_16_Weights', 'ViT_L_32_Weights', 'ViT_H_14_Weights']
+
 
 _COMMON_META: Dict[str, Any] = {
     "categories": _IMAGENET_CATEGORIES,

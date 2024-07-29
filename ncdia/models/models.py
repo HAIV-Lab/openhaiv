@@ -4,7 +4,7 @@ import torch.backends.cudnn as cudnn
 
 import ncdia_old.utils.comm as comm
 from ncdia_old.quantize import reconstruct
-from models_register_util import get_model
+from ncdia.utils import MODELS
 
 # from .resnet18_savc_att import SAVCNET
 # from .resnet18_savc_att_q import SAVCNET_q
@@ -12,14 +12,13 @@ from models_register_util import get_model
 # from .resnet18_savc_q_sar import SAVCNET_q2_sar
 # from .resnet18_savc_att_q_ir import SAVCNET_q_ir
 
-#####
 
 def get_network(config):
     network_config = config.network
     num_classes = network_config.num_classes
     # 使用注册加载模型
     model_name = network_config.name
-    net = get_model(model_name)
+    net = MODELS.build(network_config)
 
     # if network_config.name == 'resnet18_savc_att':
     #     net = SAVCNET(args=config)

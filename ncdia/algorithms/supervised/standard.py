@@ -1,4 +1,5 @@
-from ncdia.utils import accuracy, ALGORITHMS
+from ncdia.utils import ALGORITHMS
+from ncdia.utils.metrics import accuracy
 from ncdia.algorithms.base import BaseAlg
 
 

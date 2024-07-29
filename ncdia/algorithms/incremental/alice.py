@@ -4,7 +4,7 @@ import numpy as np
 from ncdia.algorithms.base import BaseAlg
 from ncdia.utils import ALGORITHMS
 from .losses.angular_loss import AngularPenaltySMLoss
-from ncdia.utils.metrics.accuracy import accuracy
+from ncdia.utils.metrics import accuracy
 from .hook import AliceHook
 
 

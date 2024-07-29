@@ -3,20 +3,27 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ncdia.models.resnet.resnet import *
+from ncdia.utils import MODELS
 
-class AliceNET(nn.Module):
+
+@MODELS.register
+class FACTNET(nn.Module):
 
     def __init__(self, args, mode="ft_cos"):
         super().__init__()
 
         self.mode = mode
         self.args = args
-       
-        self.encoder = resnet18(True, args, num_classes=self.args.network.net_alice.moco_dim)  # pretrained=True follow TOPIC, models for cub is imagenet pre-trained. https://github.com/xyutao/fscil/issues/11#issuecomment-687548790
+        
+        # pretrained=True follow TOPIC, models for cub is imagenet pre-trained.
+        # https://github.com/xyutao/fscil/issues/11#issuecomment-687548790
+        network = args.network.cfg
+        network['pretrained'] = True
+        network['num_classes'] = args.model.net_fact.moco_dim
+        self.encoder = MODELS.build(network)
+
         self.num_features = 512
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-
 
         self.pre_allocate = self.args.dataloader.num_classes
         self.fc = nn.Linear(self.num_features, self.pre_allocate, bias=False)
@@ -36,12 +43,11 @@ class AliceNET(nn.Module):
             
             x1 = F.linear(F.normalize(x, p=2, dim=-1), F.normalize(self.fc.weight, p=2, dim=-1))
             x = x1
-            
-            x = self.args.network.net_alice.temperature * x
+            x = self.args.model.net_fact.temperature * x
             
         elif 'dot' in self.mode:
             x = self.fc(x)
-            x = self.args.network.net_alice.temperature * x
+            x = self.args.model.net_fact.temperature * x
         return x
 
     def forpass_fc(self,x):
@@ -49,11 +55,11 @@ class AliceNET(nn.Module):
         if 'cos' in self.mode:
             
             x = F.linear(F.normalize(x, p=2, dim=-1), F.normalize(self.fc.weight, p=2, dim=-1))
-            x = self.args.network.net_alice.temperature * x
+            x = self.args.model.net_fact.temperature * x
             
         elif 'dot' in self.mode:
             x = self.fc(x)
-            x = self.args.network.net_alice.temperature * x
+            x = self.args.model.net_fact.temperature * x
         return x
 
     def encode(self, x):
@@ -104,18 +110,23 @@ class AliceNET(nn.Module):
         
         if 'cos' in self.mode:
             x = F.linear(F.normalize(x, p=2, dim=-1), F.normalize(self.fc.weight, p=2, dim=-1))
-            x = self.args.network.net_alice.temperature * x
+            x = self.args.model.net_fact.temperature * x
 
         elif 'dot' in self.mode:
             x = self.fc(x)
-            x = self.args.network.net_alice.temperature * x
+            x = self.args.model.net_fact.temperature * x
             
         return x
 
     def forward(self, input):
-        encoder_feature = self.encode(input)
-        wf = F.linear(F.normalize(encoder_feature, p=2, dim=1), F.normalize(self.fc.weight, p=2, dim=1))
-        return wf
+        if self.mode != 'encoder':
+            input = self.forward_metric(input)
+            return input
+        elif self.mode == 'encoder':
+            input = self.encode(input)
+            return input
+        else:
+            raise ValueError('Unknown mode')
 
     def update_fc(self,dataloader,class_list,session):
         for batch in dataloader:
@@ -127,7 +138,7 @@ class AliceNET(nn.Module):
             labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
             data=self.encode(data).detach()
 
-        if self.args.network.net_alice.not_data_init:
+        if self.args.model.net_fact.not_data_init:
             new_fc = nn.Parameter(
                 torch.rand(len(class_list)*m, self.num_features, device="cuda"),
                 requires_grad=True)
@@ -135,7 +146,7 @@ class AliceNET(nn.Module):
         else:
             new_fc = self.update_fc_avg(data, label, class_list, m)
 
-        if 'ft' in self.args.network.net_alice.new_mode:  # further finetune
+        if 'ft' in self.args.model.net_fact.new_mode:  # further finetune
             self.update_fc_ft(new_fc,data,label,session)
 
     def update_fc_avg(self,data,labels,class_list,m):
@@ -153,10 +164,10 @@ class AliceNET(nn.Module):
         return new_fc
 
     def get_logits(self,x,fc):
-        if 'dot' in self.args.network.net_alice.new_mode:
+        if 'dot' in self.args.model.net_fact.new_mode:
             return F.linear(x,fc)
-        elif 'cos' in self.args.network.net_alice.new_mode:
-            return self.args.network.net_alice.temperature * F.linear(F.normalize(x, p=2, dim=-1), F.normalize(fc, p=2, dim=-1))
+        elif 'cos' in self.args.model.net_fact.new_mode:
+            return self.args.model.net_fact.temperature * F.linear(F.normalize(x, p=2, dim=-1), F.normalize(fc, p=2, dim=-1))
 
     def update_fc_ft(self,new_fc,data,label,session):
         new_fc=new_fc.clone().detach()
@@ -176,3 +187,4 @@ class AliceNET(nn.Module):
                 pass
 
         self.fc.weight.data[self.args.dataloader.base_class + self.args.dataloader.way * (session - 1):self.args.dataloader.base_class + self.args.dataloader.way * session, :].copy_(new_fc.data)
+

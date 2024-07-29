@@ -1,15 +1,15 @@
-from typing import Any, Callable, List, Optional, Type, Union
-from torchvision.utils import _log_api_usage_once
-from torchvision.models._utils import handle_legacy_interface, _ovewrite_named_param
-from resnet_weights import ResNet34_Weights, ResNet101_Weights, ResNet50_Weights, ResNeXt101_32X8D_Weights, \
-    ResNeXt101_64X4D_Weights, ResNet152_Weights, ResNet18_Weights, ResNeXt50_32X4D_Weights, Wide_ResNet101_2_Weights, \
-    Wide_ResNet50_2_Weights
-
-from ncdia.models.models_register_util import WeightsEnum
-from ncdia.models.models_register_util import register_model
 import torch
 import torch.nn as nn
 from torch import Tensor
+
+from torchvision.utils import _log_api_usage_once
+from torchvision.models._utils import _ovewrite_named_param
+from torchvision.models._api import WeightsEnum
+
+from typing import Any, Callable, List, Optional, Type, Union
+
+__all__ = ['BasicBlock', 'Bottleneck', 'ResNet', '_resnet']
+
 
 def conv3x3(in_planes: int, out_planes: int, stride: int = 1, groups: int = 1, dilation: int = 1) -> nn.Conv2d:
     """3x3 convolution with padding"""
@@ -28,6 +28,7 @@ def conv3x3(in_planes: int, out_planes: int, stride: int = 1, groups: int = 1, d
 def conv1x1(in_planes: int, out_planes: int, stride: int = 1) -> nn.Conv2d:
     """1x1 convolution"""
     return nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False)
+
 
 # 普通残差模块
 class BasicBlock(nn.Module):
@@ -77,6 +78,7 @@ class BasicBlock(nn.Module):
         out = self.relu(out)
 
         return out
+
 
 # Bottleneck残差模块
 class Bottleneck(nn.Module):
@@ -135,6 +137,8 @@ class Bottleneck(nn.Module):
         out = self.relu(out)
 
         return out
+    
+
 # 模型ResNet具体实现类
 class ResNet(nn.Module):
     def __init__(
@@ -257,6 +261,7 @@ class ResNet(nn.Module):
     def forward(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)
 
+
 # 定义根据参数加载对应的resnet模型方法
 def _resnet(
         block: Type[Union[BasicBlock, Bottleneck]],
@@ -271,7 +276,10 @@ def _resnet(
     model = ResNet(block, layers, **kwargs)
 
     if weights is not None:
-        model.load_state_dict(weights.get_state_dict(progress=progress))
+        model_dict = model.state_dict()
+        state_dict = weights.get_state_dict(progress=progress)
+        state_dict = {k: v for k, v in state_dict.items() if k not in ['fc.weight', 'fc.bias']}
+        model_dict.update(state_dict)
+        model.load_state_dict(model_dict)
 
     return model
-

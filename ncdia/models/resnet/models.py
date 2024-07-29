@@ -1,14 +1,21 @@
-from ncdia.models.models_register_util import register_model
-from ncdia.models.resnet.resnet_weights import ResNet18_Weights,ResNet34_Weights,ResNet50_Weights,ResNet101_Weights,ResNet152_Weights,ResNeXt101_64X4D_Weights,ResNeXt101_32X8D_Weights,ResNeXt50_32X4D_Weights,Wide_ResNet50_2_Weights,Wide_ResNet101_2_Weights
-from torchvision.models._utils import handle_legacy_interface
-from typing import Any, Optional
-from ncdia.models.resnet.resnet_main import _resnet,ResNet,BasicBlock,Bottleneck,_ovewrite_named_param
-####注册RestNet模型
+from ncdia.utils import MODELS
+from torchvision.models._utils import (
+    handle_legacy_interface, _ovewrite_named_param
+)
 
-# 注册模型-resnet18
-@register_model()
+from .weights import *
+from .modules import *
+
+from typing import Any, Optional
+
+__all__ = ['resnet18', 'resnet34', 'resnet50', 'resnet101',
+           'resnet152', 'resnext50_32x4d', 'resnext101_32x8d',
+           'resnext101_64x4d', 'wide_resnet50_2', 'wide_resnet101_2']
+
+
+@MODELS.register
 @handle_legacy_interface(weights=("pretrained", ResNet18_Weights.IMAGENET1K_V1))
-def haiv_resnet18(*, weights: Optional[ResNet18_Weights] = None, progress: bool = True, **kwargs: Any) -> ResNet:
+def resnet18(*, weights: Optional[ResNet18_Weights] = None, progress: bool = True, **kwargs: Any) -> ResNet:
     """resnet-18 from `Deep Residual Learning for Image Recognition <https://arxiv.org/pdf/1512.03385.pdf>`__.
 
     Args:
@@ -31,10 +38,10 @@ def haiv_resnet18(*, weights: Optional[ResNet18_Weights] = None, progress: bool 
 
     return _resnet(BasicBlock, [2, 2, 2, 2], weights, progress, **kwargs)
 
-# 注册模型-resnet34
-@register_model()
+
+@MODELS.register
 @handle_legacy_interface(weights=("pretrained", ResNet34_Weights.IMAGENET1K_V1))
-def haiv_resnet34(*, weights: Optional[ResNet34_Weights] = None, progress: bool = True, **kwargs: Any) -> ResNet:
+def resnet34(*, weights: Optional[ResNet34_Weights] = None, progress: bool = True, **kwargs: Any) -> ResNet:
     """resnet-34 from `Deep Residual Learning for Image Recognition <https://arxiv.org/pdf/1512.03385.pdf>`__.
 
     Args:
@@ -58,9 +65,9 @@ def haiv_resnet34(*, weights: Optional[ResNet34_Weights] = None, progress: bool 
     return _resnet(BasicBlock, [3, 4, 6, 3], weights, progress, **kwargs)
 
 
-@register_model()
+@MODELS.register
 @handle_legacy_interface(weights=("pretrained", ResNet50_Weights.IMAGENET1K_V1))
-def haiv_resnet50(*, weights: Optional[ResNet50_Weights] = None, progress: bool = True, **kwargs: Any) -> ResNet:
+def resnet50(*, weights: Optional[ResNet50_Weights] = None, progress: bool = True, **kwargs: Any) -> ResNet:
     """resnet-50 from `Deep Residual Learning for Image Recognition <https://arxiv.org/pdf/1512.03385.pdf>`__.
 
     .. note::
@@ -90,9 +97,9 @@ def haiv_resnet50(*, weights: Optional[ResNet50_Weights] = None, progress: bool 
     return _resnet(Bottleneck, [3, 4, 6, 3], weights, progress, **kwargs)
 
 
-@register_model()
+@MODELS.register
 @handle_legacy_interface(weights=("pretrained", ResNet101_Weights.IMAGENET1K_V1))
-def haiv_resnet101(*, weights: Optional[ResNet101_Weights] = None, progress: bool = True, **kwargs: Any) -> ResNet:
+def resnet101(*, weights: Optional[ResNet101_Weights] = None, progress: bool = True, **kwargs: Any) -> ResNet:
     """resnet-101 from `Deep Residual Learning for Image Recognition <https://arxiv.org/pdf/1512.03385.pdf>`__.
 
     .. note::
@@ -122,9 +129,9 @@ def haiv_resnet101(*, weights: Optional[ResNet101_Weights] = None, progress: boo
     return _resnet(Bottleneck, [3, 4, 23, 3], weights, progress, **kwargs)
 
 
-@register_model()
+@MODELS.register
 @handle_legacy_interface(weights=("pretrained", ResNet152_Weights.IMAGENET1K_V1))
-def haiv_resnet152(*, weights: Optional[ResNet152_Weights] = None, progress: bool = True, **kwargs: Any) -> ResNet:
+def resnet152(*, weights: Optional[ResNet152_Weights] = None, progress: bool = True, **kwargs: Any) -> ResNet:
     """resnet-152 from `Deep Residual Learning for Image Recognition <https://arxiv.org/pdf/1512.03385.pdf>`__.
 
     .. note::
@@ -154,9 +161,9 @@ def haiv_resnet152(*, weights: Optional[ResNet152_Weights] = None, progress: boo
     return _resnet(Bottleneck, [3, 8, 36, 3], weights, progress, **kwargs)
 
 
-@register_model()
+@MODELS.register
 @handle_legacy_interface(weights=("pretrained", ResNeXt50_32X4D_Weights.IMAGENET1K_V1))
-def haiv_resnext50_32x4d(
+def resnext50_32x4d(
         *, weights: Optional[ResNeXt50_32X4D_Weights] = None, progress: bool = True, **kwargs: Any
 ) -> ResNet:
     """ResNeXt-50 32x4d model from
@@ -184,9 +191,9 @@ def haiv_resnext50_32x4d(
     return _resnet(Bottleneck, [3, 4, 6, 3], weights, progress, **kwargs)
 
 
-@register_model()
+@MODELS.register
 @handle_legacy_interface(weights=("pretrained", ResNeXt101_32X8D_Weights.IMAGENET1K_V1))
-def haiv_resnext101_32x8d(
+def resnext101_32x8d(
         *, weights: Optional[ResNeXt101_32X8D_Weights] = None, progress: bool = True, **kwargs: Any
 ) -> ResNet:
     """ResNeXt-101 32x8d model from
@@ -214,9 +221,9 @@ def haiv_resnext101_32x8d(
     return _resnet(Bottleneck, [3, 4, 23, 3], weights, progress, **kwargs)
 
 
-@register_model()
+@MODELS.register
 @handle_legacy_interface(weights=("pretrained", ResNeXt101_64X4D_Weights.IMAGENET1K_V1))
-def haiv_resnext101_64x4d(
+def resnext101_64x4d(
         *, weights: Optional[ResNeXt101_64X4D_Weights] = None, progress: bool = True, **kwargs: Any
 ) -> ResNet:
     """ResNeXt-101 64x4d model from
@@ -244,9 +251,9 @@ def haiv_resnext101_64x4d(
     return _resnet(Bottleneck, [3, 4, 23, 3], weights, progress, **kwargs)
 
 
-@register_model()
+@MODELS.register
 @handle_legacy_interface(weights=("pretrained", Wide_ResNet50_2_Weights.IMAGENET1K_V1))
-def haiv_wide_resnet50_2(
+def wide_resnet50_2(
         *, weights: Optional[Wide_ResNet50_2_Weights] = None, progress: bool = True, **kwargs: Any
 ) -> ResNet:
     """Wide resnet-50-2 model from
@@ -278,9 +285,9 @@ def haiv_wide_resnet50_2(
     return _resnet(Bottleneck, [3, 4, 6, 3], weights, progress, **kwargs)
 
 
-@register_model()
+@MODELS.register
 @handle_legacy_interface(weights=("pretrained", Wide_ResNet101_2_Weights.IMAGENET1K_V1))
-def haiv_wide_resnet101_2(
+def wide_resnet101_2(
         *, weights: Optional[Wide_ResNet101_2_Weights] = None, progress: bool = True, **kwargs: Any
 ) -> ResNet:
     """Wide resnet-101-2 model from

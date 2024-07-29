@@ -1,4 +1,8 @@
-_base_: ["configs/dataloader/remote.yaml", "configs/incremental/savc.yaml", "/data/zqh/openhaiv/configs/network/fact.yaml"]
+_base_: [
+  "configs/dataloader/remote.yaml", 
+  "configs/incremental/savc.yaml", 
+  "configs/network/fact.yaml"
+]
 
 algorithm:
   type: fact
