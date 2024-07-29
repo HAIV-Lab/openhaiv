@@ -1,8 +1,7 @@
-from ncdia.trainers.hooks import Hook
+from ncdia.trainers.hooks import AlgHook
 
 
-class FACTHook(Hook):
-
+class FACTHook(AlgHook):
     def __init__(self) -> None:
         super().__init__()
     
@@ -10,7 +9,8 @@ class FACTHook(Hook):
         algorithm = trainer.algorithm
         algorithm.replace_fc()
 
-class AliceHook(Hook):
+
+class AliceHook(AlgHook):
     def __init__(self) -> None:
         super().__init__()
     

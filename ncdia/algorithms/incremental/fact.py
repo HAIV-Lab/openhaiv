@@ -1,22 +1,13 @@
-import math
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import numpy as np
 
-from ncdia.utils.cfg import Configs
-from ncdia.utils.logger import Logger
-from ncdia.utils import INMETHODS
 from ncdia.algorithms.base import BaseAlg
-# from ncdia.models.resnet.resnet_models import *
-from .base import BaseLearner
 from .net.fact_net import FACTNET
 from ncdia.utils import ALGORITHMS
-from ncdia.utils.metrics.accuracy import accuracy
+from ncdia.utils.metrics import accuracy
 from .hook import FACTHook
 
-
-    
 
 @ALGORITHMS.register
 class FACT(BaseAlg):

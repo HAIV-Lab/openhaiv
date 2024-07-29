@@ -1,30 +1,20 @@
-import copy
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
 
-from tqdm import tqdm
-
-
-from ncdia.utils.cfg import Configs
-from ncdia.utils.logger import Logger
-from ncdia.utils import INMETHODS
 from ncdia.utils import ALGORITHMS
 from ncdia.algorithms.base import BaseAlg
-from .base import BaseLearner
-from .net.savc_net import SAVCNET
 from .losses.angular_loss import AngularPenaltySMLoss
 from . import fantasy
 
 
 @ALGORITHMS.register
 class SAVC(BaseAlg):
-    def __init__(self, cfg: Configs) -> None:
+    def __init__(self, trainer) -> None:
         print("++++++++++++++++++++++++++cfg:")
-        self.args = cfg.copy()
-        self.config = cfg
-        super().__init__(self.args)
+        super().__init__()
+        self.trainer = trainer
+        self.args = trainer.cfg
+        self.config = trainer.cfg
 
         self._network = None
         self.loss = AngularPenaltySMLoss()
@@ -137,8 +127,6 @@ class SAVC(BaseAlg):
             
             loss = F.cross_entropy(joint_preds, label)
             
-
-
             feature_list.append(agg_feat)
             logit_list.append(agg_preds)
             score = torch.softmax(agg_preds, dim=1)
@@ -154,6 +142,7 @@ class SAVC(BaseAlg):
         pred_list = torch.cat(pred_list).numpy().astype(int)
         conf_list = torch.cat(conf_list).numpy()
         label_list = torch.cat(label_list).numpy().astype(int)
+
         ret = {
             "feature": feature_list,
             "logits": logit_list,
@@ -163,6 +152,7 @@ class SAVC(BaseAlg):
             "acc": acc,
             "loss": loss
         }
+        
         return ret
 
     def test_step(self, trainer, data, label, *args, **kwargs):

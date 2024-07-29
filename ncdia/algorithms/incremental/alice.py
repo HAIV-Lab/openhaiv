@@ -1,23 +1,14 @@
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import numpy as np
 
-from ncdia.utils.cfg import Configs
-from ncdia.utils.logger import Logger
-from ncdia.utils import INMETHODS
 from ncdia.algorithms.base import BaseAlg
 from ncdia.utils import ALGORITHMS
-from .base import BaseLearner
 from .losses.angular_loss import AngularPenaltySMLoss
-from .net.alice_net import AliceNET
 from ncdia.utils.metrics.accuracy import accuracy
 from .hook import AliceHook
 
 
 
-
-    
 @ALGORITHMS.register
 class Alice(BaseAlg):
     def __init__(self, trainer) -> None:
@@ -108,10 +99,8 @@ class Alice(BaseAlg):
                 mask[:,i+self.args.CIL.base_class][picked_dummy]=1
             mask=torch.tensor(mask).cuda()
 
-
             data = data.cuda()
             labels = label.cuda()
-
 
             logits = self._network(data)
             logits_ = logits[:, :self.args.dataloader.base_class]
@@ -149,26 +138,15 @@ class Alice(BaseAlg):
                 - "loss": Loss value.
                 - "acc": Accuracy value.
         """
-        
-        """
-        base train for fact method
-        Args:
-            data: data in batch
-            label: label in batch
-            attribute: attribute in batch
-            imgpath: imgpath in batch
-        """
         session = trainer.session
-        if session ==0:
+        if session == 0:
             self._network = trainer.model
             self._network.eval()
-            
 
             with torch.no_grad():
                 data = data.cuda()
                 labels = label.cuda()
 
-            
                 logits = self._network(data)
                 logits_ = logits[:, :self.args.CIL.base_class]
                 # _, pred = torch.max(logits_, dim=1)
