@@ -7,11 +7,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from typing import Dict, List
+from typing import Dict
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from sklearn.metrics import precision_score, recall_score, f1_score, average_precision_score
-from sklearn.preprocessing import label_binarize
+from sklearn import metrics
+from sklearn.cluster import KMeans
+from sklearn.metrics.pairwise import cosine_similarity
+from scipy.optimize import linear_sum_assignment as linear_assignment
 
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
@@ -21,12 +23,18 @@ from ncdia.utils.cfg import Configs
 
 
 class NCDDiscover(object):
+    """
+    NCD discover class 
+
+    Args:
+        config (Configs): a config for details.
+    """
     def __init__(self, config: Configs):
         self.id_pred = None
         self.id_conf = None
         self.id_gt = None
         self.config = config
-        # print("config.CIL.fantasy: ", config.CIL.fantasy)
+        
         if config.CIL.fantasy is not None and config.CIL.fantasy != "None":
             self.transform, self.num_trans = fantasy.__dict__[config.CIL.fantasy]()
         else:
@@ -48,7 +56,7 @@ class NCDDiscover(object):
         net = net.eval()
         with torch.no_grad():
             for batch in tqdm(data_loader,
-                          disable=not progress or not comm.is_main_process()):
+                          disable=not progress):
                 data = batch['data'].cuda()
                 label = batch['label'].cuda()
                 imgpath = batch['imgpath']
@@ -113,7 +121,7 @@ class NCDDiscover(object):
         assert 'test' in id_data_loaders, \
             'id_data_loaders should have the key: test!'
         
-        dataset_name = self.config.dataset.name
+        dataset_name = self.config.dataloader.dataset
 
         # -------- prepare the prototype of training set -------- #
         print(f'Performing inference on {dataset_name} dataset...', flush=True)
@@ -129,8 +137,8 @@ class NCDDiscover(object):
         id_conf = F.normalize(id_logit, p=2, dim=1) @ prototype_cls.T
         id_conf, _ = torch.max(id_conf, dim=1, keepdim=True)
         
-        if self.config.recorder.save_scores:
-            self._save_scores(id_pred, id_conf, id_gt, dataset_name)
+        # if self.config.recorder.save_scores:
+        #     self._save_scores(id_pred, id_conf, id_gt, dataset_name)
 
         # load nearood data and compute ood metrics
         print(u'\u2500' * 70, flush=True)
@@ -146,24 +154,24 @@ class NCDDiscover(object):
         ood_neg_gt = -1 * np.ones_like(ood_gt) 
 
         # ------------ OOD detection on "val set" to find the threshold ----------- #
-        print(f"Using the OOD info type: {self.config.discoverer.ood_type}")
+        print(f"Using the OOD info type: {self.config.discover.ood_type}")
         id_conf, ood_conf = id_conf.cpu(), ood_conf.cpu()
         # 这个conf是id的大，ood的小
         id_len, ood_len = id_conf.shape[0], ood_conf.shape[0]
-        ratio = self.config.discoverer.val_ratio
-        if self.config.discoverer.ood_type == 'MLS':
+        ratio = self.config.discover.val_ratio
+        if self.config.discover.ood_type == 'MLS':
             tid_conf, _ = torch.max(id_logit.cpu(), dim=1, keepdim=True)
             tood_conf, _ = torch.max(ood_logit.cpu(), dim=1, keepdim=True)
             conf = torch.cat([tid_conf[:int(id_len * ratio)], tood_conf[:int(ood_len * ratio)]])
             label = np.concatenate([id_gt[:int(id_len * ratio)], ood_neg_gt[:int(ood_len * ratio)]])
-        elif self.config.discoverer.ood_type == 'MSP':
+        elif self.config.discover.ood_type == 'MSP':
             tmp = torch.softmax(id_logit.cpu(), 1)
             tid_conf, _ = torch.max(tmp, dim=1, keepdim=True)
             tmp = torch.softmax(ood_logit.cpu(), 1)
             tood_conf, _ = torch.max(tmp, dim=1, keepdim=True)
             conf = torch.cat([tid_conf[:int(id_len * ratio)], tood_conf[:int(ood_len * ratio)]])
             label = np.concatenate([id_gt[:int(id_len * ratio)], ood_neg_gt[:int(ood_len * ratio)]])
-        elif self.config.discoverer.ood_type == 'MCM':
+        elif self.config.discover.ood_type == 'MCM':
             T = 2
             tmp = torch.softmax(id_logit.cpu() / T, 1)
             tid_conf, _ = torch.max(tmp, dim=1, keepdim=True)
@@ -171,13 +179,13 @@ class NCDDiscover(object):
             tood_conf, _ = torch.max(tmp, dim=1, keepdim=True)
             conf = torch.cat([tid_conf[:int(id_len * ratio)], tood_conf[:int(ood_len * ratio)]])
             label = np.concatenate([id_gt[:int(id_len * ratio)], ood_neg_gt[:int(ood_len * ratio)]])
-        elif self.config.discoverer.ood_type == 'Energy':
+        elif self.config.discover.ood_type == 'Energy':
             from scipy.special import logsumexp
             tid_conf = torch.tensor(logsumexp(id_logit.cpu(), axis=-1))
             tood_conf = torch.tensor(logsumexp(ood_logit.cpu(), axis=-1))
             conf = torch.cat([tid_conf[:int(id_len * ratio)], tood_conf[:int(ood_len * ratio)]])
             label = np.concatenate([id_gt[:int(id_len * ratio)], ood_neg_gt[:int(ood_len * ratio)]])
-        elif self.config.discoverer.ood_type == 'ViM':
+        elif self.config.discover.ood_type == 'ViM':
             from numpy.linalg import norm, pinv
             from scipy.special import logsumexp
             from sklearn.covariance import EmpiricalCovariance
@@ -202,7 +210,7 @@ class NCDDiscover(object):
 
             conf = torch.cat([tid_conf[:int(id_len * ratio)], tood_conf[:int(ood_len * ratio)]])
             label = np.concatenate([id_gt[:int(id_len * ratio)], ood_neg_gt[:int(ood_len * ratio)]])
-        elif self.config.discoverer.ood_type == 'DML':
+        elif self.config.discover.ood_type == 'DML':
             w = net.fc.weight.clone().detach()
             w = F.normalize(w, p=2, dim=1).cpu()
             w = w[::2, ]  # savc使用的是两倍类别数的fc层
@@ -217,7 +225,7 @@ class NCDDiscover(object):
             conf = torch.cat([tid_conf[:int(id_len * ratio)], tood_conf[:int(ood_len * ratio)]])
             label = np.concatenate([id_gt[:int(id_len * ratio)], ood_neg_gt[:int(ood_len * ratio)]])
 
-        elif self.config.discoverer.ood_type == 'DMLplus':
+        elif self.config.discover.ood_type == 'DMLplus':
             w = net.fc.weight.clone().detach()
             w = F.normalize(w, p=2, dim=1).cpu()
             w = w[::2, ]  # savc使用的是两倍类别数的fc层
@@ -236,33 +244,34 @@ class NCDDiscover(object):
             tood_conf = tood_conf + 40 * ttood_conf.cpu()
             conf = torch.cat([tid_conf[:int(id_len * ratio)], tood_conf[:int(ood_len * ratio)]])
             label = np.concatenate([id_gt[:int(id_len * ratio)], ood_neg_gt[:int(ood_len * ratio)]])
-        elif self.config.discoverer.ood_type == 'PatternMatching':
+        elif self.config.discover.ood_type == 'PatternMatching':
             conf = torch.cat([id_conf[:int(id_len*ratio)], ood_conf[:int(ood_len*ratio)]])
             label = np.concatenate([id_gt[:int(id_len*ratio)], ood_neg_gt[:int(ood_len*ratio)]])
-        elif self.config.discoverer.ood_type == 'classification':
+        elif self.config.discover.ood_type == 'classification':
             conf = torch.cat([id_conf[:int(id_len*ratio)], ood_conf[:int(ood_len*ratio)]])
             label = np.concatenate([id_gt[:int(id_len*ratio)], ood_neg_gt[:int(ood_len*ratio)]])
 
 
         conf = conf.view(-1)
-        # threshold, ood_metric = self._search_threshold(conf, label)
-        # print(f"Finish searching threshold on val-set: {threshold.item()}, OOD samples Percision: {ood_metric['precision']}, Recall: {ood_metric['recall']}",flush=True)
+        
+        threshold, ood_metric = self._search_threshold(conf, label)
+        print(f"Finish searching threshold on val-set: {threshold.item()}, OOD samples Percision: {ood_metric['precision']}, Recall: {ood_metric['recall']}",flush=True)
 
         # --------- Using threshold to get the novel samples ----------- #
         total_feat = torch.cat((id_feat, ood_feat), dim=0)
-        if self.config.discoverer.ood_type == 'MLS':
+        if self.config.discover.ood_type == 'MLS':
             tid_conf, _ = torch.max(id_logit.cpu(), dim=1, keepdim=True)
             tood_conf, _ = torch.max(ood_logit.cpu(), dim=1, keepdim=True)
             conf = torch.cat([tid_conf, tood_conf])
             label = np.concatenate([id_gt, ood_gt])
-        elif self.config.discoverer.ood_type == 'MSP':
+        elif self.config.discover.ood_type == 'MSP':
             tmp = torch.softmax(id_logit.cpu(), 1)
             tid_conf, _ = torch.max(tmp, dim=1, keepdim=True)
             tmp = torch.softmax(ood_logit.cpu(), 1)
             tood_conf, _ = torch.max(tmp, dim=1, keepdim=True)
             conf = torch.cat([tid_conf, tood_conf])
             label = np.concatenate([id_gt, ood_gt])
-        elif self.config.discoverer.ood_type == 'MCM':
+        elif self.config.discover.ood_type == 'MCM':
             T = 2
             tmp = torch.softmax(id_logit.cpu() / T, 1)
             tid_conf, _ = torch.max(tmp, dim=1, keepdim=True)
@@ -270,12 +279,12 @@ class NCDDiscover(object):
             tood_conf, _ = torch.max(tmp, dim=1, keepdim=True)
             conf = torch.cat([tid_conf, tood_conf])
             label = np.concatenate([id_gt, ood_gt])
-        elif self.config.discoverer.ood_type == 'Energy':
+        elif self.config.discover.ood_type == 'Energy':
             tid_conf = torch.tensor(logsumexp(id_logit.cpu(), axis=-1))
             tood_conf = torch.tensor(logsumexp(ood_logit.cpu(), axis=-1))
             conf = torch.cat([tid_conf, tood_conf])
             label = np.concatenate([id_gt, ood_gt])
-        elif self.config.discoverer.ood_type == 'ViM':
+        elif self.config.discover.ood_type == 'ViM':
             from numpy.linalg import norm, pinv
             from scipy.special import logsumexp
             from sklearn.covariance import EmpiricalCovariance
@@ -299,7 +308,7 @@ class NCDDiscover(object):
             tood_conf = torch.tensor(-ood_vlogit + ood_energy)
             conf = torch.cat([tid_conf, tood_conf])
             label = np.concatenate([id_gt, ood_gt])
-        elif self.config.discoverer.ood_type == 'DML':
+        elif self.config.discover.ood_type == 'DML':
             w = net.fc.weight.clone().detach()
             w = F.normalize(w, p=2, dim=1).cpu()
             w = w[::2, ]  # savc使用的是两倍类别数的fc层
@@ -315,7 +324,7 @@ class NCDDiscover(object):
 
             conf = torch.cat([tid_conf, tood_conf])
             label = np.concatenate([id_gt, ood_gt])
-        elif self.config.discoverer.ood_type == 'DMLplus':
+        elif self.config.discover.ood_type == 'DMLplus':
 
             w = net.fc.weight.clone().detach()
             w = F.normalize(w, p=2, dim=1).cpu()
@@ -335,10 +344,10 @@ class NCDDiscover(object):
             tood_conf = tood_conf + 40 * ttood_conf.cpu()
             conf = torch.cat([tid_conf, tood_conf])
             label = np.concatenate([id_gt, ood_gt])
-        elif self.config.discoverer.ood_type == 'PatternMatching':
+        elif self.config.discover.ood_type == 'PatternMatching':
             conf = torch.cat([id_conf, ood_conf])
             label = np.concatenate([id_gt, ood_gt])  # Using the number label not -1
-        elif self.config.discoverer.ood_type == 'classification':
+        elif self.config.discover.ood_type == 'classification':
             conf = torch.cat([id_conf, ood_conf])
             label = np.concatenate([id_gt, ood_gt])  # Using the number label not -1
 
@@ -356,34 +365,34 @@ class NCDDiscover(object):
 
         return ood_data_loader
 
-    # def _search_threshold(self, conf, label):
-    #     print(f'Searching the threshold for ood ...', flush=True)
-    #     conf = np.array(conf)
-    #     label = np.array(label)
-    #     ood_indicator = np.zeros_like(label)
-    #     ood_indicator[label == -1] = 1
-    #     precisions, recalls, thresholds = metrics.precision_recall_curve(ood_indicator, -conf)
+    def _search_threshold(self, conf, label):
+        print(f'Searching the threshold for ood ...', flush=True)
+        conf = np.array(conf)
+        label = np.array(label)
+        ood_indicator = np.zeros_like(label)
+        ood_indicator[label == -1] = 1
+        precisions, recalls, thresholds = metrics.precision_recall_curve(ood_indicator, -conf)
 
-    #     idx = np.argmax(precisions > self.config.discoverer.precision_bar)
-    #     best_threshold = thresholds[idx]
+        idx = np.argmax(precisions > self.config.discover.precision_bar)
+        best_threshold = thresholds[idx]
 
-    #     plt.figure()
-    #     plt.plot(thresholds, precisions[:-1])
-    #     plt.title('Precision-Threshold')
-    #     plt.xlabel('Threshold')
-    #     plt.ylabel('Precision')
-    #     plt.savefig(os.path.join(self.config.output_dir, 'Pr_Trd.png'))
+        plt.figure()
+        plt.plot(thresholds, precisions[:-1])
+        plt.title('Precision-Threshold')
+        plt.xlabel('Threshold')
+        plt.ylabel('Precision')
+        plt.savefig(os.path.join(self.config.output_dir, 'Pr_Trd.png'))
 
-    #     plt.figure()
-    #     plt.plot(recalls, precisions)
-    #     plt.title('P-R')
-    #     plt.xlabel('Recall')
-    #     plt.ylabel('Precision')
-    #     plt.savefig(os.path.join(self.config.output_dir, 'P-R.png'))
+        plt.figure()
+        plt.plot(recalls, precisions)
+        plt.title('P-R')
+        plt.xlabel('Recall')
+        plt.ylabel('Precision')
+        plt.savefig(os.path.join(self.config.output_dir, 'P-R.png'))
 
-    #     ood_metric = {'precision': precisions[idx], 'recall': recalls[idx]}
+        ood_metric = {'precision': precisions[idx], 'recall': recalls[idx]}
 
-    #     return torch.tensor(-best_threshold), ood_metric
+        return torch.tensor(-best_threshold), ood_metric
 
     def _get_pseudo(self, conf, label, ood_gt, threshold, total_imgpath_list, total_feat):
 
@@ -434,7 +443,7 @@ class NCDDiscover(object):
             else:
                 max_similarities.append(max_similarity[0][0])
             max_neighbors.append(index)
-        sift_threshold = self.config.discoverer.sift_threshold
+        sift_threshold = self.config.discover.sift_threshold
         max_similarities = np.array(max_similarities)
         if np.min(novel_target) >= np.min(ood_gt): # all samples are new class
             sift_threshold = np.min(max_similarities) - 1e-8
@@ -443,9 +452,9 @@ class NCDDiscover(object):
 
         sift_indices = torch.tensor([i for i in range(len(max_similarities)) \
                                      if max_similarities[i] > sift_threshold])
-        if sift_indices.numel() >0:
+        if sift_indices.numel()==0:
             sift_indices = torch.tensor([i for i in range(len(max_similarities))])
-        # assert sift_indices.numel() > 0, "There is no novel samples."
+        assert sift_indices.numel() > 0, "There is no novel samples."
         novel_target = novel_target[sift_indices] # 真实的新标签
         novel_feat = novel_feat[sift_indices]
 
