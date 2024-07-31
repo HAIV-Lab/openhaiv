@@ -1,11 +1,7 @@
-_base_: [
-  "configs/dataloader/remote.yaml", 
-  "configs/incremental/savc.yaml", 
-  "configs/network/fact.yaml"
-]
+_base_: ["configs/dataloader/remote.yaml", "configs/incremental/savc.yaml", "/data/zqh/openhaiv/configs/network/savc.yaml"]
 
 algorithm:
-  type: fact
+  type: savc
 
 num_session: 2
 
@@ -22,12 +18,6 @@ optimizer:
 
 scheduler:
   type: Constant
-
-discover:
-  val_ratio: 1.0
-  ood_type: MLS
-  precision_bar: 0.42
-  sift_threshold: 0.65
 
 seed: 0
 

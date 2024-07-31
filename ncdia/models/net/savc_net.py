@@ -2,6 +2,8 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np
+import math
 
 from ncdia.algorithms.incremental import fantasy
 from ncdia.utils import MODELS
@@ -9,26 +11,30 @@ from ncdia.utils import MODELS
 
 @MODELS.register
 class SAVCNET(nn.Module):
-    def __init__(self, args):
+    def __init__(self, network, base_classes, num_classes, att_classes, net_savc, mode=None):
         super().__init__()
-        if args.CIL.fantasy is not None:
-            self.transform, trans = fantasy.__dict__[args.CIL.fantasy]()
+        if net_savc.fantasy is not None:
+            self.transform, trans = fantasy.__dict__[net_savc.fantasy]()
         else:
             self.transform, trans = None, 0
         
-        self.mode = args.model.net_savc.base_mode
-        self.args = args
+        self.mode = net_savc.base_mode
+        
 
-        network = args.network.cfg
+        network = network.cfg
         network['pretrained'] = True
-        network['num_classes'] = args.model.net_savc.moco_dim
+        network['num_classes'] = 1000
         self.encoder_q = MODELS.build(network)
         self.num_features = 512
+        self.base_classes = base_classes
+        self.num_classes = num_classes
+        self.att_classes = att_classes
+        self.net_savc = net_savc
 
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(self.num_features, self.args.model.num_classes*trans, bias=False)
+        self.fc = nn.Linear(self.num_features, self.num_classes*trans, bias=False)
             
-        if self.args.model.net_savc.mlp:  # hack: brute-force replacement
+        if self.net_savc.mlp:  # hack: brute-force replacement
             self.encoder_q.fc = nn.Sequential(nn.Linear(self.num_features, self.num_features), nn.ReLU(), self.encoder_q.fc)
 
 
@@ -36,7 +42,7 @@ class SAVCNET(nn.Module):
         y, _ = self.encode_q(x)
         if 'cos' in self.mode:
             x = F.linear(F.normalize(y, p=2, dim=-1), F.normalize(self.fc.weight, p=2, dim=-1))
-            x = self.args.model.net_savc.temperature * x
+            x = self.model.net_savc.temperature * x
         elif 'dot' in self.mode:
             x = self.fc(y)
         return x
@@ -92,7 +98,7 @@ class SAVCNET(nn.Module):
             data, _ = self.encode_q(data)
             data.detach()
 
-        if self.args.model.net_savc.not_data_init:
+        if self.net_savc.not_data_init:
             new_fc = nn.Parameter(
                 torch.rand(len(class_list)*m, self.num_features, device="cuda"),
                 requires_grad=True)
@@ -115,10 +121,10 @@ class SAVCNET(nn.Module):
         return new_fc
 
     def get_logits(self, x, fc):
-        if 'dot' in self.args.model.net_savc.new_mode:
+        if 'dot' in self.net_savc.new_mode:
             return F.linear(x, fc)
-        elif 'cos' in self.args.model.net_savc.new_mode:
-            return self.args.model.net_savc.temperature * F.linear(F.normalize(x, p=2, dim=-1), F.normalize(fc, p=2, dim=-1))
+        elif 'cos' in self.model.net_savc.new_mode:
+            return self.model.net_savc.temperature * F.linear(F.normalize(x, p=2, dim=-1), F.normalize(fc, p=2, dim=-1))
     
     def get_features(self, x):
         x, y = self.encoder_q(x)

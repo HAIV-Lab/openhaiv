@@ -9,30 +9,34 @@ from ncdia.utils import MODELS
 @MODELS.register
 class FACTNET(nn.Module):
 
-    def __init__(self, args, mode="ft_cos"):
+    def __init__(self, network, base_classes, num_classes, att_classes, net_fact, mode="ft_cos"):
         super().__init__()
 
         self.mode = mode
-        self.args = args
+        self.base_classes = base_classes
+        self.num_classes = num_classes
+        self.att_classes = att_classes
+        self.net_fact = net_fact
+        self.network = network
         
         # pretrained=True follow TOPIC, models for cub is imagenet pre-trained.
         # https://github.com/xyutao/fscil/issues/11#issuecomment-687548790
-        network = args.network.cfg
+        network = network.cfg
         network['pretrained'] = True
-        network['num_classes'] = args.model.net_fact.moco_dim
+        network['num_classes'] = 1000
         self.encoder = MODELS.build(network)
 
         self.num_features = 512
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
-        self.pre_allocate = self.args.dataloader.num_classes
+        self.pre_allocate = self.num_classes
         self.fc = nn.Linear(self.num_features, self.pre_allocate, bias=False)
         
         nn.init.orthogonal_(self.fc.weight)
-        self.dummy_orthogonal_classifier=nn.Linear(self.num_features, self.pre_allocate-self.args.dataloader.base_class, bias=False)
+        self.dummy_orthogonal_classifier=nn.Linear(self.num_features, self.pre_allocate-self.base_classes, bias=False)
         self.dummy_orthogonal_classifier.weight.requires_grad = False
         
-        self.dummy_orthogonal_classifier.weight.data=self.fc.weight.data[self.args.dataloader.base_class:,:]
+        self.dummy_orthogonal_classifier.weight.data=self.fc.weight.data[self.base_classes:,:]
         print(self.dummy_orthogonal_classifier.weight.data.size())
         
         print('self.dummy_orthogonal_classifier.weight initialized over.')
@@ -43,11 +47,11 @@ class FACTNET(nn.Module):
             
             x1 = F.linear(F.normalize(x, p=2, dim=-1), F.normalize(self.fc.weight, p=2, dim=-1))
             x = x1
-            x = self.args.model.net_fact.temperature * x
+            x = self.net_fact.temperature * x
             
         elif 'dot' in self.mode:
             x = self.fc(x)
-            x = self.args.model.net_fact.temperature * x
+            x = self.net_fact.temperature * x
         return x
 
     def forpass_fc(self,x):
@@ -55,11 +59,11 @@ class FACTNET(nn.Module):
         if 'cos' in self.mode:
             
             x = F.linear(F.normalize(x, p=2, dim=-1), F.normalize(self.fc.weight, p=2, dim=-1))
-            x = self.args.model.net_fact.temperature * x
+            x = self.net_fact.temperature * x
             
         elif 'dot' in self.mode:
             x = self.fc(x)
-            x = self.args.model.net_fact.temperature * x
+            x = self.net_fact.temperature * x
         return x
 
     def encode(self, x):
@@ -75,46 +79,30 @@ class FACTNET(nn.Module):
         return x
     
     def pre_encode(self,x):
-        
-        if self.args.dataset.name in ['cifar100','manyshotcifar']:
-            x = self.encoder.conv1(x)
-            x = self.encoder.bn1(x)
-            x = self.encoder.relu(x)
-            x = self.encoder.layer1(x)
-            x = self.encoder.layer2(x)
-            
-        elif self.args.dataset.name in ['mini_imagenet','manyshotmini','cub200','remote']:
-            x = self.encoder.conv1(x)
-            x = self.encoder.bn1(x)
-            x = self.encoder.relu(x)
-            x = self.encoder.maxpool(x)
-            x = self.encoder.layer1(x)
-            x = self.encoder.layer2(x)
+        x = self.encoder.conv1(x)
+        x = self.encoder.bn1(x)
+        x = self.encoder.relu(x)
+        x = self.encoder.maxpool(x)
+        x = self.encoder.layer1(x)
+        x = self.encoder.layer2(x)
         
         return x
         
     
     def post_encode(self,x):
-        if self.args.dataset.name in ['cifar100','manyshotcifar']:
-            
-            x = self.encoder.layer3(x)
-            x = F.adaptive_avg_pool2d(x, 1)
-            x = x.squeeze(-1).squeeze(-1)
 
-        elif self.args.dataset.name in ['mini_imagenet','manyshotmini','cub200','remote']:
-            
-            x = self.encoder.layer3(x)
-            x = self.encoder.layer4(x)
-            x = F.adaptive_avg_pool2d(x, 1)
-            x = x.squeeze(-1).squeeze(-1)
-        
+        x = self.encoder.layer3(x)
+        x = self.encoder.layer4(x)
+        x = F.adaptive_avg_pool2d(x, 1)
+        x = x.squeeze(-1).squeeze(-1)
+    
         if 'cos' in self.mode:
             x = F.linear(F.normalize(x, p=2, dim=-1), F.normalize(self.fc.weight, p=2, dim=-1))
-            x = self.args.model.net_fact.temperature * x
+            x = self.net_fact.temperature * x
 
         elif 'dot' in self.mode:
             x = self.fc(x)
-            x = self.args.model.net_fact.temperature * x
+            x = self.net_fact.temperature * x
             
         return x
 
@@ -138,7 +126,7 @@ class FACTNET(nn.Module):
             labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
             data=self.encode(data).detach()
 
-        if self.args.model.net_fact.not_data_init:
+        if self.net_fact.not_data_init:
             new_fc = nn.Parameter(
                 torch.rand(len(class_list)*m, self.num_features, device="cuda"),
                 requires_grad=True)
@@ -146,7 +134,7 @@ class FACTNET(nn.Module):
         else:
             new_fc = self.update_fc_avg(data, label, class_list, m)
 
-        if 'ft' in self.args.model.net_fact.new_mode:  # further finetune
+        if 'ft' in self.net_fact.new_mode:  # further finetune
             self.update_fc_ft(new_fc,data,label,session)
 
     def update_fc_avg(self,data,labels,class_list,m):
@@ -159,15 +147,15 @@ class FACTNET(nn.Module):
                 proto = embedding.mean(0)
                 new_fc.append(proto)
                 self.fc.weight.data[index] = proto
-                self.dummy_orthogonal_classifier.weight.data[index-self.args.CIL.base_class]
+                self.dummy_orthogonal_classifier.weight.data[index-self.base_classes]
         new_fc = torch.stack(new_fc, dim=0)
         return new_fc
 
     def get_logits(self,x,fc):
-        if 'dot' in self.args.model.net_fact.new_mode:
+        if 'dot' in self.net_fact.new_mode:
             return F.linear(x,fc)
-        elif 'cos' in self.args.model.net_fact.new_mode:
-            return self.args.model.net_fact.temperature * F.linear(F.normalize(x, p=2, dim=-1), F.normalize(fc, p=2, dim=-1))
+        elif 'cos' in self.net_fact.new_mode:
+            return self.net_fact.temperature * F.linear(F.normalize(x, p=2, dim=-1), F.normalize(fc, p=2, dim=-1))
 
     def update_fc_ft(self,new_fc,data,label,session):
         new_fc=new_fc.clone().detach()
@@ -177,7 +165,7 @@ class FACTNET(nn.Module):
 
         with torch.enable_grad():
             for epoch in range(self.args.optimizer.epochs_new):
-                old_fc = self.fc.weight[:self.args.dataloader.base_class + self.args.dataloader.way * (session - 1), :].detach()
+                old_fc = self.fc.weight[:self.args.dataloader.base_classes + self.args.dataloader.way * (session - 1), :].detach()
                 fc = torch.cat([old_fc, new_fc], dim=0)
                 logits = self.get_logits(data,fc)
                 loss = F.cross_entropy(logits, label)
@@ -186,5 +174,5 @@ class FACTNET(nn.Module):
                 optimizer.step()
                 pass
 
-        self.fc.weight.data[self.args.dataloader.base_class + self.args.dataloader.way * (session - 1):self.args.dataloader.base_class + self.args.dataloader.way * session, :].copy_(new_fc.data)
+        self.fc.weight.data[self.args.dataloader.base_classes + self.args.dataloader.way * (session - 1):self.args.dataloader.base_classes + self.args.dataloader.way * session, :].copy_(new_fc.data)
 

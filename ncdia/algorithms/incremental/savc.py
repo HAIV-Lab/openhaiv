@@ -5,28 +5,42 @@ from ncdia.utils import ALGORITHMS
 from ncdia.algorithms.base import BaseAlg
 from ncdia.utils.losses import AngularPenaltySMLoss
 from . import fantasy
+from .hooks import SAVCHook
 
 
 @ALGORITHMS.register
 class SAVC(BaseAlg):
     def __init__(self, trainer) -> None:
-        print("++++++++++++++++++++++++++cfg:")
-        super().__init__()
-        self.trainer = trainer
+        super().__init__(trainer)
         self.args = trainer.cfg
-        self.config = trainer.cfg
+        self.config = self.args
+        # print(self.args)
 
         self._network = None
         self.loss = AngularPenaltySMLoss()
+        self.hook = SAVCHook()
+        trainer.register_hook(self.hook)
 
         if self.args.CIL.fantasy is not None:
             self.transform, self.num_trans = fantasy.__dict__[self.args.CIL.fantasy]()
         else:
             self.transform = None
             self.num_trans = 0
-        print("++++++++++++++++++++++++++++++++++++++")
+        
+        session = trainer.session
+        if session == 1:
+            self._network = trainer.model
+            self._network.eval()
+            self._network.mode = self.args.CIL.new_mode
+            trainer.train_loader.dataset.multi_train =False
+            trainloader = trainer.train_loader
+            tsfm = trainer.val_loader.dataset.transform
+            trainloader.dataset.transform = tsfm
+            class_list = list(range(self.args.CIL.base_class+ (session-1)*self.args.CIL.way, self.args.CIL.base_class + self.args.CIL.way * session))
+            self._network.update_fc(trainloader, class_list, session)
 
-    def train_step(self, trainer, data, label, attribute, imgpath):
+
+    def train_step(self, trainer, data, label, *args, **kwargs):
         """
         base train for fact method
         Args:
@@ -39,7 +53,7 @@ class SAVC(BaseAlg):
         self._network = trainer.model
         self._network.train()
         device = trainer.device
-
+        
         b, c, h, w = data[1].shape
         original = data[0].to(device)
         data[1] = data[1].to(device)
