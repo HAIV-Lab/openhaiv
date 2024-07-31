@@ -2,10 +2,6 @@ import argparse
 from utils.cfg import setup_cfg
 from utils.tools import set_random_seed
 from trainers import PreTrainer, IncTrainer
-from torchvision.models import resnet18
-from ncdia.algorithms.incremental.net.savc_net import SAVCNET
-from ncdia.algorithms.incremental.net.fact_net import FACTNET
-from ncdia.algorithms.incremental.net.alice_net import AliceNET
 from ncdia.algorithms.ood.autoood import AutoOOD
 from ncdia.algorithms.ncd.ncd_discover import NCDDiscover
 from ncdia.datasets.utils import get_dataloader

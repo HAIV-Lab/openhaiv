@@ -5,6 +5,7 @@ from ncdia.utils import ALGORITHMS
 from ncdia.algorithms.base import BaseAlg
 from ncdia.utils.losses import AngularPenaltySMLoss
 from . import fantasy
+from ncdia.utils.metrics import accuracy
 from .hooks import SAVCHook
 
 
@@ -50,51 +51,56 @@ class SAVC(BaseAlg):
             attribute: attribute in batch
             imgpath: imgpath in batch
         """
-        self._network = trainer.model
-        self._network.train()
-        device = trainer.device
-        
-        b, c, h, w = data[1].shape
-        original = data[0].to(device)
-        data[1] = data[1].to(device)
-        data[2] = data[2].to(device)
-        label = label.to(device)
+        session = trainer.session
+        if session==1:
 
-        if len(self.config.CIL.num_crops) > 1:
-                data_small = data[self.config.CIL.num_crops[0]+1].unsqueeze(1)
-                for j in range(1, self.config.CIL.num_crops[1]):
-                    data_small = torch.cat((data_small, data[j+self.config.CIL.num_crops[0]+1].unsqueeze(1)), dim=1)
-                data_small = data_small.view(-1, c, self.config.CIL.size_crops[1], \
-                                             self.config.CIL.size_crops[1]).cuda(non_blocking=True)
+            self._network = trainer.model
+            self._network.train()
+            device = trainer.device
+            b, c, h, w = data[1].shape
+            original = data[0].to(device)
+            data[1] = data[1].to(device)
+            data[2] = data[2].to(device)
+            label = label.to(device)
+
+            if len(self.config.CIL.num_crops) > 1:
+                    data_small = data[self.config.CIL.num_crops[0]+1].unsqueeze(1)
+                    for j in range(1, self.config.CIL.num_crops[1]):
+                        data_small = torch.cat((data_small, data[j+self.config.CIL.num_crops[0]+1].unsqueeze(1)), dim=1)
+                    data_small = data_small.view(-1, c, self.config.CIL.size_crops[1], \
+                                                self.config.CIL.size_crops[1]).cuda(non_blocking=True)
+            else:
+                data_small = None
+
+            data_classify = self.transform(original)    
+            data_query = self.transform(data[1])
+            data_key = self.transform(data[2])
+            data_small = self.transform(data_small)
+
+            m = data_query.size()[0] // b
+            joint_labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
+
+            # ------  forward  ------- #
+            joint_preds = self._network(im_cla=data_classify)  
+            joint_preds = joint_preds[:, :self.config.CIL.base_class*m]
+            joint_loss = F.cross_entropy(joint_preds, joint_labels)
+
+            agg_preds = 0
+            for i in range(m):
+                agg_preds = agg_preds + joint_preds[i::m, i::m] / m
+
+            loss = joint_loss
+            loss.backward()
+
+
+            # acc = self._accuracy(joint_labels, joint_preds)
+            acc = accuracy(joint_labels, joint_preds)[0]
+
+            ret = {}
+            ret['loss'] = loss
+            ret['acc'] = acc
         else:
-            data_small = None
-
-        data_classify = self.transform(original)    
-        data_query = self.transform(data[1])
-        data_key = self.transform(data[2])
-        data_small = self.transform(data_small)
-
-        m = data_query.size()[0] // b
-        joint_labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
-
-        # ------  forward  ------- #
-        joint_preds = self.net(im_cla=data_classify)  
-        joint_preds = joint_preds[:, :self.config.CIL.base_class*m]
-        joint_loss = F.cross_entropy(joint_preds, joint_labels)
-
-        agg_preds = 0
-        for i in range(m):
-            agg_preds = agg_preds + joint_preds[i::m, i::m] / m
-
-        loss = joint_loss
-        loss.backward()
-
-
-        acc = self._accuracy(joint_labels, joint_preds)
-
-        ret = {}
-        ret['loss'] = loss
-        ret['acc'] = acc
+            ret = {}
 
         return ret
 
@@ -118,12 +124,13 @@ class SAVC(BaseAlg):
                 - "loss": Loss value.
                 - "acc": Accuracy value.
         """
+        self._network = trainer.model
         self._network.eval()
         device = trainer.device
-        logit_list = [], pred_list = [], conf_list = [], label_list = []
+        logit_list, pred_list, conf_list, label_list = [], [], [], []
         feature_list = []
         test_class = self.config.CIL.base_class + 1 * self.config.CIL.way
-        with torch.no_grad:
+        with torch.no_grad():
             data = data.to(device)
             label = label.to(device)
             b = data.size()[0]
@@ -139,7 +146,7 @@ class SAVC(BaseAlg):
             for j in range(m):
                 agg_preds = agg_preds + joint_preds[j::m, j::m] / m
             
-            loss = F.cross_entropy(joint_preds, label)
+            # loss = F.cross_entropy(joint_preds, label)
             
             feature_list.append(agg_feat)
             logit_list.append(agg_preds)
@@ -152,19 +159,13 @@ class SAVC(BaseAlg):
             label_list.append(label.cpu())
 
         feature_list = torch.cat(feature_list, dim=0).cpu().numpy()
-        logit_list = torch.cat(logit_list, dim=0).numpy()
+        logit_list = torch.cat(logit_list, dim=0).cpu().numpy()
         pred_list = torch.cat(pred_list).numpy().astype(int)
         conf_list = torch.cat(conf_list).numpy()
         label_list = torch.cat(label_list).numpy().astype(int)
 
         ret = {
-            "feature": feature_list,
-            "logits": logit_list,
-            "predicts": pred_list,
-            "confidence":conf_list,
-            "labels": label_list,
             "acc": acc,
-            "loss": loss
         }
         
         return ret

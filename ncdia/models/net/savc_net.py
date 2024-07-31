@@ -19,6 +19,7 @@ class SAVCNET(nn.Module):
             self.transform, trans = None, 0
         
         self.mode = net_savc.base_mode
+        self.network = network
         
 
         network = network.cfg
@@ -42,7 +43,7 @@ class SAVCNET(nn.Module):
         y, _ = self.encode_q(x)
         if 'cos' in self.mode:
             x = F.linear(F.normalize(y, p=2, dim=-1), F.normalize(self.fc.weight, p=2, dim=-1))
-            x = self.model.net_savc.temperature * x
+            x = self.net_savc.temperature * x
         elif 'dot' in self.mode:
             x = self.fc(y)
         return x
