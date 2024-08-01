@@ -2,8 +2,7 @@ import argparse
 from utils.cfg import setup_cfg
 from utils.tools import set_random_seed
 from trainers import PreTrainer, IncTrainer
-from ncdia.algorithms.ood.autoood import AutoOOD
-from ncdia.algorithms.ncd.ncd_discover import NCDDiscover
+from ncdia.algorithms.ncd import AutoNCD
 from ncdia.datasets.utils import get_dataloader
 
 
@@ -46,13 +45,16 @@ def main(args):
             trainer.train()
         else:
             cfg.max_epochs = cfg.inc_epochs
-            ood_detecter = AutoOOD(cfg.device, cfg)
-            ncd_detecter = NCDDiscover(cfg)
             _, pre_train_loader, pre_test_loader = cli_dataloader(cfg, session-1)
             _, train_loader, test_loader = cli_dataloader(cfg, session)
-            ood_detecter.eval(trainer.model, pre_train_loader, pre_test_loader, train_loader, session)
-            ncd_dataloader = ncd_detecter.get_pseudo_newloader(trainer.model, {'train': pre_train_loader, 'test': pre_test_loader}, train_loader, pre_train_loader.dataset.transform, session-1)
-            train_loader = ncd_dataloader
+
+            ncd_detecter = AutoNCD(
+                trainer.model,
+                pre_train_loader, pre_test_loader,
+                cfg.CIL.base_classes, cfg.CIL.way,
+                session, trainer.device, verbose=True,
+            )
+            train_loader = ncd_detecter.relabel(train_loader, metrics=['msp'], prec_th=0.42)
 
             trainer = IncTrainer(
                 trainer.model, cfg,
