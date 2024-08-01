@@ -626,6 +626,7 @@ class BaseTrainer(object):
 
             logger=dict(type='LoggerHook'),
             model=dict(type='ModelHook'),
+            alg=dict(type='AlgHook'),
             optimizer = dict(type='OptimizerHook'),
             scheduler = dict(type='SchedulerHook'),
             metric = dict(type='MetricHook'),

@@ -7,10 +7,15 @@ from numpy.linalg import norm
 from scipy.special import logsumexp
 from sklearn.covariance import EmpiricalCovariance
 
-from .metrics import ood_metrics
+from .metrics import ood_metrics, search_threshold
 
 
-def msp(id_gt, id_logits, ood_gt, ood_logits) -> tuple:
+def msp(
+        id_gt, id_logits,
+        ood_gt, ood_logits,
+        tpr_th: float = 0.95,
+        prec_th: float = None,
+) -> tuple:
     """Maximum Softmax Probability (MSP) method for OOD detection.
 
     A Baseline for Detecting Misclassified and Out-of-Distribution Examples in Neural Networks
@@ -21,6 +26,10 @@ def msp(id_gt, id_logits, ood_gt, ood_logits) -> tuple:
         id_logits (torch.Tensor): ID logits. Shape (N, C).
         ood_gt (torch.Tensor): OOD ground truth labels. Shape (M,).
         ood_logits (torch.Tensor): OOD logits. Shape (M, C).
+        tpr_th (float): True positive rate threshold to compute
+            false positive rate. Default is 0.95.
+        prec_th (float | None): Precision threshold for searching threshold.
+            If None, not searching for threshold. Default is None.
 
     Returns:
         fpr (float): False positive rate.
@@ -42,10 +51,19 @@ def msp(id_gt, id_logits, ood_gt, ood_logits) -> tuple:
     conf = np.concatenate([id_conf.cpu(), ood_conf.cpu()])
     label = np.concatenate([id_gt, ood_gt])
 
-    return ood_metrics(conf, label)
+    if prec_th is None:
+        return ood_metrics(conf, label, tpr_th), None
+    else:
+        return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
 
 
-def mcm(id_gt, id_logits, ood_gt, ood_logits, T: int = 2) -> tuple:
+def mcm(
+        id_gt, id_logits,
+        ood_gt, ood_logits,
+        T: int = 2,
+        tpr_th: float = 0.95,
+        prec_th: float = None,
+) -> tuple:
     """Maximum Concept Matching (MCM) method for OOD detection.
 
     Delving into Out-of-Distribution Detection with Vision-Language Representations
@@ -57,6 +75,10 @@ def mcm(id_gt, id_logits, ood_gt, ood_logits, T: int = 2) -> tuple:
         ood_gt (torch.Tensor): OOD ground truth labels. Shape (M,).
         ood_logits (torch.Tensor): OOD logits. Shape (M, C).
         T (int): Temperature for softmax.
+        tpr_th (float): True positive rate threshold to compute
+            false positive rate. Default is 0.95.
+        prec_th (float | None): Precision threshold for searching threshold.
+            If None, not searching for threshold. Default is None.
 
     Returns:
         fpr (float): False positive rate.
@@ -78,10 +100,18 @@ def mcm(id_gt, id_logits, ood_gt, ood_logits, T: int = 2) -> tuple:
     conf = np.concatenate([id_conf.cpu(), ood_conf.cpu()])
     label = np.concatenate([id_gt.cpu(), ood_gt])
     
-    return ood_metrics(conf, label)
+    if prec_th is None:
+        return ood_metrics(conf, label, tpr_th), None
+    else:
+        return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
 
 
-def max_logit(id_gt, id_logits, ood_gt, ood_logits) -> tuple:
+def max_logit(
+        id_gt, id_logits,
+        ood_gt, ood_logits,
+        tpr_th: float = 0.95,
+        prec_th: float = None,
+) -> tuple:
     """Maximum Logit (MaxLogit) method for OOD detection.
 
     Scaling Out-of-Distribution Detection for Real-World Settings
@@ -92,6 +122,10 @@ def max_logit(id_gt, id_logits, ood_gt, ood_logits) -> tuple:
         id_logits (torch.Tensor): ID logits. Shape (N, C).
         ood_gt (torch.Tensor): OOD ground truth labels. Shape (M,).
         ood_logits (torch.Tensor): OOD logits. Shape (M, C).
+        tpr_th (float): True positive rate threshold to compute
+            false positive rate. Default is 0.95.
+        prec_th (float | None): Precision threshold for searching threshold.
+            If None, not searching for threshold. Default is None.
 
     Returns:
         fpr (float): False positive rate.
@@ -111,10 +145,18 @@ def max_logit(id_gt, id_logits, ood_gt, ood_logits) -> tuple:
     conf = np.concatenate([id_conf.cpu(), ood_conf.cpu()])
     label = np.concatenate([id_gt.cpu(), ood_gt])
     
-    return ood_metrics(conf, label)
+    if prec_th is None:
+        return ood_metrics(conf, label, tpr_th), None
+    else:
+        return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
 
 
-def energy(id_gt, id_logits, ood_gt, ood_logits) -> tuple:
+def energy(
+        id_gt, id_logits,
+        ood_gt, ood_logits,
+        tpr_th: float = 0.95,
+        prec_th: float = None,
+) -> tuple:
     """Energy-based method for OOD detection.
 
     Energy-based Out-of-distribution Detection
@@ -125,6 +167,10 @@ def energy(id_gt, id_logits, ood_gt, ood_logits) -> tuple:
         id_logits (torch.Tensor): ID logits. Shape (N, C).
         ood_gt (torch.Tensor): OOD ground truth labels. Shape (M,).
         ood_logits (torch.Tensor): OOD logits. Shape (M, C).
+        tpr_th (float): True positive rate threshold to compute
+            false positive rate. Default is 0.95.
+        prec_th (float | None): Precision threshold for searching threshold.
+            If None, not searching for threshold. Default is None.
 
     Returns:
         fpr (float): False positive rate.
@@ -144,13 +190,18 @@ def energy(id_gt, id_logits, ood_gt, ood_logits) -> tuple:
     conf = np.concatenate([id_conf, ood_conf])
     label = np.concatenate([id_gt.cpu(), ood_gt])
     
-    return ood_metrics(conf, label)
+    if prec_th is None:
+        return ood_metrics(conf, label, tpr_th), None
+    else:
+        return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
 
 
 def vim(
         id_gt, id_logits, id_feat, 
         ood_gt, ood_logits, ood_feat, 
-        train_logits, train_feat
+        train_logits, train_feat,
+        tpr_th: float = 0.95,
+        prec_th: float = None,
     ) -> tuple:
     """Virtual-Logit Matching (ViM) method for OOD detection.
 
@@ -166,6 +217,10 @@ def vim(
         ood_feat (torch.Tensor): OOD features. Shape (M, D).
         train_logits (torch.Tensor): Training logits. Shape (K, C).
         train_feat (torch.Tensor): Training features. Shape (K, D).
+        tpr_th (float): True positive rate threshold to compute
+            false positive rate. Default is 0.95.
+        prec_th (float | None): Precision threshold for searching threshold.
+            If None, not searching for threshold. Default is None.
 
     Returns:
         fpr (float): False positive rate.
@@ -198,10 +253,19 @@ def vim(
     conf = np.concatenate([id_conf, ood_conf])
     label = np.concatenate([id_gt.cpu(), ood_gt])
     
-    return ood_metrics(conf, label)
+    if prec_th is None:
+        return ood_metrics(conf, label, tpr_th), None
+    else:
+        return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
 
 
-def dml(id_gt, id_feat, ood_gt, ood_feat, fc_weight) -> tuple:
+def dml(
+        id_gt, id_feat,
+        ood_gt, ood_feat,
+        fc_weight: torch.Tensor,
+        tpr_th: float = 0.95,
+        prec_th: float = None,
+) -> tuple:
     """Decoupled MaxLogit (DML) method for OOD detection.
 
     Decoupling MaxLogit for Out-of-Distribution Detection
@@ -213,6 +277,10 @@ def dml(id_gt, id_feat, ood_gt, ood_feat, fc_weight) -> tuple:
         ood_gt (torch.Tensor): OOD ground truth labels. Shape (M,).
         ood_feat (torch.Tensor): OOD features. Shape (M, D).
         fc_weight (torch.Tensor): FC layer weight. Shape (C, D).
+        tpr_th (float): True positive rate threshold to compute
+            false positive rate. Default is 0.95.
+        prec_th (float | None): Precision threshold for searching threshold.
+            If None, not searching for threshold. Default is None.
 
     Returns:
         fpr (float): False positive rate.
@@ -244,13 +312,18 @@ def dml(id_gt, id_feat, ood_gt, ood_feat, fc_weight) -> tuple:
     conf = np.concatenate([id_conf.cpu(), ood_conf.cpu()])
     label = np.concatenate([id_gt.cpu(), ood_gt])
     
-    return ood_metrics(conf, label)
+    if prec_th is None:
+        return ood_metrics(conf, label, tpr_th), None
+    else:
+        return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
 
 
 def dmlp(
         id_gt, id_logits, id_feat, 
         ood_gt, ood_logits, ood_feat, 
-        fc_weight, prototype
+        fc_weight, prototype,
+        tpr_th: float = 0.95,
+        prec_th: float = None,
     ) -> tuple:
     """Decoupled MaxLogit+ (DML+) method for OOD detection.
 
@@ -266,6 +339,10 @@ def dmlp(
         ood_feat (torch.Tensor): OOD features. Shape (M, D).
         fc_weight (torch.Tensor): FC layer weight. Shape (D, C).
         prototype (torch.Tensor): Prototype. Shape (D, C).
+        tpr_th (float): True positive rate threshold to compute
+            false positive rate. Default is 0.95.
+        prec_th (float | None): Precision threshold for searching threshold.
+            If None, not searching for threshold. Default is None.
 
     Returns:
         fpr (float): False positive rate.
@@ -308,10 +385,19 @@ def dmlp(
     conf = np.concatenate([id_conf, ood_conf])
     label = np.concatenate([id_gt.cpu(), ood_gt])
     
-    return ood_metrics(conf, label)
+    if prec_th is None:
+        return ood_metrics(conf, label, tpr_th), None
+    else:
+        return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
 
 
-def prot(id_gt, id_logits, ood_gt, ood_logits, prototypes) -> tuple:
+def prot(
+        id_gt, id_logits,
+        ood_gt, ood_logits,
+        prototypes: list,
+        tpr_th: float = 0.95,
+        prec_th: float = None,
+) -> tuple:
     """Prototype-based (Prot) method for OOD detection.
 
     Args:
@@ -320,6 +406,10 @@ def prot(id_gt, id_logits, ood_gt, ood_logits, prototypes) -> tuple:
         ood_gt (torch.Tensor): OOD ground truth labels, shape (M,).
         ood_logits (list of torch.Tensor): OOD logits, containing shape (M, C).
         prototypes (list of torch.Tensor): Prototypes, containing shape (D, C).
+        tpr_th (float): True positive rate threshold to compute 
+            false positive rate.
+        prec_th (float | None): Precision threshold for searching threshold.
+            If None, not searching for threshold. Default is
 
     Returns:
         fpr (float): False positive rate.
@@ -350,4 +440,7 @@ def prot(id_gt, id_logits, ood_gt, ood_logits, prototypes) -> tuple:
     conf = np.concatenate([id_conf, ood_conf])
     label = np.concatenate([id_gt.cpu(), ood_gt])
     
-    return ood_metrics(conf, label)
+    if prec_th is None:
+        return ood_metrics(conf, label, tpr_th), None
+    else:
+        return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
