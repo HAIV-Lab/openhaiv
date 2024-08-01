@@ -52,8 +52,7 @@ class SAVC(BaseAlg):
             imgpath: imgpath in batch
         """
         session = trainer.session
-        if session==1:
-
+        if session==0:
             self._network = trainer.model
             self._network.train()
             device = trainer.device
@@ -94,11 +93,15 @@ class SAVC(BaseAlg):
 
 
             # acc = self._accuracy(joint_labels, joint_preds)
-            acc = accuracy(joint_labels, joint_preds)[0]
+            # print(joint_labels.shape)
+            # print(joint_preds.shape)
+            # input()
+            acc = accuracy(joint_preds, joint_labels)[0]
 
             ret = {}
             ret['loss'] = loss
             ret['acc'] = acc
+            return ret
         else:
             ret = {}
 
@@ -127,48 +130,107 @@ class SAVC(BaseAlg):
         self._network = trainer.model
         self._network.eval()
         device = trainer.device
-        logit_list, pred_list, conf_list, label_list = [], [], [], []
-        feature_list = []
-        test_class = self.config.CIL.base_class + 1 * self.config.CIL.way
-        with torch.no_grad():
-            data = data.to(device)
-            label = label.to(device)
-            b = data.size()[0]
-            if self.transform is not None:
-                data = self.transform(data)
-            m = data.size()[0] // b
-            joint_preds = self._network(data)
-            feat = self._network.get_features(data)
-            joint_preds = joint_preds[:, :test_class*m]
-            
-            agg_preds = 0
-            agg_feat = feat.view(-1, m, feat.size(1)).mean(dim=1)
-            for j in range(m):
-                agg_preds = agg_preds + joint_preds[j::m, j::m] / m
-            
-            # loss = F.cross_entropy(joint_preds, label)
-            
-            feature_list.append(agg_feat)
-            logit_list.append(agg_preds)
-            score = torch.softmax(agg_preds, dim=1)
-            conf, pred = torch.max(score, dim=1)
-            acc = self._accuracy(pred, label)
+        session = trainer.session
+        if session==1:
+            with torch.no_grad():
+                data = data.cuda()
+                labels = label.cuda()
 
-            pred_list.append(pred.cpu())
-            conf_list.append(conf.cpu())
-            label_list.append(label.cpu())
+                logits = self._network(data)
+                logits_ = logits[:, :self.config.CIL.base_class]
+                # _, pred = torch.max(logits_, dim=1)
+                # acc = self._accuracy(labels, pred)
+                acc = accuracy(logits_, labels)[0]
+                loss = self.loss(logits_, labels)
+                
+                ret = {}
+                ret['loss'] = loss.item()
+                ret['acc'] = acc.item()
+                return ret
+        else:
+            logit_list, pred_list, conf_list, label_list = [], [], [], []
+            feature_list = []
+            test_class = self.config.CIL.base_class + 1 * self.config.CIL.way
+            with torch.no_grad():
+                data = data.to(device)
+                label = label.to(device)
+                b = data.size()[0]
+                if self.transform is not None:
+                    data = self.transform(data)
+                m = data.size()[0] // b
+                joint_preds = self._network(data)
+                feat = self._network.get_features(data)
+                joint_preds = joint_preds[:, :test_class*m]
+                
+                agg_preds = 0
+                agg_feat = feat.view(-1, m, feat.size(1)).mean(dim=1)
+                for j in range(m):
+                    agg_preds = agg_preds + joint_preds[j::m, j::m] / m
+                
+                # loss = F.cross_entropy(joint_preds, label)
+                
+                feature_list.append(agg_feat)
+                logit_list.append(agg_preds)
+                score = torch.softmax(agg_preds, dim=1)
+                conf, pred = torch.max(score, dim=1)
+                acc = self._accuracy(pred, label)
+                
 
-        feature_list = torch.cat(feature_list, dim=0).cpu().numpy()
-        logit_list = torch.cat(logit_list, dim=0).cpu().numpy()
-        pred_list = torch.cat(pred_list).numpy().astype(int)
-        conf_list = torch.cat(conf_list).numpy()
-        label_list = torch.cat(label_list).numpy().astype(int)
+                pred_list.append(pred.cpu())
+                conf_list.append(conf.cpu())
+                label_list.append(label.cpu())
 
-        ret = {
-            "acc": acc,
-        }
+            feature_list = torch.cat(feature_list, dim=0).cpu().numpy()
+            logit_list = torch.cat(logit_list, dim=0).cpu().numpy()
+            pred_list = torch.cat(pred_list).numpy().astype(int)
+            conf_list = torch.cat(conf_list).numpy()
+            label_list = torch.cat(label_list).numpy().astype(int)
+            # loss = F.cross_entropy(torch.from_numpy(label_list), torch.from_numpy(logit_list))
+            ret = {}
+            ret['acc']=acc
+            # ret['loss']=loss
+
         
         return ret
+    
+    def replace_fc(self):
+        session = self.trainer.session
+        if not self.args.CIL.not_data_init and session == 0:
+            train_loader = self.trainer.train_loader
+            val_loader = self.trainer.val_loader
+            train_loader.dataset.multi_train = False
+            train_loader.dataset.transform = val_loader.dataset.transform
+            self._network = self.trainer.model
+            self._network.eval()
+            embedding_list = []
+            label_list = []
+            with torch.no_grad():
+                for i, batch in enumerate(train_loader):
+                    data = batch['data'].cuda()
+                    label = batch['label'].cuda()
+    
+                    b = data.size()[0]
+                    m = data.size()[0] // b
+                    labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
+                    embedding = self._network.get_features(data)
+
+                    embedding_list.append(embedding.cpu())
+                    label_list.append(labels.cpu())
+            embedding_list = torch.cat(embedding_list, dim=0)
+            label_list = torch.cat(label_list, dim=0)
+
+            proto_list = []
+
+            for class_index in range(self.args.CIL.base_class*m):
+                data_index = (label_list == class_index).nonzero()
+                embedding_this = embedding_list[data_index.squeeze(-1)]
+                embedding_this = embedding_this.mean(0)
+                proto_list.append(embedding_this)
+
+            proto_list = torch.stack(proto_list, dim=0)
+
+            self._network.fc.weight.data[:self.args.CIL.base_class*m] = proto_list
+
 
     def test_step(self, trainer, data, label, *args, **kwargs):
         """Test step for standard supervised learning.
