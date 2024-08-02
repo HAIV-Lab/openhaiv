@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from ncdia.utils import ALGORITHMS
 from ncdia.algorithms.base import BaseAlg
 from ncdia.utils.losses import AngularPenaltySMLoss
-from . import fantasy
+from ncdia.dataloader.augmentations import fantasy
 from ncdia.utils.metrics import accuracy
 from .hooks import SAVCHook
 

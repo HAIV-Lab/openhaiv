@@ -2,15 +2,12 @@
 Authors: Wouter Van Gansbeke, Simon Vandenhende
 Licensed under the CC BY-NC 4.0 license (https://creativecommons.org/licenses/by-nc/4.0/)
 """
-
-import torch
 import math
 import random
 import warnings
-import torch.utils.data as data
-
-
 from PIL import Image
+import torch
+import torch.utils.data as data
 from torchvision.transforms import functional as F
 
 
@@ -221,7 +218,8 @@ class CustomMultiCropping(object):
             multi_crop_params.append((i, j, h, w))
             multi_crop.append(F.resized_crop(img, i, j, h, w, self.size_small, self.interpolation))
 
-        return multi_crop, multi_crop_params 
+        # return multi_crop, multi_crop_params
+        return multi_crop
 
     def __repr__(self):
         format_string = self.__class__.__name__ + '(size_large={0}'.format(self.size_large)

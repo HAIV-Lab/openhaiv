@@ -1,0 +1,40 @@
+_base_: [
+  "configs/dataloader/remote.yaml", 
+  "configs/incremental/savc.yaml", 
+  "configs/network/fact.yaml"
+]
+
+algorithm:
+  type: fact
+
+num_session: 2
+
+max_epochs: 50
+inc_epochs: 1
+
+criterion:
+  type: CrossEntropyLoss
+
+optimizer:
+  type: sgd
+  lr: 0.002
+  weight_decay: 0.0001
+
+scheduler:
+  type: Constant
+
+discover:
+  val_ratio: 1.0
+  ood_type: MLS
+  precision_bar: 0.42
+  sift_threshold: 0.65
+
+seed: 0
+
+num_session: 2
+
+device: cuda
+
+ood_type: MLS
+exp_name: exp
+work_dir: ./output/supervised/inc_remote_savc

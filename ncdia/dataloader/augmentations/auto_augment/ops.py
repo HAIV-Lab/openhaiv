@@ -3,7 +3,7 @@ import random
 import torch
 import math
 import numpy as np
-import functional.functional as F
+from . import functional as F
 
 
 class Cutout(object):
