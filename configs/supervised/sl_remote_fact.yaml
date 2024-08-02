@@ -9,7 +9,7 @@ algorithm:
 
 num_session: 2
 
-max_epochs: 50
+max_epochs: 70
 inc_epochs: 1
 
 criterion:

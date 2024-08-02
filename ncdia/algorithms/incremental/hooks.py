@@ -31,5 +31,4 @@ class SAVCHook(AlgHook):
         algorithm.replace_fc()
     
     def before_train(self, trainer) -> None:
-        print("==================before train====================")
         trainer.train_loader.dataset.multi_train = True

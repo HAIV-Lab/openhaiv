@@ -85,9 +85,45 @@ class SAVCNET(nn.Module):
             x, _ = self.encode_q(im_cla)
             return x
         else:
-            raise ValueError('Unknown mode')            
-    
+            raise ValueError('Unknown mode')
+
+    def update_fc_savc(self, dataloader, class_list, session):
+        embedding_list = []
+        label_list = []
+        
+        with torch.no_grad():
+            for i, batch in enumerate(dataloader):
+                data = batch['data'].cuda()
+                label = batch['label'].cuda()
+                b = data.size()[0]
+                data = self.transform(data)
+                m = data.size()[0] // b
+                labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
+                embedding = self.get_features(data)
+
+                embedding_list.append(embedding.cpu())
+                label_list.append(labels.cpu())
+
+        embedding_list = torch.cat(embedding_list, dim=0)
+        label_list = torch.cat(label_list, dim=0)
+        proto_list = []
+
+        print(class_list)
+        for class_index in class_list:
+            data_index = (label_list == class_index).nonzero()
+            embedding_this = embedding_list[data_index.squeeze(-1)]
+            embedding_this = embedding_this.mean(0)
+            proto_list.append(embedding_this)
+
+        proto_list = torch.stack(proto_list, dim=0)
+        print(proto_list.shape)
+        print(proto_list)
+        print(self.fc.weight.data.shape)
+        input()
+        self.fc.weight.data[11:] = proto_list
+
     def update_fc(self, dataloader, class_list, session):
+
         for batch in dataloader:
             data = batch['data'].cuda()
             label = batch['label'].cuda()
@@ -96,16 +132,13 @@ class SAVCNET(nn.Module):
             data = self.transform(data)
             m = data.size()[0] // b 
             labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
-            data, _ = self.encode_q(data)
+            # data, _ = self.encode_q(data)
+            # data.detach()
+            data = self.get_features(data)
             data.detach()
 
-        if self.net_savc.not_data_init:
-            new_fc = nn.Parameter(
-                torch.rand(len(class_list)*m, self.num_features, device="cuda"),
-                requires_grad=True)
-            nn.init.kaiming_uniform_(new_fc, a=math.sqrt(5))
-        else:
-            new_fc = self.update_fc_avg(data, labels, class_list, m)
+
+        new_fc = self.update_fc_avg(data, labels, class_list, m)
             
 
     def update_fc_avg(self, data, labels, class_list, m):

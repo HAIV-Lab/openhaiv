@@ -381,14 +381,14 @@ class NCDDiscover(object):
         plt.title('Precision-Threshold')
         plt.xlabel('Threshold')
         plt.ylabel('Precision')
-        plt.savefig(os.path.join(self.config.output_dir, 'Pr_Trd.png'))
+        plt.savefig(os.path.join(self.config.work_dir, 'Pr_Trd.png'))
 
         plt.figure()
         plt.plot(recalls, precisions)
         plt.title('P-R')
         plt.xlabel('Recall')
         plt.ylabel('Precision')
-        plt.savefig(os.path.join(self.config.output_dir, 'P-R.png'))
+        plt.savefig(os.path.join(self.config.work_dir, 'P-R.png'))
 
         ood_metric = {'precision': precisions[idx], 'recall': recalls[idx]}
 
@@ -412,7 +412,7 @@ class NCDDiscover(object):
         plt.title('t-SNE visualization of features')
         plt.xlabel('t-SNE axis 1')
         plt.ylabel('t-SNE axis 2')
-        plt.savefig(os.path.join(self.config.output_dir, 'tSNE.png'))
+        plt.savefig(os.path.join(self.config.work_dir, 'tSNE.png'))
 
 
         novel_indices = torch.nonzero(conf < threshold)[:, 0].squeeze()
@@ -490,7 +490,7 @@ class NCDDiscover(object):
               flush=True)
         print(u'\u2500' * 70, flush=True)
 
-        csv_path = os.path.join(self.config.output_dir, 'ood.csv')
+        csv_path = os.path.join(self.config.work_dir, 'ood.csv')
         if not os.path.exists(csv_path):
             with open(csv_path, 'w', newline='') as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -502,7 +502,7 @@ class NCDDiscover(object):
                 writer.writerow(write_content)
 
     def _save_scores(self, pred, conf, gt, save_name):
-        save_dir = os.path.join(self.config.output_dir, 'scores')
+        save_dir = os.path.join(self.config.work_dir, 'scores')
         os.makedirs(save_dir, exist_ok=True)
         np.savez(os.path.join(save_dir, save_name),
                  pred=pred,

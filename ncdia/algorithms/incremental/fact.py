@@ -167,8 +167,7 @@ class FACT(BaseAlg):
             with torch.no_grad():
                 data = data.cuda()
                 labels = label.cuda()
-
-            
+                
                 logits = self._network(data)
                 logits_ = logits[:, :self.base_class]
                 # _, pred = torch.max(logits_, dim=1)
