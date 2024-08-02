@@ -1,6 +1,5 @@
 import torch
-from torch import nn
-from torch.nn import functional as F
+
 
 def rotation():
     def _transform(images):
@@ -9,12 +8,14 @@ def rotation():
 
     return _transform, 4
 
+
 def rotation2():
     def _transform(images):
         size = images.shape[1:]
         return torch.stack([torch.rot90(images, k, (2, 3)) for k in [0, 2]], 1).view(-1, *size)
 
     return _transform, 2
+
 
 def color_perm():
     def _transform(images):
@@ -29,6 +30,7 @@ def color_perm():
 
     return _transform, 6
 
+
 def color_perm3():
     def _transform(images):
         size = images.shape[1:]
@@ -38,6 +40,7 @@ def color_perm3():
         return images.contiguous()
 
     return _transform, 3
+
 
 def rot_color_perm6():
     def _transform(images):
@@ -51,6 +54,7 @@ def rot_color_perm6():
 
     return _transform, 6
 
+
 def rot_color_perm12():
     def _transform(images):
         size = images.shape[1:]
@@ -63,6 +67,7 @@ def rot_color_perm12():
         return torch.stack(out, 1).view(-1, *size).contiguous()
 
     return _transform, 12
+
 
 def rot_color_perm24():
     def _transform(images):

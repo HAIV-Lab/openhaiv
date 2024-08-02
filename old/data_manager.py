@@ -1,7 +1,7 @@
 import torch
 import logging
 import numpy as np
-from PIL import Image
+
 from torch.utils.data import Dataset
 from torchvision import transforms
 from openpyxl import load_workbook
@@ -438,50 +438,3 @@ def _get_idata(dataset_name, path=""):
     name = dataset_name.lower()
     target = DATASETS.modules()[name]
     return target(path)
-
-
-def pil_loader(path):
-    """
-    Ref:
-    https://pytorch.org/docs/stable/_modules/torchvision/datasets/folder.html#ImageFolder
-    """
-    # open path as file to avoid ResourceWarning (https://github.com/python-pillow/Pillow/issues/835)
-    with open(path, "rb") as f:
-        img = Image.open(f)
-        return img.convert("RGB")
-
-
-def accimage_loader(path):
-    """
-    Ref:
-    https://pytorch.org/docs/stable/_modules/torchvision/datasets/folder.html#ImageFolder
-    accimage is an accelerated Image loader and preprocessor leveraging Intel IPP.
-    accimage is available on conda-forge.
-    """
-    import accimage
-
-    try:
-        return accimage.Image(path)
-    except IOError:
-        # Potentially a decoding problem, fall back to PIL.Image
-        return pil_loader(path)
-
-
-def default_loader(path):
-    """
-    Ref:
-    https://pytorch.org/docs/stable/_modules/torchvision/datasets/folder.html#ImageFolder
-    """
-    from torchvision import get_image_backend
-
-    if get_image_backend() == "accimage":
-        return accimage_loader(path)
-    else:
-        return pil_loader(path)
-
-
-# if __name__ =="__main__":
-#     cil_path = "/new_data/cyf/CIL_Dataset"
-#     datamanager = DataManager("remote", cil_path, shuffle=False, seed=0, init_cls=10, increment=2)
-#     trainset = datamanager.get_dataset(np.arange(datamanager.nbase, datamanager.get_total_classnum()), "train", "train")
-#     testset = datamanager.get_dataset(np.arange(0, datamanager.get_total_classnum()), "test", "test")

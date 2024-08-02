@@ -1,0 +1,24 @@
+_base_: configs/dataloader/remote/s0.yaml
+
+algorithm:
+  type: StandardSL
+
+max_epochs: 1
+
+criterion:
+  type: CrossEntropyLoss
+
+optimizer:
+  type: Adam
+  lr: 0.0003
+  weight_decay: 0.0001
+
+scheduler:
+  type: Constant
+
+seed: 0
+
+device: cuda
+
+exp_name: exp
+work_dir: ./output/supervised/sl_remote_rn18
