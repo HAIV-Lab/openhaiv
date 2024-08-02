@@ -188,6 +188,6 @@ class Remote(BaseDataset):
         return {
             'data': img,
             'label': label,
-            'attribute': None,
+            'attribute': [],
             'imgpath': imgpath,
         }

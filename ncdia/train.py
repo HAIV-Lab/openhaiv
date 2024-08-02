@@ -3,7 +3,6 @@ from utils.cfg import setup_cfg
 from utils.tools import set_random_seed
 from trainers import PreTrainer, IncTrainer
 from ncdia.algorithms.ncd import AutoNCD
-from ncdia.datasets.utils import get_dataloader
 
 
 parser = argparse.ArgumentParser()
@@ -28,18 +27,13 @@ def main(args):
 
     # Build the trainer from config
     # trainer = PreTrainer(cfg) if cfg.session == 0 else IncTrainer(cfg)
-    cli_dataloader = get_dataloader(config=cfg)
 
     num_session = cfg.num_session or 1
     for session in range(num_session):
         if session == 0:
-            _, train_loader, test_loader = cli_dataloader(cfg, 0)
             trainer = PreTrainer(
                 None, cfg,
-                session=0,
-                train_loader=train_loader,
-                val_loader=test_loader,
-                test_loader=test_loader,
+                session=0
             )
             # Start training
             trainer.train()

@@ -13,7 +13,7 @@ from ncdia.utils import (
 from ncdia.trainers.hooks import Hook
 from ncdia.trainers.priority import get_priority, Priority
 from ncdia.trainers.optims import build_optimizer, build_scheduler
-from ncdia.datasets import build_dataloader
+from ncdia.dataloader import build_dataloader
 
 
 @TRAINERS.register
@@ -148,7 +148,6 @@ class BaseTrainer(object):
             self._train_loader = train_loader
         if not self._train_loader:
             raise KeyError("Trainloader is not found in `cfg`.")
-        
         self._val_loader = {}
         if 'valloader' in self._cfg:
             self._val_loader.update(dict(self._cfg['valloader']))

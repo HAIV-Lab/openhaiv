@@ -44,8 +44,11 @@ def build_transform(trans: dict) -> transforms.Compose:
     Returns:
         torchvision.transforms.Compose: transform
     """
+    if isinstance(trans, str):
+        return trans
+    
     transform = []
-
+    
     for t in trans.keys():
         if t not in AUGMENTATIONS:
             raise ValueError(f'Unknown transform {t}.')

@@ -1,9 +1,12 @@
-_base_: configs/dataloader/remote/s0.yaml
+_base_: ["configs/dataloader/remote/s0.yaml",
+"configs/incremental/alice.yaml",
+"configs/network/alice.yaml"
+ ]
 
 algorithm:
   type: StandardSL
 
-max_epochs: 1
+max_epochs: 30
 
 criterion:
   type: CrossEntropyLoss

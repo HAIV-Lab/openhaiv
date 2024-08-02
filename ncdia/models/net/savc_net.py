@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import numpy as np
 import math
 
-from ncdia.algorithms.incremental import fantasy
+from ncdia.dataloader.augmentations import fantasy
 from ncdia.utils import MODELS
 
 
