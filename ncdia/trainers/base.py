@@ -23,9 +23,10 @@ class BaseTrainer(object):
     Args:
         model (nn.Module): Model to be trained.
         cfg (dict, optional): Configuration for trainer, Contains:
+            - 'trainer' (dict):
+                - 'type' (str): Type of trainer.
             - 'algorithm' (dict):
                 - 'type' (str): Type of algorithm.
-            - `max_epochs` (int): Total epochs for training.
             - 'criterion' (dict):
                 - 'type' (str): Type of criterion for training.
             - 'optimizer':
@@ -55,8 +56,6 @@ class BaseTrainer(object):
                 - kwargs (dict) for DataLoader, such as 'batch_size', 'shuffle', etc.
             - 'exp_name' (str): Experiment name.
             - 'work_dir' (str): Working directory to save logs and checkpoints.
-        session (int): Session number. If == 0, execute pre-training.
-            If > 0, execute incremental training.
         train_loader (DataLoader | dict, optional): DataLoader for training.
         val_loader (DataLoader | dict, optional): DataLoader for validation.
         test_loader (DataLoader | dict, optional): DataLoader for testing.
@@ -82,7 +81,6 @@ class BaseTrainer(object):
         epoch (int): Current training epoch.
         iter (int): Current iteration or index of the current batch.
         cfg (Configs): Configuration for trainer.
-        session (int): Session number.
         hooks (List[Hook]): List of registered hooks.
         logger (Logger): Logger for logging information.
         device (torch.device): Device to use.
@@ -93,9 +91,8 @@ class BaseTrainer(object):
     """
     def __init__(
             self,
-            model: nn.Module,
+            model: nn.Module = None,
             cfg: dict | None = None,
-            session: int = 0,
             train_loader: DataLoader | dict | None = None,
             val_loader: DataLoader | dict | None = None,
             test_loader: DataLoader | dict | None = None,
@@ -104,10 +101,9 @@ class BaseTrainer(object):
             load_from: str | None = None,
             exp_name: str | None = None,
             work_dir: str | None = None,
-    ):
+    ) -> None:
         super(BaseTrainer, self).__init__()
         self._cfg = cfg
-        self._session = session
 
         self._model = {}
         if 'model' in self._cfg:
@@ -189,12 +185,6 @@ class BaseTrainer(object):
     def cfg(self) -> object:
         """Configs: Configuration for trainer."""
         return self._cfg
-    
-    @property
-    def session(self) -> int:
-        """int: Session number. If == 0, execute pre-training.
-        If > 0, execute incremental training."""
-        return self._session
 
     @property
     def hooks(self) -> List[Hook]:
@@ -284,11 +274,7 @@ class BaseTrainer(object):
     def max_epochs(self) -> int:
         """int: Total epochs for training."""
         if not hasattr(self, '_max_epochs'):
-            if not 'max_epochs' in self._cfg:
-                self._max_epochs = 1
-            else:
-                self._max_epochs = int(self._cfg['max_epochs'])
-
+            self._max_epochs = 1
         return self._max_epochs
     
     @property

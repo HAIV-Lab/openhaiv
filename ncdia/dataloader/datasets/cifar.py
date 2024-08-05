@@ -1,4 +1,4 @@
-from typing import Any, Callable, Tuple
+from typing import Callable
 from torchvision.datasets import CIFAR10 as _CIFAR10
 from torchvision.datasets import CIFAR100 as _CIFAR100
 from PIL import Image

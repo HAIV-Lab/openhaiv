@@ -1,6 +1,6 @@
 from torchvision import transforms
 
-from ncdia.utils import AUGMENTATIONS
+from ncdia.utils import AUGMENTATIONS, Configs
 from ncdia.dataloader.tools import _interpolation_modes_from_str
 from .constrained_cropping import CustomMultiCropping
 from .augexpand import CUSTOMFUNCS
@@ -35,11 +35,11 @@ AUGMENTATIONS.register_dict({
 })
 
 
-def build_transform(trans: dict) -> transforms.Compose:
+def build_transform(trans: dict | str) -> transforms.Compose:
     """Build transform.
 
     Args:
-        trans (dict): transform config
+        trans (dict | str): transform config
     
     Returns:
         torchvision.transforms.Compose: transform
@@ -60,7 +60,7 @@ def build_transform(trans: dict) -> transforms.Compose:
     return transforms.Compose(transform)
 
 
-def parse_parameters(params: dict) -> dict:
+def parse_parameters(params: dict | None) -> dict:
     """ Parse parameters for transforms.
 
     Args:
@@ -74,7 +74,7 @@ def parse_parameters(params: dict) -> dict:
             if name in params:
                 params[name] = build_transform(params[name])
 
-    if not isinstance(params, dict):
+    if not isinstance(params, (dict, Configs)):
         return {}
     else:
         if 'interpolation' in params:
@@ -87,5 +87,5 @@ def parse_parameters(params: dict) -> dict:
             if isinstance(custom_funcs, str):
                 custom_funcs = [custom_funcs]
             params['custom_funcs'] = [CUSTOMFUNCS[func] for func in custom_funcs]
-            
+
         return params

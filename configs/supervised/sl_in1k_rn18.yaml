@@ -1,9 +1,14 @@
 _base_: configs/dataloader/imagenet.yaml
 
+trainer:
+  type: PreTrainer
+  max_epochs: 1
+
 algorithm:
   type: StandardSL
 
-max_epochs: 1
+model:
+  type: ResNet18
 
 criterion:
   type: CrossEntropyLoss
@@ -17,7 +22,6 @@ scheduler:
   type: Constant
 
 seed: 0
-
 device: cuda
 
 exp_name: exp

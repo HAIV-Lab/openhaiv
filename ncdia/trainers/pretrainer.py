@@ -6,9 +6,20 @@ from .base import BaseTrainer
 class PreTrainer(BaseTrainer):
     """PreTrainer class for pre-training a model on session 0.
 
+    Args:
+        max_epochs (int): Maximum number of epochs. Default: 1.
+    
+    Attributes:
+        max_epochs (int): Total epochs for training.
+
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(
+            self,
+            max_epochs: int = 1,
+            *args, **kwargs
+    ) -> None:
         super(PreTrainer, self).__init__(*args, **kwargs)
+        self._max_epochs = max_epochs
 
     def train_step(self, batch, **kwargs):
         """Training step.

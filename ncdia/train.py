@@ -1,8 +1,9 @@
 import argparse
-from utils.cfg import setup_cfg
-from utils.tools import set_random_seed
-from trainers import PreTrainer, IncTrainer
-from ncdia.algorithms.ncd import AutoNCD
+from ncdia.utils.cfg import setup_cfg
+from ncdia.utils.tools import set_random_seed
+from ncdia.utils import TRAINERS
+# from ncdia.trainers import PreTrainer, IncTrainer
+# from ncdia.algorithms.ncd import AutoNCD
 
 
 parser = argparse.ArgumentParser()
@@ -26,39 +27,44 @@ def main(args):
         set_random_seed(cfg.seed)
 
     # Build the trainer from config
-    # trainer = PreTrainer(cfg) if cfg.session == 0 else IncTrainer(cfg)
+    trainer = dict(cfg.trainer)
+    trainer['cfg'] = cfg
+    trainer = TRAINERS.build(trainer)
 
-    num_session = cfg.num_session or 1
-    for session in range(num_session):
-        if session == 0:
-            trainer = PreTrainer(
-                None, cfg,
-                session=0
-            )
-            # Start training
-            trainer.train()
-        else:
-            cfg.max_epochs = cfg.inc_epochs
-            _, pre_train_loader, pre_test_loader = cli_dataloader(cfg, session-1)
-            _, train_loader, test_loader = cli_dataloader(cfg, session)
+    # Start training
+    trainer.train()
 
-            ncd_detecter = AutoNCD(
-                trainer.model,
-                pre_train_loader, pre_test_loader,
-                cfg.CIL.base_classes, cfg.CIL.way,
-                session, trainer.device, verbose=True,
-            )
-            train_loader = ncd_detecter.relabel(train_loader, metrics=['msp'], prec_th=0.42)
+    # num_session = cfg.num_session or 1
+    # for session in range(num_session):
+    #     if session == 0:
+    #         trainer = PreTrainer(
+    #             None, cfg,
+    #             session=0
+    #         )
+    #         # Start training
+    #         trainer.train()
+    #     else:
+    #         cfg.max_epochs = cfg.inc_epochs
+    #         _, pre_train_loader, pre_test_loader = cli_dataloader(cfg, session-1)
+    #         _, train_loader, test_loader = cli_dataloader(cfg, session)
 
-            trainer = IncTrainer(
-                trainer.model, cfg,
-                session=session,
-                train_loader=train_loader,
-                val_loader=test_loader,
-                test_loader=test_loader,
-            )
-            # Start training
-            trainer.train()
+    #         ncd_detecter = AutoNCD(
+    #             trainer.model,
+    #             pre_train_loader, pre_test_loader,
+    #             cfg.CIL.base_classes, cfg.CIL.way,
+    #             session, trainer.device, verbose=True,
+    #         )
+    #         train_loader = ncd_detecter.relabel(train_loader, metrics=['msp'], prec_th=0.42)
+
+    #         trainer = IncTrainer(
+    #             trainer.model, cfg,
+    #             session=session,
+    #             train_loader=train_loader,
+    #             val_loader=test_loader,
+    #             test_loader=test_loader,
+    #         )
+    #         # Start training
+    #         trainer.train()
 
 
 if __name__ == '__main__':

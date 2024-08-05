@@ -1,67 +1,46 @@
+import torch.nn as nn
+
 from ncdia.utils import TRAINERS
-from .base import BaseTrainer
+from .pretrainer import PreTrainer
 
 
 @TRAINERS.register
-class IncTrainer(BaseTrainer):
-    """IncTrainer class for incremental training a model on session > 0.
+class IncTrainer(PreTrainer):
+    """IncTrainer class for incremental training.
+
+    Args:
+        num_sess (int): Number of sessions. Default: 1.
+
+    Attributes:
+        num_sess (int): Number of sessions.
+        session (int): Session number. If == 0, execute pre-training.
+            If > 0, execute incremental training.
 
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(
+            self,
+            num_sess: int = 1,
+            *args, **kwargs
+    ) -> None:
         super(IncTrainer, self).__init__(*args, **kwargs)
+        self.num_sess = num_sess
+        self._session = 0
 
-    def train_step(self, batch, **kwargs):
-        """Training step.
+    @property
+    def session(self) -> int:
+        """int: Session number. If == 0, execute pre-training.
+        If > 0, execute incremental training."""
+        return self._session
 
-        Args:
-            batch (dict | tuple | list): A batch of data.
-
-        Returns:
-            results (dict): Training result.
-        """
-        data, label, attribute, imgpath = self.batch_parser(batch)
-        return self.algorithm.train_step(self, data, label, attribute, imgpath)
-
-    def val_step(self, batch, **kwargs):
-        """Validation step.
-
-        Args:
-            batch (dict | tuple | list): A batch of data.
+    def train(self) -> nn.Module:
+        """Incremental training.
+        `self.num_sess` determines the number of sessions,
+        and session number is stored in `self.session`.
 
         Returns:
-            results (dict): Validation result.
+            model (nn.Module): Trained model.
         """
-        data, label, attribute, imgpath = self.batch_parser(batch)
-        return self.algorithm.val_step(self, data, label, attribute, imgpath)
-
-    def test_step(self, batch, **kwargs):
-        """Test step.
-
-        Args:
-            batch (dict | tuple | list): A batch of data.
-
-        Returns:
-            results (dict): Test result.
-        """
-        data, label, attribute, imgpath = self.batch_parser(batch)
-        return self.algorithm.test_step(self, data, label, attribute, imgpath)
-
-    @staticmethod
-    def batch_parser(batch):
-        """Parse a batch of data.
-
-        Args:
-            batch (dict | tuple | list): A batch of data.
-
-        Returns:
-            data (torch.Tensor | list): Input data.
-            label (torch.Tensor | list): Label data.
-            attribute (torch.Tensor | list): Attribute data.
-            imgpath (list of str): Image path.
-        """
-        data = batch['data']            # data: (B, C, H, W) | list of (B, C, H, W)
-        label = batch['label']          # label: (B,) | list of (B,)
-        attribute = batch['attribute']  # attribute: (B, A) | list of (B, A)
-        imgpath = batch['imgpath']      # imgpath: list(str) of length B
-        return data, label, attribute, imgpath
-    
+        for session in range(self.num_sess):
+            self._session = session
+            super(IncTrainer, self).train()
+        return self.model
