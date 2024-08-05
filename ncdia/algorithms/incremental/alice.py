@@ -25,23 +25,11 @@ class Alice(BaseAlg):
         trainer.register_hook(self.hook)
 
         # session = trainer.session
-        if isinstance(trainer, PreTrainer):
-            session = 0
-        if session==1:
-            self._network = trainer.model
-            self._network.eval()
-            self._network.mode = self.args.CIL.new_mode
-            trainloader = trainer.train_loader
-            tsfm = trainer.val_loader.dataset.transform
-            trainloader.dataset.transform = tsfm
-            class_list = list(range(self.args.CIL.base_classes+ (session-1)*self.args.CIL.way, self.args.CIL.base_classes + self.args.CIL.way * session))
-            self._network.update_fc(trainloader, class_list, session)
+        session = trainer.session
+        
 
     def replace_fc(self):
-        if isinstance(self.trainer, PreTrainer):
-            session = 0
-        else:
-            session = self.trainer.session
+        session = self.trainer.session
         if not self.args.CIL.not_data_init and session==0:
             train_loader = self.trainer.train_loader
             val_loader = self.trainer.val_loader
@@ -91,10 +79,7 @@ class Alice(BaseAlg):
             attribute: attribute in batch
             imgpath: imgpath in batch
         """
-        if isinstance(self.trainer, PreTrainer):
-            session = 0
-        else:
-            session = self.trainer.session
+        session = self.trainer.session
         if session==0:
             self._network = trainer.model
             self._network.train()
@@ -121,6 +106,14 @@ class Alice(BaseAlg):
             ret['loss'] = loss
             ret['acc'] = acc
         else:
+            self._network = trainer.model
+            self._network.eval()
+            self._network.mode = self.args.CIL.new_mode
+            trainloader = trainer.train_loader
+            tsfm = trainer.val_loader.dataset.transform
+            trainloader.dataset.transform = tsfm
+            class_list = list(range(self.args.CIL.base_classes+ (session-1)*self.args.CIL.way, self.args.CIL.base_classes + self.args.CIL.way * session))
+            self._network.update_fc(trainloader, class_list, session)
             ret = {}
 
         return ret

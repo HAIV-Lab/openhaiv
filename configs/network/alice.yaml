@@ -3,8 +3,8 @@ model:
   network:
     type: resnet18
     pretrained: True
-  base_classes: 90
-  num_classes: 102
+  base_classes: 11
+  num_classes: 14
   att_classes: 86
   # pretrained: True
   # checkpoint: /new_data/dx450/Project/zzh_ood/NCD_Attr/results/remote_resnet18_savc_att_q_savc_att_e15_lr0.002_default/s0/best_epoch15_acc0.9920.ckpt   # ignore if pretrained is false

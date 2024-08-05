@@ -104,6 +104,7 @@ class BaseTrainer(object):
     ) -> None:
         super(BaseTrainer, self).__init__()
         self._cfg = cfg
+        self._session = 0
 
         self._model = {}
         if 'model' in self._cfg:
@@ -205,6 +206,12 @@ class BaseTrainer(object):
         if isinstance(self._model, dict):
             self._model = MODELS.build(self._model)
         return self._model
+
+    @property
+    def session(self) -> int:
+        """int: Session number. If == 0, execute pre-training.
+        If > 0, execute incremental training."""
+        return self._session
     
     @property
     def train_loader(self) -> DataLoader:

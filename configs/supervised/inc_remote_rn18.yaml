@@ -1,0 +1,41 @@
+_base_: [
+  "configs/incremental/alice.yaml",
+  "configs/network/alice.yaml",
+]
+
+trainer:
+  type: IncTrainer
+  sess_cfg:
+    s0:
+      dataset: configs/dataloader/remote/s0.yaml
+      max_epochs: 1
+    s1:
+      dataset: configs/dataloader/remote/s1.yaml
+      max_epochs: 1
+
+algorithm:
+  type: alice
+
+criterion:
+  type: CrossEntropyLoss
+
+optimizer:
+  type: sgd
+  lr: 0.002
+  weight_decay: 0.0001
+
+scheduler:
+  type: Constant
+
+discover:
+  val_ratio: 1.0
+  ood_type: MLS
+  precision_bar: 0.72
+  sift_threshold: 0.85
+
+seed: 0
+device: cuda
+
+ood_type: MLS
+exp_name: exp
+work_dir: ./output/supervised/inc_remote_savc

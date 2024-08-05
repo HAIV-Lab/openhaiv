@@ -28,12 +28,6 @@ class IncTrainer(PreTrainer):
         self.num_sess = len(sess_cfg.keys())
         self._session = 0
 
-    @property
-    def session(self) -> int:
-        """int: Session number. If == 0, execute pre-training.
-        If > 0, execute incremental training."""
-        return self._session
-
     def train(self) -> nn.Module:
         """Incremental training.
         `self.num_sess` determines the number of sessions,
@@ -54,6 +48,7 @@ class IncTrainer(PreTrainer):
             dset_cfg = Configs()
             for cfg_file in _dset_cfg:
                 dset_cfg.merge_from_yaml(cfg_file)
+            dset_cfg.freeze()
 
             if 'trainloader' in dset_cfg:
                 self._train_loader = dict(dset_cfg['trainloader'])
@@ -61,7 +56,7 @@ class IncTrainer(PreTrainer):
                 self._val_loader = dict(dset_cfg['valloader'])
             if 'testloader' in dset_cfg:
                 self._test_loader = dict(dset_cfg['testloader'])
-
+                
             super(IncTrainer, self).train()
         
         return self.model
