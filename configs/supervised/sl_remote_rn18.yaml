@@ -1,12 +1,15 @@
-_base_: ["configs/dataloader/remote/s0.yaml",
-"configs/incremental/alice.yaml",
-"configs/network/alice.yaml"
- ]
+_base_: [
+  "configs/dataloader/remote/s0.yaml",
+  "configs/incremental/alice.yaml",
+  "configs/network/alice.yaml",
+]
+
+trainer:
+  type: PreTrainer
+  max_epochs: 30
 
 algorithm:
   type: StandardSL
-
-max_epochs: 30
 
 criterion:
   type: CrossEntropyLoss
@@ -20,7 +23,6 @@ scheduler:
   type: Constant
 
 seed: 0
-
 device: cuda
 
 exp_name: exp

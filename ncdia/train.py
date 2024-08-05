@@ -34,37 +34,16 @@ def main(args):
     # Start training
     trainer.train()
 
-    # num_session = cfg.num_session or 1
-    # for session in range(num_session):
-    #     if session == 0:
-    #         trainer = PreTrainer(
-    #             None, cfg,
-    #             session=0
-    #         )
-    #         # Start training
-    #         trainer.train()
-    #     else:
-    #         cfg.max_epochs = cfg.inc_epochs
-    #         _, pre_train_loader, pre_test_loader = cli_dataloader(cfg, session-1)
-    #         _, train_loader, test_loader = cli_dataloader(cfg, session)
+    # _, pre_train_loader, pre_test_loader = cli_dataloader(cfg, session-1)
+    # _, train_loader, test_loader = cli_dataloader(cfg, session)
 
-    #         ncd_detecter = AutoNCD(
-    #             trainer.model,
-    #             pre_train_loader, pre_test_loader,
-    #             cfg.CIL.base_classes, cfg.CIL.way,
-    #             session, trainer.device, verbose=True,
-    #         )
-    #         train_loader = ncd_detecter.relabel(train_loader, metrics=['msp'], prec_th=0.42)
-
-    #         trainer = IncTrainer(
-    #             trainer.model, cfg,
-    #             session=session,
-    #             train_loader=train_loader,
-    #             val_loader=test_loader,
-    #             test_loader=test_loader,
-    #         )
-    #         # Start training
-    #         trainer.train()
+    # ncd_detecter = AutoNCD(
+    #     trainer.model,
+    #     pre_train_loader, pre_test_loader,
+    #     cfg.CIL.base_classes, cfg.CIL.way,
+    #     session, trainer.device, verbose=True,
+    # )
+    # train_loader = ncd_detecter.relabel(train_loader, metrics=['msp'], prec_th=0.42)
 
 
 if __name__ == '__main__':

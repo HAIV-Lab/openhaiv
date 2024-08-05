@@ -308,14 +308,14 @@ def setup_cfg(args, default: dict = {}):
     # Set default vaules
     cfg.merge_from_dict(default_cfg)
 
-    # Load config from file
+    # Load config from files
+    for cfg_file in args.config_files:
+        cfg.merge_from_yaml(cfg_file)
+
     for opt in args.opts:
         if opt.startswith('_base_'):
             cfg.merge_from_yaml(opt.split('=')[1])
             args.opts.remove(opt)
-
-    for cfg_file in args.config_files:
-        cfg.merge_from_yaml(cfg_file)
 
     # Load config from input arguments
     cfg.merge_from_dict(vars(args))

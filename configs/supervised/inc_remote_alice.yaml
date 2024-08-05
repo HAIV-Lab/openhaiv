@@ -1,16 +1,20 @@
 _base_: [
-  "configs/dataloader/remote.yaml", 
   "configs/incremental/alice.yaml", 
-  "configs/network/alice.yaml"
+  "configs/network/alice.yaml",
 ]
+
+trainer:
+  type: IncTrainer
+  sess_cfg:
+    s0:
+      dataset: configs/dataloader/remote/s0.yaml
+      max_epochs: 60
+    s1:
+      dataset: configs/dataloader/remote/s1.yaml
+      max_epochs: 1
 
 algorithm:
   type: alice
-
-num_session: 2
-
-max_epochs: 60
-inc_epochs: 1
 
 criterion:
   type: CrossEntropyLoss
@@ -30,9 +34,6 @@ discover:
   sift_threshold: 0.65
 
 seed: 0
-
-num_session: 2
-
 device: cuda
 
 exp_name: exp

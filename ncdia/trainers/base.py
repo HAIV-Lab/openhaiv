@@ -112,8 +112,6 @@ class BaseTrainer(object):
             self._model.update(model)
         elif isinstance(model, nn.Module):
             self._model = model
-        if not self._model:
-            raise KeyError("Model is not found in `cfg`.")
 
         if 'optimizer' in self._cfg:
             self._optimizer = dict(self._cfg['optimizer'])
@@ -142,8 +140,7 @@ class BaseTrainer(object):
             self._train_loader.update(train_loader)
         elif isinstance(train_loader, DataLoader):
             self._train_loader = train_loader
-        if not self._train_loader:
-            raise KeyError("Trainloader is not found in `cfg`.")
+        
         self._val_loader = {}
         if 'valloader' in self._cfg:
             self._val_loader.update(dict(self._cfg['valloader']))
@@ -151,8 +148,6 @@ class BaseTrainer(object):
             self._val_loader.update(val_loader)
         elif isinstance(val_loader, DataLoader):
             self._val_loader = val_loader
-        if not self._val_loader:
-            raise KeyError("Valloader is not found in `cfg`.")
         
         self._test_loader = {}
         if 'testloader' in self._cfg:
@@ -161,8 +156,6 @@ class BaseTrainer(object):
             self._test_loader.update(test_loader)
         elif isinstance(test_loader, DataLoader):
             self._test_loader = test_loader
-        if not self._test_loader:
-            raise KeyError("Testloader is not found in `cfg`.")
 
         # load checkpoint
         self.load_from = load_from
@@ -207,6 +200,8 @@ class BaseTrainer(object):
     @property
     def model(self) -> nn.Module:
         """nn.Module: Model to be trained."""
+        if not self._model:
+            raise KeyError("Model is not defined.")
         if isinstance(self._model, dict):
             self._model = MODELS.build(self._model)
         return self._model
@@ -214,6 +209,8 @@ class BaseTrainer(object):
     @property
     def train_loader(self) -> DataLoader:
         """DataLoader: DataLoader for training."""
+        if not self._train_loader:
+            raise KeyError("Trainloader is not defined.")
         if isinstance(self._train_loader, dict):
             self._train_loader = build_dataloader(self._train_loader)
         return self._train_loader
@@ -221,6 +218,8 @@ class BaseTrainer(object):
     @property
     def val_loader(self) -> DataLoader:
         """DataLoader: DataLoader for validation."""
+        if not self._val_loader:
+            raise KeyError("Valloader is not defined.")
         if isinstance(self._val_loader, dict):
             self._val_loader = build_dataloader(self._val_loader)
         return self._val_loader
@@ -228,6 +227,8 @@ class BaseTrainer(object):
     @property
     def test_loader(self) -> DataLoader:
         """DataLoader: DataLoader for testing."""
+        if not self._test_loader:
+            raise KeyError("Testloader is not defined.")
         if isinstance(self._test_loader, dict):
             self._test_loader = build_dataloader(self._test_loader)
         return self._test_loader
