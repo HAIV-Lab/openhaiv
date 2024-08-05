@@ -67,13 +67,15 @@ class FACTNET(nn.Module):
         return x
 
     def encode(self, x):
-        x = self.encoder(x)[0]
+        self.encoder(x)[0]
+        x = self.encoder.features
         x = F.adaptive_avg_pool2d(x, 1)
         x = x.squeeze(-1).squeeze(-1)
         return x
     
     def get_features(self, x):
-        x, y = self.encoder(x)
+        self.encoder(x)
+        x = self.encoder.features
         x = F.adaptive_avg_pool2d(x, 1)
         x = x.squeeze(-1).squeeze(-1)
         return x

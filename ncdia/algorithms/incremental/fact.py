@@ -5,6 +5,7 @@ import numpy as np
 from ncdia.algorithms.base import BaseAlg
 from ncdia.utils import ALGORITHMS
 from ncdia.utils.metrics import accuracy
+from ncdia.trainers import PreTrainer
 from .hooks import FACTHook
 
 
@@ -16,14 +17,17 @@ class FACT(BaseAlg):
         self.trainer = trainer
 
         self.transform = None
-        self.base_class = 11
+        self.base_classes = 90
         self._network = None
         self.loss = nn.CrossEntropyLoss().cuda()
         self.beta = 0.5
         self.hook = FACTHook()
         trainer.register_hook(self.hook)
         
-        session = trainer.session
+        if isinstance(trainer, PreTrainer):
+            session = 0
+        else:
+            session = self.trainer.session
         if session==1:
             self._network = trainer.model
             self._network.eval()
@@ -33,12 +37,15 @@ class FACT(BaseAlg):
             trainloader = trainer.train_loader
             tsfm = trainer.val_loader.dataset.transform
             trainloader.dataset.transform = tsfm
-            class_list = list(range(self.args.CIL.base_class+ (session-1)*self.args.CIL.way, self.args.CIL.base_class + self.args.CIL.way * session))
+            class_list = list(range(self.args.CIL.base_classes+ (session-1)*self.args.CIL.way, self.args.CIL.base_classes + self.args.CIL.way * session))
             self._network.update_fc(trainloader, class_list, session)
             # print("network_fc: ",self._network.fc.weight.data[12])
 
     def replace_fc(self):
-        session = self.trainer.session
+        if isinstance(self.trainer, PreTrainer):
+            session = 0
+        else:
+            session = self.trainer.session
         if not self.args.CIL.not_data_init and session==0:
             train_loader = self.trainer.train_loader
             val_loader = self.trainer.val_loader
@@ -65,7 +72,7 @@ class FACT(BaseAlg):
 
             proto_list = []
 
-            for class_index in range(self.args.CIL.base_class*m):
+            for class_index in range(self.args.CIL.base_classes*m):
                 data_index = (label_list == class_index).nonzero()
                 embedding_this = embedding_list[data_index.squeeze(-1)]
                 embedding_this = embedding_this.mean(0)
@@ -73,7 +80,7 @@ class FACT(BaseAlg):
 
             proto_list = torch.stack(proto_list, dim=0)
 
-            self._network.fc.weight.data[:self.args.CIL.base_class*m] = proto_list
+            self._network.fc.weight.data[:self.args.CIL.base_classes*m] = proto_list
 
             # return self.net
             # class_list = list(range(self.args.CIL.base_class))
@@ -89,16 +96,19 @@ class FACT(BaseAlg):
             attribute: attribute in batch
             imgpath: imgpath in batch
         """
-        session = trainer.session
+        if isinstance(trainer, PreTrainer):
+            session = 0
+        else:
+            session = self.trainer.session
         if session==0:
             self._network = trainer.model
             self._network.train()
             
             masknum = 3
-            mask=np.zeros((self.args.CIL.base_class,self.args.CIL.num_classes))
-            for i in range(self.args.CIL.num_classes-self.args.CIL.base_class):
-                picked_dummy=np.random.choice(self.args.CIL.base_class,masknum,replace=False)
-                mask[:,i+self.args.CIL.base_class][picked_dummy]=1
+            mask=np.zeros((self.args.CIL.base_classes,self.args.CIL.num_classes))
+            for i in range(self.args.CIL.num_classes-self.args.CIL.base_classes):
+                picked_dummy=np.random.choice(self.args.CIL.base_classes,masknum,replace=False)
+                mask[:,i+self.args.CIL.base_classes][picked_dummy]=1
             mask=torch.tensor(mask).cuda()
 
 
@@ -107,7 +117,7 @@ class FACT(BaseAlg):
 
 
             logits = self._network(data)
-            logits_ = logits[:, :self.base_class]
+            logits_ = logits[:, :self.base_classes]
             # _, pred = torch.max(logits_, dim=1)
             # acc = self._accuracy(labels, pred)
             acc = accuracy(logits_, labels)[0]
@@ -152,24 +162,27 @@ class FACT(BaseAlg):
             attribute: attribute in batch
             imgpath: imgpath in batch
         """
-        session = trainer.session
+        if isinstance(trainer, PreTrainer):
+            session = 0
+        else:
+            session = self.trainer.session
         if session ==0:
             self._network = trainer.model
             self._network.eval()
             
             masknum = 3
-            mask=np.zeros((self.args.CIL.base_class,self.args.CIL.num_classes))
-            for i in range(self.args.CIL.num_classes-self.args.CIL.base_class):
-                picked_dummy=np.random.choice(self.args.CIL.base_class,masknum,replace=False)
-                mask[:,i+self.args.CIL.base_class][picked_dummy]=1
+            mask=np.zeros((self.args.CIL.base_classes,self.args.CIL.num_classes))
+            for i in range(self.args.CIL.num_classes-self.args.CIL.base_classes):
+                picked_dummy=np.random.choice(self.args.CIL.base_classes,masknum,replace=False)
+                mask[:,i+self.args.CIL.base_classes][picked_dummy]=1
             mask=torch.tensor(mask).cuda()
 
             with torch.no_grad():
                 data = data.cuda()
                 labels = label.cuda()
-                
+
                 logits = self._network(data)
-                logits_ = logits[:, :self.base_class]
+                logits_ = logits[:, :self.base_classes]
                 # _, pred = torch.max(logits_, dim=1)
                 # acc = self._accuracy(labels, pred)
                 acc = accuracy(logits_, labels)[0]
@@ -179,7 +192,7 @@ class FACT(BaseAlg):
                 ret['loss'] = loss.item()
                 ret['acc'] = acc.item()
         else: 
-            test_class = self.args.CIL.base_class + session * self.args.CIL.way
+            test_classes = self.args.CIL.base_classes + session * self.args.CIL.way
             # self._network = trainer.model
             # self._network.eval()
 
@@ -194,7 +207,7 @@ class FACT(BaseAlg):
                 m = data.size()[0] // b
                 joint_preds = self._network(data)
                 feat = self._network.get_features(data)
-                joint_preds = joint_preds[:, :test_class*m]
+                joint_preds = joint_preds[:, :test_classes*m]
                 
                 agg_preds = 0
                 agg_feat = feat.view(-1, m, feat.size(1)).mean(dim=1)

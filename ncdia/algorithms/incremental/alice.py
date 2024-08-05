@@ -5,6 +5,7 @@ from ncdia.utils import ALGORITHMS
 from ncdia.algorithms.base import BaseAlg
 from ncdia.utils.losses import AngularPenaltySMLoss
 from ncdia.utils.metrics import accuracy
+from ncdia.trainers import PreTrainer
 from .hooks import AliceHook
 
 
@@ -23,7 +24,9 @@ class Alice(BaseAlg):
         self.hook = AliceHook()
         trainer.register_hook(self.hook)
 
-        session = trainer.session
+        # session = trainer.session
+        if isinstance(trainer, PreTrainer):
+            session = 0
         if session==1:
             self._network = trainer.model
             self._network.eval()
@@ -31,11 +34,14 @@ class Alice(BaseAlg):
             trainloader = trainer.train_loader
             tsfm = trainer.val_loader.dataset.transform
             trainloader.dataset.transform = tsfm
-            class_list = list(range(self.args.CIL.base_class+ (session-1)*self.args.CIL.way, self.args.CIL.base_class + self.args.CIL.way * session))
+            class_list = list(range(self.args.CIL.base_classes+ (session-1)*self.args.CIL.way, self.args.CIL.base_classes + self.args.CIL.way * session))
             self._network.update_fc(trainloader, class_list, session)
 
     def replace_fc(self):
-        session = self.trainer.session
+        if isinstance(self.trainer, PreTrainer):
+            session = 0
+        else:
+            session = self.trainer.session
         if not self.args.CIL.not_data_init and session==0:
             train_loader = self.trainer.train_loader
             val_loader = self.trainer.val_loader
@@ -61,16 +67,15 @@ class Alice(BaseAlg):
             label_list = torch.cat(label_list, dim=0)
 
             proto_list = []
-
-            for class_index in range(self.args.CIL.base_class*m):
+            for class_index in range(self.args.CIL.base_classes*m):
                 data_index = (label_list == class_index).nonzero()
                 embedding_this = embedding_list[data_index.squeeze(-1)]
                 embedding_this = embedding_this.mean(0)
                 proto_list.append(embedding_this)
 
             proto_list = torch.stack(proto_list, dim=0)
-
-            self._network.fc.weight.data[:self.args.CIL.base_class*m] = proto_list
+            # proto_list = torch.nn.functional.normalize(proto_list, p=2, dim=0)
+            self._network.fc.weight.data[:self.args.CIL.base_classes*m] = proto_list
 
             # return self.net
             # class_list = list(range(self.args.CIL.base_class))
@@ -86,23 +91,26 @@ class Alice(BaseAlg):
             attribute: attribute in batch
             imgpath: imgpath in batch
         """
-        session = trainer.session
+        if isinstance(self.trainer, PreTrainer):
+            session = 0
+        else:
+            session = self.trainer.session
         if session==0:
             self._network = trainer.model
             self._network.train()
             
             masknum = 3
-            mask=np.zeros((self.args.CIL.base_class,self.args.CIL.num_classes))
-            for i in range(self.args.CIL.num_classes-self.args.CIL.base_class):
-                picked_dummy=np.random.choice(self.args.CIL.base_class,masknum,replace=False)
-                mask[:,i+self.args.CIL.base_class][picked_dummy]=1
+            mask=np.zeros((self.args.CIL.base_classes,self.args.CIL.num_classes))
+            for i in range(self.args.CIL.num_classes-self.args.CIL.base_classes):
+                picked_dummy=np.random.choice(self.args.CIL.base_classes,masknum,replace=False)
+                mask[:,i+self.args.CIL.base_classes][picked_dummy]=1
             mask=torch.tensor(mask).cuda()
 
             data = data.cuda()
             labels = label.cuda()
 
             logits = self._network(data)
-            logits_ = logits[:, :self.args.dataloader.base_class]
+            logits_ = logits[:, :self.args.CIL.base_classes]
             # pred = F.softmax(logits_, dim=1)
             # acc = self._accuracy(labels, pred)
             acc = accuracy(logits_, labels)[0]
@@ -137,7 +145,11 @@ class Alice(BaseAlg):
                 - "loss": Loss value.
                 - "acc": Accuracy value.
         """
-        session = trainer.session
+        if isinstance(self.trainer, PreTrainer):
+            session = 0
+        else:
+            session = self.trainer.session
+        
         if session == 0:
             self._network = trainer.model
             self._network.eval()
@@ -147,7 +159,7 @@ class Alice(BaseAlg):
                 labels = label.cuda()
 
                 logits = self._network(data)
-                logits_ = logits[:, :self.args.CIL.base_class]
+                logits_ = logits[:, :self.args.CIL.base_classes]
                 # _, pred = torch.max(logits_, dim=1)
                 # acc = self._accuracy(labels, pred)
                 acc = accuracy(logits_, labels)[0]
@@ -157,7 +169,7 @@ class Alice(BaseAlg):
                 ret['loss'] = loss.item()
                 ret['acc'] = acc.item()
         else:
-            test_class = self.args.CIL.base_class + session * self.args.CIL.way
+            test_class = self.args.CIL.base_classes + session * self.args.CIL.way
             # self._network = trainer.model
             # self._network.eval()
 

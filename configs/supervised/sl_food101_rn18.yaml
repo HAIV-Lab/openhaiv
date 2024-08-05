@@ -1,5 +1,5 @@
 _base_: [
-  "configs/dataloader/remote/s0.yaml",
+  "configs/dataloader/food101/s0.yaml",
   "configs/incremental/alice.yaml",
   "configs/network/alice.yaml",
 ]
@@ -9,7 +9,7 @@ trainer:
   max_epochs: 3
 
 algorithm:
-  type: alice
+  type: fact
 
 criterion:
   type: CrossEntropyLoss
@@ -26,4 +26,4 @@ seed: 0
 device: cuda
 
 exp_name: exp
-work_dir: ./output/supervised/sl_remote_rn18
+work_dir: ./output/supervised/sl_food101_rn18
