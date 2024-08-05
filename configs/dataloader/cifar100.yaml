@@ -1,4 +1,4 @@
-_base_: configs/dataloader/_loader.yaml
+_base_: configs/dataloader/loader.yaml
 
 trainloader:
   dataset:
