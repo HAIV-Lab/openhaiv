@@ -74,6 +74,7 @@ class BaseTrainer(object):
         criterion (Callable): Criterion for training.
         algorithm (object): Algorithm for training.
         metrics (dict): Metrics for evaluation and testing.
+        session (int): Session number.
         max_epochs (int): Total epochs for training.
         max_train_iters (int): Iterations on one epoch for training.
         max_val_iters (int): Iterations on one epoch for validation.
@@ -104,6 +105,7 @@ class BaseTrainer(object):
     ) -> None:
         super(BaseTrainer, self).__init__()
         self._cfg = cfg
+        self._session = 0
 
         self._model = {}
         if 'model' in self._cfg:
@@ -195,7 +197,13 @@ class BaseTrainer(object):
     @property
     def work_dir(self) -> str:
         """str: Working directory to save logs and checkpoints."""
-        return os.path.join(self._work_dir, self._exp_name)        
+        return os.path.join(self._work_dir, self._exp_name)
+    
+    @property
+    def session(self) -> int:
+        """int: Session number. If == 0, execute pre-training.
+        If > 0, execute incremental training."""
+        return self._session
     
     @property
     def model(self) -> nn.Module:

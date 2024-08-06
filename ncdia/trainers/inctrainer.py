@@ -43,24 +43,15 @@ class IncTrainer(PreTrainer):
             model (nn.Module): Trained model.
         """
         for session in range(self.num_sess):
-            sess_cfg = self.sess_cfg[f's{session}']
-            _dset_cfg = sess_cfg.dataset
-            if isinstance(_dset_cfg, str):
-                _dset_cfg = [_dset_cfg]
+
+            cfg = self.sess_cfg[f's{session}'].cfg
+            self._cfg.merge_from_config(cfg)
+            self._cfg.freeze()
 
             self._session = session
-            self._max_epochs = sess_cfg.max_epochs or 1
+            self._max_epochs = self._cfg.trainer.max_epochs or 1
 
-            dset_cfg = Configs()
-            for cfg_file in _dset_cfg:
-                dset_cfg.merge_from_yaml(cfg_file)
-
-            if 'trainloader' in dset_cfg:
-                self._train_loader = dict(dset_cfg['trainloader'])
-            if 'valloader' in dset_cfg:
-                self._val_loader = dict(dset_cfg['valloader'])
-            if 'testloader' in dset_cfg:
-                self._test_loader = dict(dset_cfg['testloader'])
+            super(IncTrainer, self).__init__(cfg=self._cfg)
 
             super(IncTrainer, self).train()
         

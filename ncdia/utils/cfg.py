@@ -195,8 +195,9 @@ class Configs():
                     if v['_delete_']: continue
                     else: v.pop('_delete_')
                 elif isinstance(v, dict) and '_replace_' in v:
-                    v.pop('_replace_')  
-                cfg[k] = v
+                    v.pop('_replace_')
+                if k != '_base_':
+                    cfg[k] = v
 
     def merge_from_list(self, args: list):
         """Merge configs from list.
@@ -213,6 +214,24 @@ class Configs():
             set_value(args_dict, k, v)
         
         self.merge_from_dict(args_dict)
+
+    def merge_from_config(self, cfg):
+        """Merge configs from another Configs.
+
+        Args:
+            cfg (Configs | dict): Configs to be merged
+        """
+        if isinstance(cfg, Configs):
+            cfg = cfg.cfg
+        
+        if '_base_' in cfg:
+            if not isinstance(cfg['_base_'], list):
+                cfg['_base_'] = [cfg['_base_']]
+
+            for base_cfg_file in cfg['_base_']:
+                self.merge_from_yaml(base_cfg_file)
+        
+        self.merge_from_dict(cfg)
 
     def freeze(self):
         """Freeze configs, construct a tree of Configs, 
