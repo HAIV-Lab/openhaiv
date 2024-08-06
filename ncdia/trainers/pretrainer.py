@@ -16,9 +16,9 @@ class PreTrainer(BaseTrainer):
     def __init__(
             self,
             max_epochs: int = 1,
-            *args, **kwargs
+            **kwargs
     ) -> None:
-        super(PreTrainer, self).__init__(*args, **kwargs)
+        super(PreTrainer, self).__init__(**kwargs)
         self._max_epochs = max_epochs
 
     def train_step(self, batch, **kwargs):

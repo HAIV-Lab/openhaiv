@@ -59,6 +59,8 @@ class BaseTrainer(object):
         train_loader (DataLoader | dict, optional): DataLoader for training.
         val_loader (DataLoader | dict, optional): DataLoader for validation.
         test_loader (DataLoader | dict, optional): DataLoader for testing.
+        session (int): Session number. If == 0, execute pre-training.
+            If > 0, execute incremental training.
         default_hooks (dict, optional): Default hooks to be registered.
         custom_hooks (list, optional): Custom hooks to be registered.
         load_from (str, optional): Checkpoint file path to load.
@@ -97,6 +99,7 @@ class BaseTrainer(object):
             train_loader: DataLoader | dict | None = None,
             val_loader: DataLoader | dict | None = None,
             test_loader: DataLoader | dict | None = None,
+            session: int = 0,
             default_hooks: Dict[str, Hook | dict] | None = None,
             custom_hooks: List[Hook | dict] | None = None,
             load_from: str | None = None,
@@ -105,7 +108,8 @@ class BaseTrainer(object):
     ) -> None:
         super(BaseTrainer, self).__init__()
         self._cfg = cfg
-        self._session = 0
+        self._session = session
+        self._logger = None
 
         self._model = {}
         if 'model' in self._cfg:

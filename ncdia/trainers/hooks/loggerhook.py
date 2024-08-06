@@ -25,8 +25,8 @@ class LoggerHook(Hook):
 
     def __init__(
             self,
-            interval: int = 50,
-            ignore_last: bool = True,
+            interval: int = 25,
+            ignore_last: bool = False,
             exp_name: str = 'exp',
             out_dir: str = None,
             out_suffix: str = '.log',

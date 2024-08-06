@@ -67,6 +67,7 @@ class AliceNET(nn.Module):
         return x
 
     def encode(self, x):
+    
         self.encoder(x)[0]
         x = self.encoder.features 
         x = F.adaptive_avg_pool2d(x, 1)

@@ -16,7 +16,7 @@ class ModelHook(Hook):
         Args:
             trainer (BaseTrainer): Trainer object.
         """
-        trainer.model
+        trainer.model.to(trainer.device)
 
     def before_run(self, trainer) -> None:
         """Set model to device before running.

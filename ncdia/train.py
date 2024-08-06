@@ -27,9 +27,7 @@ def main(args):
         set_random_seed(cfg.seed)
 
     # Build the trainer from config
-    trainer = dict(cfg.trainer)
-    trainer['cfg'] = cfg
-    trainer = TRAINERS.build(trainer)
+    trainer = TRAINERS.build(dict(cfg.trainer), cfg=cfg)
 
     # Start training
     trainer.train()

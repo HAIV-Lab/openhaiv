@@ -26,6 +26,16 @@ class Alice(BaseAlg):
 
         # session = trainer.session
         session = trainer.session
+        if session == 1:
+            self._network = trainer.model
+            self._network.eval()
+            self._network.cuda()
+            self._network.mode = self.args.CIL.new_mode
+            trainloader = trainer.train_loader
+            tsfm = trainer.val_loader.dataset.transform
+            trainloader.dataset.transform = tsfm
+            class_list = list(range(self.args.CIL.base_classes+ (session-1)*self.args.CIL.way, self.args.CIL.base_classes + self.args.CIL.way * session))
+            self._network.update_fc(trainloader, class_list, session)
         
 
     def replace_fc(self):
@@ -106,14 +116,6 @@ class Alice(BaseAlg):
             ret['loss'] = loss
             ret['acc'] = acc
         else:
-            self._network = trainer.model
-            self._network.eval()
-            self._network.mode = self.args.CIL.new_mode
-            trainloader = trainer.train_loader
-            tsfm = trainer.val_loader.dataset.transform
-            trainloader.dataset.transform = tsfm
-            class_list = list(range(self.args.CIL.base_classes+ (session-1)*self.args.CIL.way, self.args.CIL.base_classes + self.args.CIL.way * session))
-            self._network.update_fc(trainloader, class_list, session)
             ret = {}
 
         return ret
@@ -138,10 +140,7 @@ class Alice(BaseAlg):
                 - "loss": Loss value.
                 - "acc": Accuracy value.
         """
-        if isinstance(self.trainer, PreTrainer):
-            session = 0
-        else:
-            session = self.trainer.session
+        session = self.trainer.session
         
         if session == 0:
             self._network = trainer.model

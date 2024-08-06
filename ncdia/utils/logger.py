@@ -1,6 +1,5 @@
 import os
 import os.path as osp
-import sys
 import time
 import yaml
 
@@ -8,7 +7,7 @@ from .tools import mkdir_if_missing
 
 
 class Logger(object):
-    """Write console output to external text file.
+    """Write output to console and external text file
 
     Args:
         fpath (str): directory to save logging file.
@@ -25,7 +24,6 @@ class Logger(object):
         self.fpath = fpath
         self.fdir = osp.dirname(fpath) if fpath is not None else None
 
-        self.console = sys.stdout
         self.file = None
         if fpath is not None:
             mkdir_if_missing(self.fdir)
@@ -60,7 +58,7 @@ class Logger(object):
             msg = f'[{time_stamp}] {msg}'
 
         msg += end
-        self.console.write(msg)
+        print(msg, end='')
         if self.file is not None:
             self.file.write(msg)
         self.flush()
@@ -94,7 +92,6 @@ class Logger(object):
         Examples:
             >>> logger.flush()
         """
-        self.console.flush()
         if self.file is not None:
             self.file.flush()
             os.fsync(self.file.fileno())
@@ -105,6 +102,5 @@ class Logger(object):
         Examples:
             >>> logger.close()
         """
-        self.console.close()
         if self.file is not None:
             self.file.close()

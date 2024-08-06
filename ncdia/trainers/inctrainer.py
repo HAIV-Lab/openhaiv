@@ -9,7 +9,10 @@ class IncTrainer(PreTrainer):
     """IncTrainer class for incremental training.
 
     Args:
+        model (nn.Module): Model to be trained.
+        cfg (dict, optional): Configuration for trainer.
         sess_cfg (Configs): Session configuration.
+        session (int, optional): Session number. Default: 0.
 
     Attributes:
         sess_cfg (Configs): Session configuration.
@@ -20,13 +23,27 @@ class IncTrainer(PreTrainer):
     """
     def __init__(
             self,
-            sess_cfg: Configs,
-            *args, **kwargs
+            model: nn.Module = None,
+            cfg: dict | None = None,
+            sess_cfg: Configs | None = None,
+            session: int = 0,
+            **kwargs
     ) -> None:
-        super(IncTrainer, self).__init__(*args, **kwargs)
         self.sess_cfg = sess_cfg
         self.num_sess = len(sess_cfg.keys())
-        self._session = 0
+        self.kwargs = kwargs
+
+        s_cfg = sess_cfg[f's{session}'].cfg
+        cfg.merge_from_config(s_cfg)
+        cfg.freeze()
+
+        super(IncTrainer, self).__init__(
+            model=model,
+            cfg=cfg,
+            session=session,
+            max_epochs=cfg.trainer.max_epochs or 1,
+            **self.kwargs
+        )
 
     def train(self) -> nn.Module:
         """Incremental training.
@@ -38,14 +55,16 @@ class IncTrainer(PreTrainer):
         """
         for session in range(self.num_sess):
 
-            cfg = self.sess_cfg[f's{session}'].cfg
-            self._cfg.merge_from_config(cfg)
-            self._cfg.freeze()
-
-            self._session = session
-            self._max_epochs = self._cfg.trainer.max_epochs or 1
-
-            super(IncTrainer, self).__init__(cfg=self._cfg)
+            if session > 0:
+                new_instance = IncTrainer(
+                    model=self.model,
+                    cfg=self.cfg,
+                    sess_cfg=self.sess_cfg,
+                    session=session,
+                    **self.kwargs
+                )
+                self.__class__ = type(new_instance)
+                self.__dict__ = new_instance.__dict__
 
             super(IncTrainer, self).train()
         
