@@ -7,11 +7,13 @@ trainer:
   type: IncTrainer
   sess_cfg:
     s0:
-      dataset: configs/dataloader/remote/s0.yaml
-      max_epochs: 60
+      _base_: configs/dataloader/remote/s0.yaml
+      trainer:
+        max_epochs: 60
     s1:
-      dataset: configs/dataloader/remote/s1.yaml
-      max_epochs: 1
+      _base_: configs/dataloader/remote/s1.yaml
+      trainer:
+        max_epochs: 1
 
 algorithm:
   type: alice
