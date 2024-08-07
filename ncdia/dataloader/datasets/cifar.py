@@ -4,10 +4,11 @@ from torchvision.datasets import CIFAR100 as _CIFAR100
 from PIL import Image
 
 from ncdia.utils import DATASETS
+from ncdia.dataloader import BaseDataset
 
 
 @DATASETS.register
-class CIFAR10(_CIFAR10):
+class CIFAR10(_CIFAR10, BaseDataset):
     """CIFAR-10 dataset.
 
     Args:
@@ -40,15 +41,31 @@ class CIFAR10(_CIFAR10):
             transform: Callable | None = None,
             target_transform: Callable | None = None,
             download: bool = False,
+            loader = Image.fromarray,
             **kwargs,
     ) -> None:
-        super(CIFAR10, self).__init__(
-            root,
+        _CIFAR10.__init__(
+            self, root,
             train=train,
             transform=transform,
             target_transform=target_transform,
             download=download,
         )
+
+        self.images, self.labels = [], []
+        for path, target in zip(self.data, self.targets):
+            self.images.append(path)
+            self.labels.append(target)
+
+        self.loader = loader
+
+    def __len__(self) -> int:
+        """Get the length of the dataset
+
+        Returns:
+            int: length of the dataset
+        """
+        return len(self.images)
 
     def __getitem__(self, index: int) -> dict:
         """
@@ -62,11 +79,11 @@ class CIFAR10(_CIFAR10):
                 - 'attribute': attribute of the image,
                 - 'imgpath': path of the image.
         """
-        img, target = self.data[index], self.targets[index]
+        img, target = self.images[index], self.labels[index]
 
         # doing this so that it is consistent with all other datasets
         # to return a PIL Image
-        img = Image.fromarray(img)
+        img = self.loader(img)
 
         if self.transform is not None:
             img = self.transform(img)

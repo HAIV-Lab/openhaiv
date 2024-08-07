@@ -1,12 +1,14 @@
 import os
 from typing import Callable
-
 from torchvision.datasets import ImageFolder
+
 from ncdia.utils import DATASETS
+from ncdia.dataloader import BaseDataset
+from ncdia.dataloader import default_loader
 
 
 @DATASETS.register
-class ImageNet(ImageFolder):
+class ImageNet(ImageFolder, BaseDataset):
     """ImageNet dataset.
 
     Args:
@@ -33,6 +35,7 @@ class ImageNet(ImageFolder):
             self,
             root: str,
             split: str = "train",
+            loader = default_loader,
             transform: Callable | None = None,
             target_transform: Callable | None = None,
             **kwargs,
@@ -40,11 +43,22 @@ class ImageNet(ImageFolder):
         assert split in ['train', 'val'], f"Unsupported split: {split}"
         root = os.path.join(root, split)
 
-        super(ImageNet, self).__init__(
-            root,
-            transform,
-            target_transform,
-        )
+        ImageFolder.__init__(self, root, transform, target_transform, loader)
+
+        self.images, self.labels = [], []
+        for path, target in self.samples:
+            self.images.append(path)
+            self.labels.append(target)
+            
+        self.loader = loader
+    
+    def __len__(self) -> int:
+        """Get the length of the dataset
+
+        Returns:
+            int: length of the dataset
+        """
+        return len(self.images)
 
     def __getitem__(self, index: int) -> dict:
         """
@@ -58,18 +72,18 @@ class ImageNet(ImageFolder):
                 - 'attribute': attribute of the image,
                 - 'imgpath': path of the image.
         """
-        path, target = self.samples[index]
-        sample = self.loader(path)
+        imgpath, label = self.images[index], self.labels[index]
+        sample = self.loader(imgpath)
 
         if self.transform is not None:
             sample = self.transform(sample)
 
         if self.target_transform is not None:
-            target = self.target_transform(target)
+            label = self.target_transform(label)
 
         return {
             'data': sample,
-            'label': target,
+            'label': label,
             'attribute': [],
-            'imgpath': path,
+            'imgpath': imgpath,
         }
