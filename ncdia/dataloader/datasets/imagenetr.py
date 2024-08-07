@@ -3,8 +3,9 @@ import random
 from torchvision import transforms
 
 from ncdia.utils import DATASETS
-from ncdia.dataloader.tools import pil_loader
-from .base import BaseDataset
+from ncdia.dataloader.tools import default_loader
+from .utils import BaseDataset
+
 
 @DATASETS.register
 class ImageNetR(BaseDataset):

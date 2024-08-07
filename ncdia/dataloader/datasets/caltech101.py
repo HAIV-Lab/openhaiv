@@ -4,7 +4,8 @@ from torchvision import transforms
 
 from ncdia.utils import DATASETS
 from ncdia.dataloader.tools import pil_loader
-from .base import BaseDataset
+from .utils import BaseDataset
+
 
 @DATASETS.register
 class Caltech101(BaseDataset):

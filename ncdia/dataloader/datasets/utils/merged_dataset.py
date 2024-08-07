@@ -1,8 +1,8 @@
 from typing import Callable
 
 from ncdia.utils import DATASETS
-from ncdia.dataloader import BaseDataset
-from ncdia.dataloader import default_loader
+from .base import BaseDataset
+from ncdia.dataloader.tools import default_loader
 
 
 @DATASETS.register

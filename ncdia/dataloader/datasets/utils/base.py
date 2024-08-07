@@ -1,7 +1,7 @@
 from torch.utils.data import Dataset
 
 from ncdia.utils import DATASETS
-from ncdia.dataloader import default_loader
+from ncdia.dataloader.tools import default_loader
 
 
 @DATASETS.register
