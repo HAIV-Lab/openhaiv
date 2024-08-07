@@ -1,6 +1,8 @@
 import warnings
 from typing import Callable
 
+from .cfg import Configs
+
 
 class Registry(dict):
     """A registry to map strings to classes or functions.
@@ -109,11 +111,11 @@ class Registry(dict):
             raise TypeError(f"Target {target} is not callable or dict.")
         return target
         
-    def build(self, target: dict, **kwargs):
+    def build(self, target: dict | Configs, **kwargs):
         """Build a target with configs.
 
         Args:
-            target (dict): A dict to be built.
+            target (dict | Configs): A dict to be built.
                 It should have a key 'type' to specify the target type.
                 It may have other keys to specify the target configs.
             kwargs (dict): Additional keyword arguments.
@@ -126,6 +128,9 @@ class Registry(dict):
             KeyError: If key 'type' is not found in target.
             KeyError: If target type is not registered.
         """
+        if isinstance(target, Configs):
+            target = dict(target)
+
         if not isinstance(target, dict):
             raise TypeError(f"Target {target} is not a dict.")
         else:

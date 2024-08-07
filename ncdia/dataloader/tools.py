@@ -42,6 +42,15 @@ def default_loader(path):
         return pil_loader(path)
     
 
+def default_loader(path: str):
+    from torchvision import get_image_backend
+
+    if get_image_backend() == "accimage":
+        return accimage_loader(path)
+    else:
+        return pil_loader(path)
+    
+
 def _interpolation_modes_from_int(i: int) -> InterpolationMode:
     inverse_modes_mapping = {
         0: InterpolationMode.NEAREST,

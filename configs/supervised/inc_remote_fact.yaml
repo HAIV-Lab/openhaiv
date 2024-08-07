@@ -14,6 +14,15 @@ trainer:
       _base_: configs/dataloader/remote/s1.yaml
       trainer:
         max_epochs: 1
+  ncd_cfg:
+    metrics: [msp]
+    tpr_th: 0.95
+    pred_th: 0.42
+    dataloader:
+      batch_size: 64
+      num_workers: 8
+      shuffle: False
+      pin_memory: True
 
 algorithm:
   type: fact

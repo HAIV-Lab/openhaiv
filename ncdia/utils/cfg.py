@@ -196,8 +196,7 @@ class Configs():
                     else: v.pop('_delete_')
                 elif isinstance(v, dict) and '_replace_' in v:
                     v.pop('_replace_')
-                if k != '_base_':
-                    cfg[k] = v
+                cfg[k] = v
 
     def merge_from_list(self, args: list):
         """Merge configs from list.
@@ -211,7 +210,7 @@ class Configs():
                 k, v = arg.split('=')
             except ValueError:
                 raise ValueError('Argument must be in format k=v')
-            set_value(args_dict, k, v)
+            set_value(args_dict, k.strip(), v.strip())
         
         self.merge_from_dict(args_dict)
 

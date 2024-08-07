@@ -21,7 +21,6 @@ class BaseTrainer(object):
     """Basic trainer class for training models.
 
     Args:
-        model (nn.Module): Model to be trained.
         cfg (dict, optional): Configuration for trainer, Contains:
             - 'trainer' (dict):
                 - 'type' (str): Type of trainer.
@@ -56,11 +55,12 @@ class BaseTrainer(object):
                 - kwargs (dict) for DataLoader, such as 'batch_size', 'shuffle', etc.
             - 'exp_name' (str): Experiment name.
             - 'work_dir' (str): Working directory to save logs and checkpoints.
+        session (int): Session number. If == 0, execute pre-training.
+            If > 0, execute incremental training.
+        model (nn.Module): Model to be trained.
         train_loader (DataLoader | dict, optional): DataLoader for training.
         val_loader (DataLoader | dict, optional): DataLoader for validation.
         test_loader (DataLoader | dict, optional): DataLoader for testing.
-        session (int): Session number. If == 0, execute pre-training.
-            If > 0, execute incremental training.
         default_hooks (dict, optional): Default hooks to be registered.
         custom_hooks (list, optional): Custom hooks to be registered.
         load_from (str, optional): Checkpoint file path to load.
@@ -94,12 +94,12 @@ class BaseTrainer(object):
     """
     def __init__(
             self,
-            model: nn.Module = None,
             cfg: dict | None = None,
+            session: int = 0,
+            model: nn.Module = None,
             train_loader: DataLoader | dict | None = None,
             val_loader: DataLoader | dict | None = None,
             test_loader: DataLoader | dict | None = None,
-            session: int = 0,
             default_hooks: Dict[str, Hook | dict] | None = None,
             custom_hooks: List[Hook | dict] | None = None,
             load_from: str | None = None,

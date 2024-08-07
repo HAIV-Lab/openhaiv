@@ -19,9 +19,6 @@ class AutoNCD(object):
         model (nn.Module): model to be evaluated
         train_loader (DataLoader): train dataloader
         test_loader (DataLoader): test dataloader
-        base_classes (int): number of base classes
-        inc_classes (int): number of incremental classes
-        session (int): session number
         device (torch.device, optional): device to run the evaluation. Default to None.
         verbose (bool, optional): print the progress bar. Default to False.
     
@@ -31,9 +28,6 @@ class AutoNCD(object):
             model: nn.Module,
             train_loader: DataLoader,
             test_loader: DataLoader,
-            base_classes: int,
-            inc_classes: int,
-            session: int,
             device: torch.device = None,
             verbose: bool = False,
     ):
@@ -41,23 +35,13 @@ class AutoNCD(object):
         self.model = model.eval()
         self.train_loader = train_loader
         self.test_loader = test_loader
-        self.base_classes = base_classes
-        self.inc_classes = inc_classes
-        self.session = session
-        self.device = device if device else model.device
         self.verbose = verbose
 
-        # weight of the fully connected layer of the model
-        self.fc_weight = self.model.fc.weight.detach().clone().cpu()
-
-        # prepare prototype of training data
-        self.train_feats, self.train_logits, self.prototype_cls = \
-            self.inference(self.train_loader, split='train')
-        self.prototype_cls = F.normalize(self.prototype_cls, p=2, dim=1)
-
-        # prepare id statistics from test data
-        self.id_imgpaths, self.id_feats, self.id_logits, self.id_preds, self.id_labels = \
-            self.inference(self.test_loader, split='test')
+        if not device:
+            for param in self.model.parameters():
+                device = param.device
+                break
+        self.device = device
         
     @torch.no_grad()
     def inference(
@@ -84,7 +68,6 @@ class AutoNCD(object):
                 preds (np.ndarray): prediction labels, (N,)
                 labels (np.ndarray): ground truth labels, (N,)
         """
-        test_class = self.base_classes + self.session * self.inc_classes
         imgpaths, features, logits, preds, confs, labels = [], [], [], [], [], []
         
         tbar = tqdm(dataloader, dynamic_ncols=True, disable=not self.verbose)
@@ -95,7 +78,7 @@ class AutoNCD(object):
             imgpath = batch['imgpath']
 
             joint_preds = self.model(data)
-            joint_preds = joint_preds[:, :test_class]
+            joint_preds = joint_preds[:, :self.all_classes]
             score = torch.softmax(joint_preds, dim=1)
             conf, pred = torch.max(score, dim=1)
             feats = self.model.get_features(data)
@@ -147,8 +130,27 @@ class AutoNCD(object):
             DataLoader: relabeled OOD dataloader
         """
         assert prec_th is not None, "Precision threshold must be provided."
+        if not isinstance(metrics, list):
+            metrics = [metrics]
+
+        # weight of the fully connected layer of the model
+        self.fc_weight = self.model.fc.weight.detach().clone().cpu()
 
         self.ood_loader = ood_loader
+        self.base_classes = self.train_loader.dataset.num_classes
+        self.inc_classes = self.ood_loader.dataset.num_classes
+        self.all_classes = self.base_classes + self.inc_classes
+
+        # prepare prototype of training data
+        self.train_feats, self.train_logits, self.prototype_cls = \
+            self.inference(self.train_loader, split='train')
+        self.prototype_cls = F.normalize(self.prototype_cls, p=2, dim=1)
+
+        # prepare id statistics from test data
+        self.id_imgpaths, self.id_feats, self.id_logits, self.id_preds, self.id_labels = \
+            self.inference(self.test_loader, split='test')
+
+        # prepare ood statistics from ood data
         self.ood_imgpaths, self.ood_feats, self.ood_logits, self.ood_preds, self.ood_labels = \
             self.inference(self.ood_loader, split='test')
         

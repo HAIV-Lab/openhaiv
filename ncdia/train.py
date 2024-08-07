@@ -2,8 +2,6 @@ import argparse
 from ncdia.utils.cfg import setup_cfg
 from ncdia.utils.tools import set_random_seed
 from ncdia.utils import TRAINERS
-# from ncdia.trainers import PreTrainer, IncTrainer
-# from ncdia.algorithms.ncd import AutoNCD
 
 
 parser = argparse.ArgumentParser()
@@ -27,21 +25,10 @@ def main(args):
         set_random_seed(cfg.seed)
 
     # Build the trainer from config
-    trainer = TRAINERS.build(dict(cfg.trainer), cfg=cfg)
+    trainer = TRAINERS.build(cfg.trainer, cfg=cfg)
 
     # Start training
     trainer.train()
-
-    # _, pre_train_loader, pre_test_loader = cli_dataloader(cfg, session-1)
-    # _, train_loader, test_loader = cli_dataloader(cfg, session)
-
-    # ncd_detecter = AutoNCD(
-    #     trainer.model,
-    #     pre_train_loader, pre_test_loader,
-    #     cfg.CIL.base_classes, cfg.CIL.way,
-    #     session, trainer.device, verbose=True,
-    # )
-    # train_loader = ncd_detecter.relabel(train_loader, metrics=['msp'], prec_th=0.42)
 
 
 if __name__ == '__main__':

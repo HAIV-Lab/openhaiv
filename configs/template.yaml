@@ -31,6 +31,12 @@ trainer:
       
       trainer:
         max_epochs: 1
+  ncd_cfg:
+    metrics: [msp]
+    tpr_th: 0.95
+    prec_th: 0.42
+    dataloader:
+      batch_size: 64
 
 model:
   type: AliceNET
