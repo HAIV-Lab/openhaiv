@@ -22,9 +22,12 @@ class Remote(BaseDataset):
     Attributes:
         images (list): list of image paths
         labels (list): list of labels
+        num_classes (int): number of classes
         transform (torchvision.transforms.Compose): transform to apply on the dataset
     
     """
+    num_classes = 14
+
     train_transform = transforms.Compose([
         transforms.Resize(256, interpolation=transforms.InterpolationMode.BILINEAR),
         transforms.RandomResizedCrop(224),
@@ -32,6 +35,7 @@ class Remote(BaseDataset):
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
+
     test_transform = transforms.Compose([
         transforms.Resize(256, interpolation=transforms.InterpolationMode.BILINEAR),
         transforms.CenterCrop(224),
@@ -63,6 +67,7 @@ class Remote(BaseDataset):
             self.images, self.labels = self._select_from_label(self.images, self.labels, subset_labels)
         if subset_file is not None:
             self.images, self.labels = self._select_from_file(self.images, self.labels, subset_file)
+        self.num_classes = len(set(self.labels))
 
         if isinstance(transform, str):
             if transform == 'train':

@@ -3,19 +3,31 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ncdia.utils import MODELS
+from ncdia.utils import MODELS, Configs
 
 
 @MODELS.register
 class AliceNET(nn.Module):
+    """AliceNET for incremental learning.
 
-    def __init__(self, network, base_classes, num_classes, att_classes, net_alice, mode="ft_cos"):
+    Args:
+        network (Configs): Network configuration.
+    
+    """
+    def __init__(
+            self,
+            network: Configs,
+            base_classes,
+            num_classes,
+            att_classes,
+            net_alice,
+            mode = "ft_cos",
+    ) -> None:
         super().__init__()
 
         self.mode = mode
         self.base_classes = base_classes
         self.num_classes = num_classes
-        self.att_classes = att_classes
         self.net_alice = net_alice
        
         # pretrained=True follow TOPIC, models for cub is imagenet pre-trained. 

@@ -5,7 +5,6 @@ from ncdia.utils import ALGORITHMS
 from ncdia.algorithms.base import BaseAlg
 from ncdia.utils.losses import AngularPenaltySMLoss
 from ncdia.utils.metrics import accuracy
-from ncdia.trainers import PreTrainer
 from .hooks import AliceHook
 
 
@@ -90,7 +89,8 @@ class Alice(BaseAlg):
             imgpath: imgpath in batch
         """
         session = self.trainer.session
-        if session==0:
+
+        if session == 0:
             self._network = trainer.model
             self._network.train()
             
@@ -107,7 +107,6 @@ class Alice(BaseAlg):
             logits = self._network(data)
             logits_ = logits[:, :self.args.CIL.base_classes]
             # pred = F.softmax(logits_, dim=1)
-            # acc = self._accuracy(labels, pred)
             acc = accuracy(logits_, labels)[0]
             loss = self.loss(logits_, labels)
             loss.backward()
@@ -153,7 +152,6 @@ class Alice(BaseAlg):
                 logits = self._network(data)
                 logits_ = logits[:, :self.args.CIL.base_classes]
                 # _, pred = torch.max(logits_, dim=1)
-                # acc = self._accuracy(labels, pred)
                 acc = accuracy(logits_, labels)[0]
                 loss = self.loss(logits_, labels)
                 
@@ -196,33 +194,7 @@ class Alice(BaseAlg):
         return ret
 
     def test_step(self, trainer, data, label, *args, **kwargs):
-        """Test step for standard supervised learning.
-
-        Args:
-            trainer (object): Trainer object.
-            data (torch.Tensor): Input data.
-            label (torch.Tensor): Label data.
-            args (tuple): Additional arguments.
-            kwargs (dict): Additional keyword arguments.
-
-        Returns:
-            results (dict): Test results. Contains the following:
-                - "loss": Loss value.
-                - "acc": Accuracy value.
-        """
         return self.val_step(trainer, data, label, *args, **kwargs)
-
-    def _accuracy(self, labels, preds):
-        """
-        compute accuracy 
-        Args:
-            labels: true label
-            preds: predict label
-        """
-        correct = (preds == labels).sum().item()  # 统计预测正确的数量
-        total = labels.size(0)  # 总样本数量
-        acc = correct / total  # 计算 accuracy
-        return acc
 
     def _incremental_train(self):
         pass

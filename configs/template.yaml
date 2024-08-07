@@ -1,36 +1,93 @@
-trainloader:
-  dataset:
-    type: ImageNet
-    root: /data/hdd/datasets/ImageNet
-    split: train
-  batch_size: 128
-  num_workers: 4
-  shuffle: True
+trainer:
+  type: IncTrainer
+  sess_cfg:
+    s0:
+      trainloader:
+        dataset:
+          type: ImageNet
+          root: /data/hdd/datasets/ImageNet
+          split: train
+        batch_size: 128
+        num_workers: 4
+        shuffle: True
 
-valloader:
-  dataset:
-    type: ImageNet
-    root: /data/hdd/datasets/ImageNet
-    split: val
-  batch_size: 128
-  num_workers: 4
-  shuffle: False
+      valloader:
+        dataset:
+          type: ImageNet
+          root: /data/hdd/datasets/ImageNet
+          split: val
+        batch_size: 128
+        num_workers: 4
+        shuffle: False
 
-testloader:
-  dataset:
-    type: ImageNet
-    root: /data/hdd/datasets/ImageNet
-    split: val
-  batch_size: 128
-  num_workers: 4
-  shuffle: False
+      testloader:
+        dataset:
+          type: ImageNet
+          root: /data/hdd/datasets/ImageNet
+          split: val
+        batch_size: 128
+        num_workers: 4
+        shuffle: False
+      
+      trainer:
+        max_epochs: 1
 
-num_session: 2
+model:
+  type: AliceNET
+  # 保留必要参数
+  network:
+    type: resnet18
+    pretrained: True
+  base_classes: 11
+  num_classes: 14
+  net_alice:
+    moco_dim: 128
+    moco_k: 65536
+    moco_m: 0.999
+    moco_t: 0.07
+    mlp: False
+    temperature: 16
+    not_data_init: False
+    num_crops: [2, 4]
+    size_crops: [224, 96]
+    min_scale_crops: [0.14, 0.05]
+    max_scale_crops: [1, 0.14]
+    constrained_cropping: False
+    auto_augment: []
+    fantasy: rotation2
+    alpha: 1.0
+    beta: 0.0
+    base_mode: ft_cos
+    new_mode: avg_cos
+    incft: True
 
 algorithm:
-  type: StandardSupervised
-
-max_epochs: 10
+  type: alice
+  # 保留必要参数
+  moco_dim: 128
+  moco_k: 65536
+  moco_m: 0.999
+  moco_t: 0.07
+  mlp: False
+  temperature: 16
+  num_crops: [2, 4]
+  size_crops: [224, 96]
+  min_scale_crops: [0.14, 0.05]
+  max_scale_crops: [1, 0.14]
+  constrained_cropping: False
+  auto_augment: []
+  fantasy: rotation2
+  alpha: 1.0
+  beta: 0.0
+  base_mode: ft_cos
+  new_mode: avg_cos
+  incft: True
+  not_data_init: False
+  base_classes: 11
+  num_classes: 14
+  way: 3
+  shot: 50
+  sessions: 2
 
 criterion:
   type: CrossEntropyLoss
@@ -44,7 +101,7 @@ scheduler:
   type: Constant
 
 seed: -1
-
 device: 'cuda'
 
+exp_name: exp
 work_dir: "./work_dirs/template"

@@ -24,6 +24,8 @@ class ImageNetR(BaseDataset):
         transform (torchvision.transforms.Compose): transform to apply on the dataset
     
     """
+    num_classes = 1000
+
     train_transform = transforms.Compose([
         transforms.Resize(256, interpolation=transforms.InterpolationMode.BILINEAR),
         transforms.RandomResizedCrop(224),
@@ -31,12 +33,14 @@ class ImageNetR(BaseDataset):
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
+
     test_transform = transforms.Compose([
         transforms.Resize(256, interpolation=transforms.InterpolationMode.BILINEAR),
         transforms.CenterCrop(224),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
+    
     def __init__(
         self,
         root: str,
