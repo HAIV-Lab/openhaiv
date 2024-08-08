@@ -48,9 +48,6 @@ class AliceNET(nn.Module):
         self.dummy_orthogonal_classifier.weight.requires_grad = False
         
         self.dummy_orthogonal_classifier.weight.data=self.fc.weight.data[self.base_classes:,:]
-        print(self.dummy_orthogonal_classifier.weight.data.size())
-        
-        print('self.dummy_orthogonal_classifier.weight initialized over.')
 
     def forward_metric(self, x):
         x = self.encode(x)
@@ -79,7 +76,6 @@ class AliceNET(nn.Module):
         return x
 
     def encode(self, x):
-    
         self.encoder(x)[0]
         x = self.encoder.features 
         x = F.adaptive_avg_pool2d(x, 1)
@@ -126,25 +122,32 @@ class AliceNET(nn.Module):
         return wf
 
     def update_fc(self,dataloader,class_list,session):
+        datas = None
+        labels = None
         for batch in dataloader:
             data = batch['data'].cuda()
             label = batch['label'].cuda()
             # data, label = [_.cuda() for _ in batch]
             b = data.size()[0]
             m = data.size()[0] // b 
-            labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
+            # labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
             data=self.encode(data).detach()
-
+            if datas is None:
+                datas = data
+                labels = label
+            else:
+                datas = torch.cat((datas, data))
+                labels = torch.cat((labels, label))
         if self.net_alice.not_data_init:
             new_fc = nn.Parameter(
                 torch.rand(len(class_list)*m, self.num_features, device="cuda"),
                 requires_grad=True)
             nn.init.kaiming_uniform_(new_fc, a=math.sqrt(5))
         else:
-            new_fc = self.update_fc_avg(data, label, class_list, m)
+            new_fc = self.update_fc_avg(datas, labels, class_list, m)
 
-        if 'ft' in self.net_alice.new_mode:  # further finetune
-            self.update_fc_ft(new_fc,data,label,session)
+        # if 'ft' in self.net_alice.new_mode:  # further finetune
+        #     self.update_fc_ft(new_fc,data,label,session)
 
     def update_fc_avg(self,data,labels,class_list,m):
         new_fc=[]

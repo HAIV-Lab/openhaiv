@@ -60,7 +60,7 @@ class AutoNCD(object):
             If split is 'train':
                 features (np.ndarray): feature vectors, (N, D)
                 logits (np.ndarray): logit vectors, (N, C)
-                prototype_cls (np.ndarray): prototype vectors, (C, D)
+                prototype_cls (torch.Tensor): prototype vectors, (C, D)
             If split is 'test':
                 imgpaths (list): image paths (list)
                 features (np.ndarray): feature vectors, (N, D)
@@ -74,7 +74,6 @@ class AutoNCD(object):
         for batch in tbar:
             data = batch['data'].to(self.device)
             label = batch['label'].to(self.device)
-            attribute = batch['attribute'].to(self.device)
             imgpath = batch['imgpath']
 
             joint_preds = self.model(data)
@@ -104,7 +103,7 @@ class AutoNCD(object):
 
             for cls in classes:
                 cls_indices = torch.where(labels == cls)
-                cls_preds = logits[cls_indices]
+                cls_preds = torch.tensor(logits[cls_indices])
                 prototype_cls.append(torch.mean(cls_preds, dim=0))
             
             return features, logits, torch.stack(prototype_cls)
@@ -161,6 +160,9 @@ class AutoNCD(object):
             self.ood_feats, self.ood_logits, self.ood_labels,
             metrics=metrics, tpr_th=tpr_th, prec_th=prec_th,
         )
+
+        print(self.ood_metrics)
+        input()
 
         metric = metrics[0]
         threshold = self.ood_metrics[metric][1][0]

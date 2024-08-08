@@ -1,15 +1,14 @@
-_base_: [
-  "configs/dataloader/caltech101/s0.yaml",
-  "configs/incremental/alice.yaml",
-  "configs/network/alice.yaml",
-]
+_base_: configs/dataloader/cifar100.yaml
 
 trainer:
   type: PreTrainer
-  max_epochs: 3
+  max_epochs: 1
 
 algorithm:
-  type: fact
+  type: StandardSL
+
+model:
+  type: ResNet18
 
 criterion:
   type: CrossEntropyLoss
@@ -26,4 +25,4 @@ seed: 0
 device: cuda
 
 exp_name: exp
-work_dir: ./output/supervised/sl_caltech101_rn18
+work_dir: ./output/supervised/sl_cifar100_rn18

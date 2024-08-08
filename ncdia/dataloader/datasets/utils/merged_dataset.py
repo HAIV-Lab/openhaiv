@@ -38,23 +38,33 @@ class MergedDataset(BaseDataset):
         self.transform = transform
         self.target_transform = target_transform
         
-    def merge(self, datasets: list[BaseDataset]) -> None:
+    def merge(
+            self,
+            datasets: list[BaseDataset] = [],
+            replace_transform: bool = False,
+    ) -> None:
         """Merge datasets.
 
         Args:
             datasets (list[BaseDataset]): List of datasets to merge.
+            replace_transform (bool): Whether to replace the transform.
+                If True, the transform will be replaced by the last 
+                dataset's transform.
         """
         for dataset in datasets:
             labels = dataset.labels
             images = dataset.images
 
-            label_set = set(labels)
+            label_set = list(set(labels))
             for label, image in zip(labels, images):
                 self.images.append(image)
                 self.labels.append(
                     self.num_classes + label_set.index(label))
 
             self.num_classes += len(label_set)
+
+            if replace_transform:
+                self.transform = dataset.transform
     
     def __len__(self) -> int:
         """Get the length of the dataset

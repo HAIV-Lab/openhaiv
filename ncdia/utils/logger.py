@@ -27,7 +27,7 @@ class Logger(object):
         self.file = None
         if fpath is not None:
             mkdir_if_missing(self.fdir)
-            self.file = open(fpath, 'w')
+            self.file = open(fpath, 'a')
 
     def __del__(self):
         self.close()

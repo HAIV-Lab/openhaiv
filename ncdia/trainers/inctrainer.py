@@ -78,6 +78,7 @@ class IncTrainer(PreTrainer):
                 new_instance = IncTrainer(
                     cfg=self.cfg,
                     sess_cfg=self.sess_cfg,
+                    ncd_cfg=self.ncd_cfg,
                     session=session,
                     model=self.model,
                     hist_trainset=self.hist_trainset,
@@ -90,7 +91,9 @@ class IncTrainer(PreTrainer):
             super(IncTrainer, self).train()
 
             # Store historical data
-            self.hist_trainset.merge([self.train_loader.dataset])
-            self.hist_testset.merge([self.test_loader.dataset])
+            self.hist_trainset.merge([self.train_loader.dataset], 
+                                     replace_transform=True)
+            self.hist_testset.merge([self.test_loader.dataset], 
+                                    replace_transform=True)
         
         return self.model

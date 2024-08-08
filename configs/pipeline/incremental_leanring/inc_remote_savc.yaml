@@ -1,6 +1,6 @@
 _base_: [
-  "configs/incremental/alice.yaml", 
-  "configs/network/alice.yaml",
+  "configs/incremental/savc.yaml",
+  "configs/network/savc.yaml",
 ]
 
 trainer:
@@ -16,28 +16,21 @@ trainer:
         max_epochs: 1
 
 algorithm:
-  type: alice
+  type: savc
 
 criterion:
   type: CrossEntropyLoss
 
 optimizer:
   type: sgd
-  lr: 0.001
+  lr: 0.002
   weight_decay: 0.0001
 
 scheduler:
   type: Constant
 
-discover:
-  val_ratio: 1.0
-  ood_type: MLS
-  precision_bar: 0.42
-  sift_threshold: 0.65
-
 seed: 0
 device: cuda
 
 exp_name: exp
-work_dir: ./output/supervised/inc_remote_alice
-output_dir: ./output/supervised/inc_remote_alice
+work_dir: ./output/supervised/inc_remote_savc

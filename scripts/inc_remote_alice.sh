@@ -1,3 +1,3 @@
 python ncdia/train.py \
-    --cfg configs/supervised/inc_remote_rn18.yaml \
+    --cfg configs/pipeline/incremental_leanring/inc_remote_alice.yaml \
     --opts device='cuda:0'

@@ -10,10 +10,13 @@ class BaseDataset(Dataset):
 
     Args:
         loader (callable): A function to load an image.
+        transform (callable): A function/transform to apply to the image.
+
     """
     def __init__(
             self,
             loader = default_loader,
+            transform = None,
     ) -> None:
         super().__init__()
         self.images = []
@@ -21,6 +24,7 @@ class BaseDataset(Dataset):
         self.attributes = []
 
         self.loader = loader
+        self.transform = transform
 
     def __len__(self) -> int:
         """Get the length of the dataset

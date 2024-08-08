@@ -2,7 +2,6 @@ from torch.utils.data import DataLoader
 
 from ncdia.utils import HOOKS
 from .hook import Hook
-from ncdia.algorithms.ncd import AutoNCD
 
 
 @HOOKS.register
@@ -26,8 +25,10 @@ class NCDHook(Hook):
             trainer (BaseTrainer): Trainer object.
         """
         ncd_cfg = trainer.ncd_cfg
-        if not ncd_cfg:
+        if not ncd_cfg or trainer.session == 0:
             return
+        
+        from ncdia.algorithms.ncd import AutoNCD
         
         loader_cfg = self.default_loader
         loader_cfg.update(ncd_cfg.dataloader or {})
@@ -35,11 +36,11 @@ class NCDHook(Hook):
             trainer.model,
             DataLoader(trainer.hist_trainset, **loader_cfg),
             DataLoader(trainer.hist_testset, **loader_cfg),
-            self.device,
+            trainer.device,
             verbose=True,
         )
 
-        trainer.train_loader = ncd_detector.relabel(
+        trainer._train_loader = ncd_detector.relabel(
             trainer.train_loader,
             metrics=ncd_cfg.metrics or ['msp'],
             tpr_th=ncd_cfg.tpr_th or 0.95,

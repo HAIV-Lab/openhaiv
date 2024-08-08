@@ -34,7 +34,7 @@ class Alice(BaseAlg):
             tsfm = trainer.val_loader.dataset.transform
             trainloader.dataset.transform = tsfm
             class_list = list(range(self.args.CIL.base_classes+ (session-1)*self.args.CIL.way, self.args.CIL.base_classes + self.args.CIL.way * session))
-            self._network.update_fc(trainloader, class_list, session)
+            self._network.update_fc(trainloader, class_list, session)  
         
 
     def replace_fc(self):

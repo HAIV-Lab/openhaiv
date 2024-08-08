@@ -4,25 +4,22 @@ trainloader:
   dataset:
     _replace_: True
     type: remote
-    root: /data/datasets/CIL/food-101/
+    root: /data/datasets/CIL/0718/
     split: train
-    subset_labels: 90
     transform: train
 
 valloader:
   dataset:
     _replace_: True
     type: remote
-    root: /data/datasets/CIL/food-101/
+    root: /data/datasets/CIL/0718/
     split: test
-    subset_labels: 90
     transform: test
 
 testloader:
   dataset:
     _replace_: True
     type: remote
-    root: /data/datasets/CIL/food-101/
+    root: /data/datasets/CIL/0718/
     split: test
-    subset_labels: 90
     transform: test

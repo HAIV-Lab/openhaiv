@@ -4,25 +4,25 @@ trainloader:
   dataset:
     _replace_: True
     type: remote
-    root: /data/datasets/CIL/food-101/
+    root: /data/datasets/CIL/caltech101/caltech-101/
     split: train
-    subset_labels: 90
+    subset_file: /data/datasets/CIL/caltech101/caltech-101/session_1.txt
     transform: train
 
 valloader:
   dataset:
     _replace_: True
     type: remote
-    root: /data/datasets/CIL/food-101/
+    root: /data/datasets/CIL/caltech101/caltech-101/
     split: test
-    subset_labels: 90
+    subset_labels: 101
     transform: test
 
 testloader:
   dataset:
     _replace_: True
     type: remote
-    root: /data/datasets/CIL/food-101/
+    root: /data/datasets/CIL/caltech101/caltech-101/
     split: test
-    subset_labels: 90
+    subset_labels: 101
     transform: test

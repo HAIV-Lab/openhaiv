@@ -6,7 +6,6 @@ trainloader:
     type: remote
     root: /data/datasets/CIL/food-101/
     split: train
-    subset_labels: 90
     transform: train
 
 valloader:
@@ -15,7 +14,6 @@ valloader:
     type: remote
     root: /data/datasets/CIL/food-101/
     split: test
-    subset_labels: 90
     transform: test
 
 testloader:
@@ -24,5 +22,4 @@ testloader:
     type: remote
     root: /data/datasets/CIL/food-101/
     split: test
-    subset_labels: 90
     transform: test
