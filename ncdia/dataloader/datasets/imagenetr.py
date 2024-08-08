@@ -3,7 +3,7 @@ import random
 from torchvision import transforms
 
 from ncdia.utils import DATASETS
-from ncdia.dataloader.tools import default_loader
+from ncdia.dataloader.tools import pil_loader
 from .utils import BaseDataset
 
 
@@ -25,7 +25,7 @@ class ImageNetR(BaseDataset):
         transform (torchvision.transforms.Compose): transform to apply on the dataset
     
     """
-    num_classes = 1000
+    num_classes = 200
 
     train_transform = transforms.Compose([
         transforms.Resize(256, interpolation=transforms.InterpolationMode.BILINEAR),
@@ -53,4 +53,63 @@ class ImageNetR(BaseDataset):
         self.root = root
         self.split = split
 
+        self.images, self.labels = self._load_data()
+
+        if isinstance(transform, str):
+            if transform == 'train':
+                self.transform = self.train_transform
+            elif transform == 'test':
+                self.transform = self.test_transform
+            else:
+                raise ValueError(f"Unknown transform: {transform}")
+        else:
+            self.transform = transform
+
+    
+    def _load_data(self):
+        data= []
+        targets = []
+        label_cnt = -1
+
+        if self.split == 'train':
+            for subdir in os.listdir(self.root, 'train'):
+                subdir_path = os.path.join(self.root, 'train', subdir)
+                if os.path.isdir(subdir_path):
+                    label_cnt +=1
+                    for file_name in os.lisdir(subdir_path):
+                        img_path = os.path.join(subdir_path, file_name)
+                        data.append(img_path)
+                        targets.append(label_cnt)
+        else:
+            for subdir in os.listdir(self.root, 'test'):
+                subdir_path = os.path.join(self.root, 'test', subdir)
+                if os.path.isdir(subdir_path):
+                    label_cnt +=1
+                    for file_name in os.lisdir(subdir_path):
+                        img_path = os.path.join(subdir_path, file_name)
+                        data.append(img_path)
+                        targets.append(label_cnt)
+        
+        return data, targets
+
+
+
+    def __len__(self) -> int:
+        return len(self.images)
+
+    def __getitem__(self, index: int)-> dict:
+        imgpath, label = self.images[index], self.labels[index]
+        img = pil_loader(imgpath)
+
+        if self.transform is not None:
+            img = self.transform(img)
+
+        
+        return {
+            'data': img,
+            'label': label,
+            'attribute': [],
+            'imgpath': imgpath,
+        }
+        
         

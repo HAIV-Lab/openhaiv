@@ -1,12 +1,14 @@
 from tqdm import tqdm
+import numpy as np
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
-import numpy as np
+
 from sklearn.cluster import KMeans
-from sklearn.metrics.pairwise import cosine_similarity
 from scipy.optimize import linear_sum_assignment
+from sklearn.metrics.pairwise import cosine_similarity
 
 from ncdia.algorithms.ood import AutoOOD
 
@@ -48,7 +50,7 @@ class AutoNCD(object):
             self,
             dataloader: DataLoader,
             split: str = 'train',
-    ):
+    ) -> tuple:
         """Inference the model on the dataloader and return relevant information.
         If split is 'train', return the prototype of the training data.
 
@@ -58,15 +60,15 @@ class AutoNCD(object):
 
         Returns:
             If split is 'train':
-                features (np.ndarray): feature vectors, (N, D)
-                logits (np.ndarray): logit vectors, (N, C)
+                features (torch.Tensor): feature vectors, (N, D)
+                logits (torch.Tensor): logit vectors, (N, C)
                 prototype_cls (torch.Tensor): prototype vectors, (C, D)
             If split is 'test':
                 imgpaths (list): image paths (list)
-                features (np.ndarray): feature vectors, (N, D)
-                logits (np.ndarray): logit vectors, (N, C)
-                preds (np.ndarray): prediction labels, (N,)
-                labels (np.ndarray): ground truth labels, (N,)
+                features (torch.Tensor): feature vectors, (N, D)
+                logits (torch.Tensor): logit vectors, (N, C)
+                preds (torch.Tensor): prediction labels, (N,)
+                labels (torch.Tensor): ground truth labels, (N,)
         """
         imgpaths, features, logits, preds, confs, labels = [], [], [], [], [], []
         
@@ -83,27 +85,26 @@ class AutoNCD(object):
             feats = self.model.get_features(data)
 
             imgpaths += imgpath
-            features.append(feats.detach().clone().cpu())
-            logits.append(joint_preds.detach().clone().cpu())
-            preds.append(pred.detach().clone().cpu())
-            confs.append(conf.detach().clone().cpu())
-            labels.append(label.cpu())
+            features.append(feats.clone().detach().cpu())
+            logits.append(joint_preds.clone().detach().cpu())
+            preds.append(pred.clone().detach().cpu())
+            confs.append(conf.clone().detach().cpu())
+            labels.append(label.clone().detach().cpu())
         
         # convert values into numpy array
-        features = torch.cat(features, dim=0).numpy()
-        logits = torch.cat(logits, dim=0).numpy()
-        preds = torch.cat(preds, dim=0).numpy().astype(int)
-        confs = torch.cat(confs, dim=0).numpy()
-        labels = torch.cat(labels, dim=0).numpy().astype(int)
+        features = torch.cat(features, dim=0)
+        logits = torch.cat(logits, dim=0)
+        preds = torch.cat(preds, dim=0).to(torch.int)
+        confs = torch.cat(confs, dim=0)
+        labels = torch.cat(labels, dim=0).to(torch.int)
 
         if split == 'train':
-            labels = torch.tensor(labels)
             classes = torch.unique(labels)
             prototype_cls = []
 
             for cls in classes:
                 cls_indices = torch.where(labels == cls)
-                cls_preds = torch.tensor(logits[cls_indices])
+                cls_preds = logits[cls_indices]
                 prototype_cls.append(torch.mean(cls_preds, dim=0))
             
             return features, logits, torch.stack(prototype_cls)
@@ -133,7 +134,7 @@ class AutoNCD(object):
             metrics = [metrics]
 
         # weight of the fully connected layer of the model
-        self.fc_weight = self.model.fc.weight.detach().clone().cpu()
+        self.fc_weight = self.model.fc.weight.clone().detach().cpu()
 
         self.ood_loader = ood_loader
         self.base_classes = self.train_loader.dataset.num_classes
@@ -153,16 +154,13 @@ class AutoNCD(object):
         self.ood_imgpaths, self.ood_feats, self.ood_logits, self.ood_preds, self.ood_labels = \
             self.inference(self.ood_loader, split='test')
         
-        self.ood_metrics = AutoOOD._eval(
+        self.ood_metrics = AutoOOD.eval(
             self.prototype_cls, self.fc_weight,
             self.train_feats, self.train_logits,
             self.id_feats, self.id_logits, self.id_labels,
             self.ood_feats, self.ood_logits, self.ood_labels,
             metrics=metrics, tpr_th=tpr_th, prec_th=prec_th,
         )
-
-        print(self.ood_metrics)
-        input()
 
         metric = metrics[0]
         threshold = self.ood_metrics[metric][1][0]
@@ -172,7 +170,7 @@ class AutoNCD(object):
         total_imgpath_list = self.id_imgpaths + self.ood_imgpaths
         total_feat = torch.cat((self.id_feats, self.ood_feats), dim=0)
 
-        novel_indices = torch.nonzero(conf < threshold)[:, 0].squeeze()
+        novel_indices = torch.nonzero(conf < threshold)[:, 0]
         novel_indices_list = novel_indices.tolist()
         novel_imgpath_list = [total_imgpath_list[i] for i in novel_indices_list]
         novel_target = label[novel_indices]
@@ -187,23 +185,26 @@ class AutoNCD(object):
             index, max_similarity = 0, 0.0
             for j in range(novel_feat.size(0)):
                 if i != j and pseudo_labels[i]==pseudo_labels[j]:
-                    similarity = cosine_similarity(novel_feat[i].unsqueeze(0), novel_feat[j].unsqueeze(0))
+                    similarity = cosine_similarity(
+                        novel_feat[i].unsqueeze(0),
+                        novel_feat[j].unsqueeze(0)
+                    )[0][0]
                     if similarity > max_similarity:
                         index, max_similarity = j, similarity
             if max_similarity == 0.0:
                 max_similarities.append(1.0)
             else:
-                max_similarities.append(max_similarity[0][0])
+                max_similarities.append(max_similarity)
             max_neighbors.append(index)
-        max_similarities = np.array(max_similarities)
+        max_similarities = torch.tensor(max_similarities)
 
-        if np.min(novel_target) >= np.min(self.ood_labels): # all samples are new class
-            sift_threshold = np.min(max_similarities) - 1e-8
+        if torch.min(novel_target) >= torch.min(self.ood_labels): # all samples are new class
+            sift_threshold = torch.min(max_similarities) - 1e-8
         else:
-            sift_threshold = np.max(max_similarities[novel_target < np.min(self.ood_labels)]) + 1e-8
+            sift_threshold = torch.max(max_similarities[novel_target < torch.min(self.ood_labels)]) + 1e-8
         sift_indices = torch.tensor([i for i in range(len(max_similarities)) \
                                      if max_similarities[i] > sift_threshold])
-        
+
         if sift_indices.numel()==0:
             sift_indices = torch.tensor([i for i in range(len(max_similarities))])
         assert sift_indices.numel() > 0, "There is no novel samples."
@@ -235,7 +236,7 @@ class AutoNCD(object):
         Returns:
             cluster_label: cluster label
         """
-        y_label = y_label.astype(int)
+        y_label = y_label.numpy().astype(int)
         assert y_pred.size == y_label.size
 
         index = np.array([i for i in range(len(y_label)) if y_label[i] in ood_class])

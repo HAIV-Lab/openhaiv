@@ -91,9 +91,7 @@ class IncTrainer(PreTrainer):
             super(IncTrainer, self).train()
 
             # Store historical data
-            self.hist_trainset.merge([self.train_loader.dataset], 
-                                     replace_transform=True)
-            self.hist_testset.merge([self.test_loader.dataset], 
-                                    replace_transform=True)
+            self.hist_trainset.merge([self.train_loader.dataset], True)
+            self.hist_testset.merge([self.test_loader.dataset], True)
         
         return self.model

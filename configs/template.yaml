@@ -41,7 +41,7 @@ trainer:
 
 model:
   type: AliceNET
-  # 保留必要参数
+  # 网络类型参数
   network:
     type: resnet18
     pretrained: True
