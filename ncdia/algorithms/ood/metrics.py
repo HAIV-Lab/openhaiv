@@ -1,4 +1,3 @@
-import torch
 import numpy as np
 import sklearn.metrics as skm
 
@@ -57,10 +56,8 @@ def search_threshold(conf: np.ndarray, label: np.ndarray, prec_th: float):
 
     Returns:
         best_th (float): Threshold for OOD detection.
-        conf (torch.Tensor): Confidence scores.
-        label (torch.Tensor): Label array
-        prec (float): Precision.
-        recall (float): Recall.
+        prec (float): Precision at the threshold.
+        recall (float): Recall at the threshold.
     """
     # following convention in ML we treat OOD as positive
     ood_indicator = np.zeros_like(label)
@@ -75,6 +72,4 @@ def search_threshold(conf: np.ndarray, label: np.ndarray, prec_th: float):
     idx = np.argmax(precisions >= prec_th)
     best_th = thresholds[idx]
 
-    return -best_th, \
-            torch.tensor(conf), torch.tensor(label), \
-            precisions[idx], recalls[idx]
+    return -best_th, precisions[idx], recalls[idx]

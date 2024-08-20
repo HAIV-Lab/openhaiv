@@ -31,12 +31,10 @@ class MergedDataset(BaseDataset):
         super(MergedDataset, self).__init__(loader)
         self.images = []
         self.labels = []
-        self.num_classes = 0
-
-        self.merge(datasets)
-
         self.transform = transform
         self.target_transform = target_transform
+
+        self.merge(datasets)
         
     def merge(
             self,
@@ -55,13 +53,12 @@ class MergedDataset(BaseDataset):
             labels = dataset.labels
             images = dataset.images
 
+            num_classes = self.num_classes
             label_set = list(set(labels))
             for label, image in zip(labels, images):
                 self.images.append(image)
                 self.labels.append(
-                    self.num_classes + label_set.index(label))
-
-            self.num_classes += len(label_set)
+                    num_classes + label_set.index(label))
 
             if replace_transform:
                 self.transform = dataset.transform

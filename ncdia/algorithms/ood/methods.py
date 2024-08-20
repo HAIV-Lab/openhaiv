@@ -32,16 +32,21 @@ def msp(
             If None, not searching for threshold. Default is None.
 
     Returns:
+        conf (np.ndarray): Confidence scores. Shape (N + M,).
+        label (np.ndarray): Label array. Shape (N + M,).
         fpr (float): False positive rate.
         auroc (float): Area under the ROC curve.
         aupr_in (float): Area under the precision-recall curve 
             for in-distribution samples.
         aupr_out (float): Area under the precision-recall curve
             for out-of-distribution
+        best_th (float): Threshold for OOD detection. If prec_th is None, None.
+        prec (float): Precision at the threshold. If prec_th is None, None.
+        recall (float): Recall at the threshold. If prec_th is None, None.
     """
     # set the ground truth labels for OOD samples to -1
     # for computing ood metrics
-    ood_gt = -1 * np.ones_like(ood_gt)
+    neg_ood_gt = -1 * np.ones_like(ood_gt)
 
     id_conf, _ = torch.max(
         torch.softmax(id_logits, dim=1), dim=1)
@@ -50,11 +55,12 @@ def msp(
     
     conf = np.concatenate([id_conf.cpu(), ood_conf.cpu()])
     label = np.concatenate([id_gt, ood_gt])
+    neg_label = np.concatenate([id_gt, neg_ood_gt])
 
     if prec_th is None:
-        return ood_metrics(conf, label, tpr_th), None
+        return conf, label, *ood_metrics(conf, neg_label, tpr_th), None, None, None
     else:
-        return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
+        return conf, label, *ood_metrics(conf, neg_label, tpr_th), *search_threshold(conf, neg_label, prec_th)
 
 
 def mcm(

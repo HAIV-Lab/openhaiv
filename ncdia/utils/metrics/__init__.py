@@ -1,4 +1,4 @@
-from .accuracy import accuracy
+from .accuracy import *
 from .meter import *
 
 from ncdia.utils import METRICS

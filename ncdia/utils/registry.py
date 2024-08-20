@@ -159,6 +159,7 @@ class Registry(dict):
         return self._dict[key]
 
     def __contains__(self, key):
+        key = key.lower()
         return key in self._dict
     
     def __str__(self):

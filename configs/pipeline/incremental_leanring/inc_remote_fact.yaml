@@ -1,6 +1,6 @@
 _base_: [
-  "configs/incremental/savc.yaml",
-  "configs/network/fact.yaml",
+  configs/algorithms/incremental/fact.yaml,
+  configs/models/fact.yaml,
 ]
 
 trainer:

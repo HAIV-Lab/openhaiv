@@ -29,8 +29,6 @@ class ImageNet(ImageFolder, BaseDataset):
         (3, 224, 224) 0
     
     """
-    num_classes = 1000
-
     def __init__(
             self,
             root: str,

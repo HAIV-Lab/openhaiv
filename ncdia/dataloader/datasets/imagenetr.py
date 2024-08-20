@@ -22,11 +22,10 @@ class ImageNetR(BaseDataset):
     Attributes:
         images (list): list of image paths
         labels (list): list of labels
+        num_classes (int): number of classes
         transform (torchvision.transforms.Compose): transform to apply on the dataset
     
     """
-    num_classes = 200
-
     train_transform = transforms.Compose([
         transforms.Resize(256, interpolation=transforms.InterpolationMode.BILINEAR),
         transforms.RandomResizedCrop(224),
@@ -46,6 +45,7 @@ class ImageNetR(BaseDataset):
         self,
         root: str,
         split: str = 'train',
+        subset_labels: list = None,
         transform: list | str = None,
         **kwargs,
     ) -> None:
@@ -54,6 +54,9 @@ class ImageNetR(BaseDataset):
         self.split = split
 
         self.images, self.labels = self._load_data()
+
+        if subset_labels is not None:
+            self.images, self.labels = self._select_from_label(self.images, self.labels, subset_labels)
 
         if isinstance(transform, str):
             if transform == 'train':
@@ -64,7 +67,6 @@ class ImageNetR(BaseDataset):
                 raise ValueError(f"Unknown transform: {transform}")
         else:
             self.transform = transform
-
     
     def _load_data(self):
         data= []
@@ -72,27 +74,25 @@ class ImageNetR(BaseDataset):
         label_cnt = -1
 
         if self.split == 'train':
-            for subdir in os.listdir(self.root, 'train'):
+            for subdir in os.listdir(os.path.join(self.root, 'train')):
                 subdir_path = os.path.join(self.root, 'train', subdir)
                 if os.path.isdir(subdir_path):
                     label_cnt +=1
-                    for file_name in os.lisdir(subdir_path):
+                    for file_name in os.listdir(subdir_path):
                         img_path = os.path.join(subdir_path, file_name)
                         data.append(img_path)
                         targets.append(label_cnt)
         else:
-            for subdir in os.listdir(self.root, 'test'):
+            for subdir in os.listdir(os.path.join(self.root, 'test')):
                 subdir_path = os.path.join(self.root, 'test', subdir)
                 if os.path.isdir(subdir_path):
                     label_cnt +=1
-                    for file_name in os.lisdir(subdir_path):
+                    for file_name in os.listdir(subdir_path):
                         img_path = os.path.join(subdir_path, file_name)
                         data.append(img_path)
                         targets.append(label_cnt)
         
         return data, targets
-
-
 
     def __len__(self) -> int:
         return len(self.images)
@@ -103,7 +103,6 @@ class ImageNetR(BaseDataset):
 
         if self.transform is not None:
             img = self.transform(img)
-
         
         return {
             'data': img,
@@ -111,5 +110,25 @@ class ImageNetR(BaseDataset):
             'attribute': [],
             'imgpath': imgpath,
         }
-        
+    
+    def _select_from_label(self, images: list, labels: list, subset_labels: list | int):
+        """Select images from a subset of labels
+
+        Args:
+            images (list): list of image paths
+            labels (list): list of labels
+            subset_labels (list | int): list of subset labels
+
+        Returns:
+            list: list of image paths
+            list: list of labels
+        """
+        if isinstance(subset_labels, int):
+            subset_labels = [i for i in range(subset_labels)]
+        selected_images, selected_labels = [], []
+        for img, label in zip(images, labels):
+            if label in subset_labels:
+                selected_images.append(img)
+                selected_labels.append(label)
+        return selected_images, selected_labels
         

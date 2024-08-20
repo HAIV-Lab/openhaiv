@@ -4,7 +4,7 @@ import numpy as np
 from ncdia.utils import ALGORITHMS
 from ncdia.algorithms.base import BaseAlg
 from ncdia.utils.losses import AngularPenaltySMLoss
-from ncdia.utils.metrics import accuracy
+from ncdia.utils.metrics import accuracy, per_class_accuracy
 from .hooks import AliceHook
 
 
@@ -108,12 +108,14 @@ class Alice(BaseAlg):
             logits_ = logits[:, :self.args.CIL.base_classes]
             # pred = F.softmax(logits_, dim=1)
             acc = accuracy(logits_, labels)[0]
+            per_acc = str(per_class_accuracy(logits_, labels))
             loss = self.loss(logits_, labels)
             loss.backward()
             
             ret = {}
             ret['loss'] = loss
             ret['acc'] = acc
+            ret['per_class_acc'] = per_acc
         else:
             ret = {}
 

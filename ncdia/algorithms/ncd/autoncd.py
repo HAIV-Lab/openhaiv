@@ -114,7 +114,7 @@ class AutoNCD(object):
     def relabel(
             self,
             ood_loader: DataLoader,
-            metrics: list = [],
+            metrics: str | list = [],
             tpr_th: float = 0.95,
             prec_th: float = None,
     ):
@@ -140,7 +140,7 @@ class AutoNCD(object):
         self.base_classes = self.train_loader.dataset.num_classes
         self.inc_classes = self.ood_loader.dataset.num_classes
         self.all_classes = self.base_classes + self.inc_classes
-
+        
         # prepare prototype of training data
         self.train_feats, self.train_logits, self.prototype_cls = \
             self.inference(self.train_loader, split='train')
@@ -149,11 +149,12 @@ class AutoNCD(object):
         # prepare id statistics from test data
         self.id_imgpaths, self.id_feats, self.id_logits, self.id_preds, self.id_labels = \
             self.inference(self.test_loader, split='test')
-
+        
         # prepare ood statistics from ood data
         self.ood_imgpaths, self.ood_feats, self.ood_logits, self.ood_preds, self.ood_labels = \
             self.inference(self.ood_loader, split='test')
         
+        # find the best ood threshold
         self.ood_metrics = AutoOOD.eval(
             self.prototype_cls, self.fc_weight,
             self.train_feats, self.train_logits,
@@ -161,21 +162,88 @@ class AutoNCD(object):
             self.ood_feats, self.ood_logits, self.ood_labels,
             metrics=metrics, tpr_th=tpr_th, prec_th=prec_th,
         )
+        
 
-        metric = metrics[0]
-        threshold = self.ood_metrics[metric][1][0]
-        conf = self.ood_metrics[metric][1][1]
-        label = self.ood_metrics[metric][1][2]
+        if isinstance(metrics, list):
+            metric = metrics[0]
+        else:
+            metric = metrics
+
+
+        threshold = self.ood_metrics[metric][6]
+        conf = torch.tensor(self.ood_metrics[metric][0])
+        label = torch.tensor(self.ood_metrics[metric][1])
 
         total_imgpath_list = self.id_imgpaths + self.ood_imgpaths
         total_feat = torch.cat((self.id_feats, self.ood_feats), dim=0)
 
         novel_indices = torch.nonzero(conf < threshold)[:, 0]
-        novel_indices_list = novel_indices.tolist()
-        novel_imgpath_list = [total_imgpath_list[i] for i in novel_indices_list]
+        # novel_indices_list = novel_indices.tolist()
+        novel_imgpath_list = [total_imgpath_list[i] for i in novel_indices]
         novel_target = label[novel_indices]
         novel_feat = total_feat[novel_indices]
 
+        sift_indices, max_similarities = self.search_discrete_point(novel_feat, novel_target)
+        if sift_indices.numel()==0:
+            sift_indices = torch.tensor([i for i in range(len(max_similarities))])
+        assert sift_indices.numel() > 0, "There is no novel samples."
+        novel_target = novel_target[sift_indices]
+        novel_feat = novel_feat[sift_indices]
+        # sift_indices = sift_indices.tolist()
+        novel_imgpath_list = [novel_imgpath_list[i] for i in sift_indices]
+
+        
+        kmeans = KMeans(self.inc_classes)
+        kmeans.fit(novel_feat)
+        pseudo_labels = kmeans.labels_
+        pseudo_labels = pseudo_labels + self.inc_classes
+        pseudo_labels = self._split_cluster_label(novel_target, pseudo_labels, self.ood_labels)
+
+        ood_loader.dataset.data = novel_imgpath_list
+        ood_loader.dataset.targets = pseudo_labels
+
+        return ood_loader
+
+    def _split_cluster_label(self, y_label, y_pred, ood_class):
+        """Calculate clustering accuracy. Require scikit-learn installed
+        First compute linear assignment on all data, then look at how good the accuracy is on subsets
+
+        Args:
+            y_label: true labels, numpy.array with shape `(n_samples,)`
+            y_pred: predicted labels, numpy.array with shape `(n_samples,)`
+            ood_class: out-of-distribution class labels
+
+        Returns:
+            cluster_label: cluster label
+        """
+        y_label = y_label.numpy().astype(int)
+        assert y_pred.size == y_label.size
+
+        index = np.array([i for i in range(len(y_label)) if y_label[i] in ood_class])
+        assert index.size > 0, "find no ood samples"
+        y_label_crop = y_label[index]
+        y_pred_crop = y_pred[index]
+        
+        D = max(y_pred_crop.max(), y_label_crop.max()) + 1
+        w = np.zeros((D, D), dtype=int)
+        for i in range(y_pred_crop.size):
+            w[y_pred_crop[i], y_label_crop[i]] += 1
+
+        ind = linear_sum_assignment(w.max() - w)
+        ind = np.vstack(ind).T  # n*2 matrix, each row contains a pair of (pred, label), predicted pseudo label (0~n), true label ()
+
+        cluster_label = np.array([ind[x, 1] for x in y_pred])
+
+        if np.setdiff1d(cluster_label, ood_class).size > 0:
+            cluster_label_diff = np.setdiff1d(cluster_label, ood_class)
+            ood_class_diff = np.setdiff1d(ood_class, cluster_label)
+            for i in range(cluster_label_diff.size):
+                cluster_label[cluster_label == cluster_label_diff[i]] = ood_class_diff[i]
+
+        return cluster_label
+
+
+    def search_discrete_point(self, novel_feat, novel_target):
         kmeans = KMeans(self.inc_classes)
         kmeans.fit(novel_feat)
         pseudo_labels = kmeans.labels_
@@ -204,59 +272,5 @@ class AutoNCD(object):
             sift_threshold = torch.max(max_similarities[novel_target < torch.min(self.ood_labels)]) + 1e-8
         sift_indices = torch.tensor([i for i in range(len(max_similarities)) \
                                      if max_similarities[i] > sift_threshold])
-
-        if sift_indices.numel()==0:
-            sift_indices = torch.tensor([i for i in range(len(max_similarities))])
-        assert sift_indices.numel() > 0, "There is no novel samples."
-        novel_target = novel_target[sift_indices]
-        novel_feat = novel_feat[sift_indices]
-
-        sift_indices = sift_indices.tolist()
-        novel_imgpath_list = [novel_imgpath_list[i] for i in sift_indices]
-
-        kmeans = KMeans(self.inc_classes)
-        kmeans.fit(novel_feat)
-        pseudo_labels = kmeans.labels_
-        pseudo_labels = self._split_cluster_label(novel_target, pseudo_labels, self.ood_labels)
-
-        ood_loader.dataset.data = novel_imgpath_list
-        ood_loader.dataset.targets = pseudo_labels
-
-        return ood_loader
-
-    def _split_cluster_label(self, y_label, y_pred, ood_class):
-        """Calculate clustering accuracy. Require scikit-learn installed
-        First compute linear assignment on all data, then look at how good the accuracy is on subsets
-
-        Args:
-            y_label: true labels, numpy.array with shape `(n_samples,)`
-            y_pred: predicted labels, numpy.array with shape `(n_samples,)`
-            ood_class: out-of-distribution class labels
-
-        Returns:
-            cluster_label: cluster label
-        """
-        y_label = y_label.numpy().astype(int)
-        assert y_pred.size == y_label.size
-
-        index = np.array([i for i in range(len(y_label)) if y_label[i] in ood_class])
-        y_label_crop = y_label[index]
-        y_pred_crop = y_pred[index]
         
-        D = max(y_pred_crop.max(), y_label_crop.max()) + 1
-        w = np.zeros((D, D), dtype=int)
-        for i in range(y_pred_crop.size):
-            w[y_pred_crop[i], y_label_crop[i]] += 1
-
-        ind = linear_sum_assignment(w.max() - w)
-        ind = np.vstack(ind).T
-
-        cluster_label = np.array([ind[x, 1] for x in y_pred])
-
-        if np.setdiff1d(cluster_label, ood_class).size > 0:
-            cluster_label_diff = np.setdiff1d(cluster_label, ood_class)
-            ood_class_diff = np.setdiff1d(ood_class, cluster_label)
-            for i in range(cluster_label_diff.size):
-                cluster_label[cluster_label == cluster_label_diff[i]] = ood_class_diff[i]
-
-        return cluster_label
+        return sift_indices, max_similarities

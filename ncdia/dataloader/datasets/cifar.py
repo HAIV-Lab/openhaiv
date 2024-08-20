@@ -32,8 +32,6 @@ class CIFAR10(_CIFAR10, BaseDataset):
         (3, 32, 32) 6
     
     """
-    num_classes = 10
-
     def __init__(
             self,
             root: str,
@@ -124,4 +122,3 @@ class CIFAR100(CIFAR10, _CIFAR100):
         (3, 32, 32) 19
 
     """
-    num_classes = 100

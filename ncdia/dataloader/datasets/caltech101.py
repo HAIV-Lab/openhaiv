@@ -9,8 +9,8 @@ from .utils import BaseDataset
 
 @DATASETS.register
 class Caltech101(BaseDataset):
-    """
-    Caltech101 dataset
+    """Caltech101 dataset
+    
     Args:
         root (str): root folder of the dataset
         split (str): split of the dataset. Should be one of 'train', 'test'.
@@ -18,8 +18,6 @@ class Caltech101(BaseDataset):
         transform (list | str): transform to apply on the dataset.
             If str, it should be one of 'train', 'test' for predefined transforms.
     """
-    num_classes = 101
-
     train_transform = transforms.Compose([
         transforms.Resize(256, interpolation=transforms.InterpolationMode.BILINEAR),
         transforms.RandomResizedCrop(224),
@@ -60,7 +58,6 @@ class Caltech101(BaseDataset):
         if subset_file is not None:
             self.images, self.labels = self._select_from_file(self.images, self.labels, subset_file)
 
-
         if isinstance(transform, str):
             if transform == 'train':
                 self.transform = self.train_transform
@@ -71,30 +68,24 @@ class Caltech101(BaseDataset):
         else:
             self.transform = transform
         
-
-    def _load_data(self, root:str):
+    def _load_data(self, img_dir: str):
         """Load data from root folder
 
         Args:
-            root (str): root folder of the dataset
+            img_dir (str): path to the image folder of the split
 
         Returns:
             list: list of image paths
             list: list of labels
-        """
+        """        
         imgpaths, labels = [], []
-        if self.split == 'train':
-            split_file_path = os.path.join(root, 'train')
-        else:
-            split_file_path = os.path.join(root, 'test')
-        imgpaths = []
-        labels = []
-        for file_name in os.listdir(split_file_path):
-            images = os.listdir(os.path.join(split_file_path, file_name))
+        for file_name in os.listdir(img_dir):
+            images = os.listdir(os.path.join(img_dir, file_name))
             for k in  range(len(images)):
-                image_path = os.path.join(split_file_path, file_name,images[k])
+                image_path = os.path.join(img_dir, file_name,images[k])
                 imgpaths.append(image_path)
                 labels.append(int(file_name))
+        
         return imgpaths, labels
     
     def __len__(self) -> int:
@@ -154,4 +145,5 @@ class Caltech101(BaseDataset):
                 if img in images:
                     selected_images.append(img)
                     selected_labels.append(labels[images.index(img)])
+        
         return selected_images, selected_labels

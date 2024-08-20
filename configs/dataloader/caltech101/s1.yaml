@@ -3,7 +3,7 @@ _base_: configs/dataloader/loader.yaml
 trainloader:
   dataset:
     _replace_: True
-    type: remote
+    type: caltech101
     root: /data/datasets/CIL/caltech101/caltech-101/
     split: train
     subset_file: /data/datasets/CIL/caltech101/caltech-101/session_1.txt
@@ -12,7 +12,7 @@ trainloader:
 valloader:
   dataset:
     _replace_: True
-    type: remote
+    type: caltech101
     root: /data/datasets/CIL/caltech101/caltech-101/
     split: test
     subset_labels: 101
@@ -21,7 +21,7 @@ valloader:
 testloader:
   dataset:
     _replace_: True
-    type: remote
+    type: caltech101
     root: /data/datasets/CIL/caltech101/caltech-101/
     split: test
     subset_labels: 101

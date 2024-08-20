@@ -25,6 +25,15 @@ class BaseDataset(Dataset):
 
         self.loader = loader
         self.transform = transform
+    
+    @property
+    def num_classes(self) -> int:
+        """Get number of classes based on the labels
+        
+        Returns:
+            int: number of classes
+        """
+        return len(set(self.labels))
 
     def __len__(self) -> int:
         """Get the length of the dataset
