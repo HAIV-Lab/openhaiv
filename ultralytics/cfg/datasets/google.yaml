@@ -1,0 +1,8 @@
+path: /new_data/dx450/Project/xz/ultralytics-main/dataobb/google_benchmark # dataset root dir
+train: images/train
+val: images/val
+#test: images/test
+names:
+  0: plane
+  1: ship
+  2: car

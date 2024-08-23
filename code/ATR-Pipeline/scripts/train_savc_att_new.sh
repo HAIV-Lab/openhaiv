@@ -1,0 +1,15 @@
+# GPU=1
+# CPU=1
+# node=73
+# jobname=ncdia
+
+# PYTHONPATH='.':$PYTHONPATH \
+# srun -p dsta --mpi=pmi2 --gres=gpu:${GPU} -n1 \
+# --cpus-per-task=${CPU} --ntasks-per-node=${GPU} \
+# --kill-on-bad-exit=1 --job-name=${jobname} \
+CUDA_VISIBLE_DEVICES=1 python main.py \
+    --config configs/increment/savc_remote.yml \
+    configs/dataloader/savc_att_remote.yml \
+    configs/networks/resnet18_savc_att.yml \
+    configs/pipelines/train_savc_att_new.yml \
+    --seed 1

@@ -1,0 +1,8 @@
+yolo_yaml: yolov8n.yaml
+yolo_model: yolov8n.pt
+save_path: runs/detect/remote
+data: remote.yaml
+epochs: 60
+image_size: 672
+batch: 64
+num_workers: 4

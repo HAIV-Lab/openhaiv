@@ -183,6 +183,47 @@ class Remote(iData):
             raise DataError(self.__class__.__name__)
 
 
+@DATASETS.register_module()
+class Remote_detect_test(iData):
+    def __init__(self, path: str = '') -> None:
+        super().__init__(path)
+        self.use_path = True
+        self.train_trsf = [
+            transforms.Resize(256, interpolation=transforms.InterpolationMode.BILINEAR),
+            transforms.RandomResizedCrop(224),
+            transforms.RandomHorizontalFlip(),
+        ]
+        self.test_trsf = [
+            transforms.Resize(256, interpolation=transforms.InterpolationMode.BILINEAR),
+            transforms.CenterCrop(224),
+        ]
+        self.ncd_trsf = [
+            transforms.Resize(256, interpolation=transforms.InterpolationMode.BILINEAR),
+            transforms.CenterCrop(224),
+        ]
+        self.common_trsf = [
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ]
+        self.class_order = np.arange(14).tolist()
+
+    def download_data(self):
+        if os.path.exists(self.path):
+            train_dir = os.path.join(self.path, "train_0422")
+            test_dir = os.path.join(self.path, "test_0422")
+
+            train_dset = datasets.ImageFolder(train_dir)
+            test_dset = datasets.ImageFolder(test_dir)
+
+            self.train_data, self.train_targets = split_images_labels(train_dset.imgs)
+            self.test_data, self.test_targets = split_images_labels(test_dset.imgs)
+
+            print("Num of train: {}".format(len(self.train_targets)))
+            print("Num of test: {}".format(len(self.test_targets)))
+        else:
+            raise DataError(self.__class__.__name__)
+
+
 class DataError(Exception):
     def __init__(self, classname: str, *args: object) -> None:
         super().__init__(*args)

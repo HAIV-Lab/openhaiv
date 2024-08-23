@@ -1,0 +1,15 @@
+/new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/Benckmark/train_0428/13/Image_0_121_1.jpg
+/new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/Benckmark/train_0428/13/Image_0_158_1.jpg
+/new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/Benckmark/train_0428/13/Image_0_128_1.jpg
+/new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/Benckmark/train_0428/13/Image_0_140_1.jpg
+/new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/Benckmark/train_0428/13/Image_0_156_1.jpg
+/new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/Benckmark/train_0428/11/3820_3.jpg
+/new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/Benckmark/train_0428/11/3744_1.jpg
+/new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/Benckmark/train_0428/11/3711_3.jpg
+/new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/Benckmark/train_0428/11/178.xml_1.jpg
+/new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/Benckmark/train_0428/11/211.xml_3.jpg
+/new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/Benckmark/train_0428/12/708.xml_7.jpg
+/new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/Benckmark/train_0428/12/3357_1.jpg
+/new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/Benckmark/train_0428/12/2949_1.jpg
+/new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/Benckmark/train_0428/12/2581_6.jpg
+/new_data/dx450/Project/zzh_ood/NCD_Attr_zzh/data/Benckmark/train_0428/12/2067_1.jpg

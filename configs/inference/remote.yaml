@@ -1,0 +1,11 @@
+model_detect: runs/detect/remote/weights/best.pt
+classify_dir: temp_data
+det_data_0: /new_data/dx450/Project/xz/ultralytics-main/dataobb/Det_data/all/remote_k/images/val
+xml_data_0: /new_data/dx450/Project/xz/ultralytics-main/dataobb/Det_data/all/remote_k/labels_xml/val/
+det_data_1: /new_data/dx450/Project/xz/ultralytics-main/dataobb/Det_data/all/remote_uk/images
+xml_data_1: /new_data/dx450/Project/xz/ultralytics-main/dataobb/Det_data/all/remote_uk/labels_xml/
+num_session: 2
+checkpoint_dir:  /new_data/dx450/dy/openhaiv/output/supervised/sl_remote_alice/exp/
+ckpt_0: /new_data/dx450/dy/openhaiv/output/supervised/sl_remote_alice/exp/task_0.pth
+ckpt_1: /new_data/dx450/dy/openhaiv/output/supervised/sl_remote_alice/exp/task_1.pth
+conf: 0.25

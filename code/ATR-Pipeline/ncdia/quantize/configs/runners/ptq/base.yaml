@@ -1,0 +1,19 @@
+model:
+  name: 'resnet18'
+  pretrained: True
+
+runner:
+  name: 'ptq'
+  verbose: True
+
+ptq: null
+
+train_dataset:
+  num_shots: 16
+
+train_loader:
+  batch_size: 128
+
+train:
+  max_epoch: 1
+  print_freq: 10

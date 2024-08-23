@@ -1,0 +1,10 @@
+/new_data/tyw/FSCIL/Plane_Car/train/12/图片1.jpg
+/new_data/tyw/FSCIL/Plane_Car/train/12/图片2.jpg
+/new_data/tyw/FSCIL/Plane_Car/train/12/图片3.jpg
+/new_data/tyw/FSCIL/Plane_Car/train/12/图片4.jpg
+/new_data/tyw/FSCIL/Plane_Car/train/12/图片5.jpg
+/new_data/tyw/FSCIL/Plane_Car/train/13/图片1.jpg
+/new_data/tyw/FSCIL/Plane_Car/train/13/图片1.jpg
+/new_data/tyw/FSCIL/Plane_Car/train/13/图片14.PNG
+/new_data/tyw/FSCIL/Plane_Car/train/13/图片3.jpg
+/new_data/tyw/FSCIL/Plane_Car/train/13/图片4.jpg

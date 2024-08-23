@@ -1,0 +1,10 @@
+/new_data/tyw/FSCIL/Benchmark/train/34/P4361.bmp
+/new_data/tyw/FSCIL/Benchmark/train/34/P9263.bmp
+/new_data/tyw/FSCIL/Benchmark/train/34/P5553.bmp
+/new_data/tyw/FSCIL/Benchmark/train/34/P1398.bmp
+/new_data/tyw/FSCIL/Benchmark/train/34/P3521.bmp
+/new_data/tyw/FSCIL/Benchmark/train/35/P0260.bmp
+/new_data/tyw/FSCIL/Benchmark/train/35/P7820.bmp
+/new_data/tyw/FSCIL/Benchmark/train/35/P5322.bmp
+/new_data/tyw/FSCIL/Benchmark/train/35/P9239.bmp
+/new_data/tyw/FSCIL/Benchmark/train/35/P2368.bmp

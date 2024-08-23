@@ -1,0 +1,10 @@
+/new_data/tyw/FSCIL/Benchmark/train/32/924_4.jpg
+/new_data/tyw/FSCIL/Benchmark/train/32/564.xml_1.jpg
+/new_data/tyw/FSCIL/Benchmark/train/32/605.xml_1.jpg
+/new_data/tyw/FSCIL/Benchmark/train/32/565.xml_4.jpg
+/new_data/tyw/FSCIL/Benchmark/train/32/612.xml_2.jpg
+/new_data/tyw/FSCIL/Benchmark/train/33/BM-31-12-new_Image_2_473.796448_2.jpg
+/new_data/tyw/FSCIL/Benchmark/train/33/BM-31-12-new_Image_2_97.401596_2.jpg
+/new_data/tyw/FSCIL/Benchmark/train/33/BM-31-12-new_Image_1_221.000290_2.jpg
+/new_data/tyw/FSCIL/Benchmark/train/33/BM-31-12-new_Image_3_479.396362_1.jpg
+/new_data/tyw/FSCIL/Benchmark/train/33/BM-31-12-new_Image_0_383.397827_1.jpg

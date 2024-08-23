@@ -1,0 +1,10 @@
+/new_data/tyw/FSCIL/Plane_Car/train/14/P1632.jpg
+/new_data/tyw/FSCIL/Plane_Car/train/14/P2191.jpg
+/new_data/tyw/FSCIL/Plane_Car/train/14/P3563.jpg
+/new_data/tyw/FSCIL/Plane_Car/train/14/P7864.jpg
+/new_data/tyw/FSCIL/Plane_Car/train/14/P9638.jpg
+/new_data/tyw/FSCIL/Plane_Car/train/15/P4539.bmp
+/new_data/tyw/FSCIL/Plane_Car/train/15/P4795.bmp
+/new_data/tyw/FSCIL/Plane_Car/train/15/P4804.bmp
+/new_data/tyw/FSCIL/Plane_Car/train/15/P8668.bmp
+/new_data/tyw/FSCIL/Plane_Car/train/15/P8739.bmp

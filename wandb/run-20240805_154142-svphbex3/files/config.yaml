@@ -1,0 +1,345 @@
+wandb_version: 1
+
+task:
+  desc: null
+  value: detect
+mode:
+  desc: null
+  value: train
+model:
+  desc: null
+  value: yolov8n.yaml
+data:
+  desc: null
+  value: /new_data/dx450/dy/openhaiv/ultralytics/cfg/datasets/remote.yaml
+epochs:
+  desc: null
+  value: 60
+time:
+  desc: null
+  value: null
+patience:
+  desc: null
+  value: 100
+batch:
+  desc: null
+  value: 64
+imgsz:
+  desc: null
+  value: 672
+save:
+  desc: null
+  value: true
+save_period:
+  desc: null
+  value: 3
+cache:
+  desc: null
+  value: false
+device:
+  desc: null
+  value: null
+workers:
+  desc: null
+  value: 4
+project:
+  desc: null
+  value: null
+name:
+  desc: null
+  value: remote
+exist_ok:
+  desc: null
+  value: false
+pretrained:
+  desc: null
+  value: true
+optimizer:
+  desc: null
+  value: auto
+verbose:
+  desc: null
+  value: true
+seed:
+  desc: null
+  value: 0
+deterministic:
+  desc: null
+  value: true
+single_cls:
+  desc: null
+  value: false
+rect:
+  desc: null
+  value: false
+cos_lr:
+  desc: null
+  value: false
+close_mosaic:
+  desc: null
+  value: 10
+resume:
+  desc: null
+  value: false
+amp:
+  desc: null
+  value: true
+fraction:
+  desc: null
+  value: 1.0
+profile:
+  desc: null
+  value: false
+freeze:
+  desc: null
+  value: null
+multi_scale:
+  desc: null
+  value: false
+overlap_mask:
+  desc: null
+  value: true
+mask_ratio:
+  desc: null
+  value: 4
+dropout:
+  desc: null
+  value: 0.0
+val:
+  desc: null
+  value: true
+split:
+  desc: null
+  value: val
+save_json:
+  desc: null
+  value: false
+save_hybrid:
+  desc: null
+  value: false
+conf:
+  desc: null
+  value: null
+iou:
+  desc: null
+  value: 0.7
+max_det:
+  desc: null
+  value: 300
+half:
+  desc: null
+  value: false
+dnn:
+  desc: null
+  value: false
+plots:
+  desc: null
+  value: true
+source:
+  desc: null
+  value: null
+vid_stride:
+  desc: null
+  value: 1
+stream_buffer:
+  desc: null
+  value: false
+visualize:
+  desc: null
+  value: false
+augment:
+  desc: null
+  value: false
+agnostic_nms:
+  desc: null
+  value: false
+classes:
+  desc: null
+  value: null
+retina_masks:
+  desc: null
+  value: false
+embed:
+  desc: null
+  value: null
+show:
+  desc: null
+  value: false
+save_frames:
+  desc: null
+  value: false
+save_txt:
+  desc: null
+  value: false
+save_conf:
+  desc: null
+  value: false
+save_crop:
+  desc: null
+  value: false
+show_labels:
+  desc: null
+  value: true
+show_conf:
+  desc: null
+  value: true
+show_boxes:
+  desc: null
+  value: true
+line_width:
+  desc: null
+  value: null
+format:
+  desc: null
+  value: torchscript
+keras:
+  desc: null
+  value: false
+optimize:
+  desc: null
+  value: false
+int8:
+  desc: null
+  value: false
+dynamic:
+  desc: null
+  value: false
+simplify:
+  desc: null
+  value: false
+opset:
+  desc: null
+  value: null
+workspace:
+  desc: null
+  value: 4
+nms:
+  desc: null
+  value: true
+lr0:
+  desc: null
+  value: 0.01
+lrf:
+  desc: null
+  value: 0.01
+momentum:
+  desc: null
+  value: 0.937
+weight_decay:
+  desc: null
+  value: 0.0005
+warmup_epochs:
+  desc: null
+  value: 3.0
+warmup_momentum:
+  desc: null
+  value: 0.8
+warmup_bias_lr:
+  desc: null
+  value: 0.1
+box:
+  desc: null
+  value: 7.5
+cls:
+  desc: null
+  value: 0.5
+dfl:
+  desc: null
+  value: 1.5
+pose:
+  desc: null
+  value: 12.0
+kobj:
+  desc: null
+  value: 1.0
+label_smoothing:
+  desc: null
+  value: 0.0
+nbs:
+  desc: null
+  value: 64
+hsv_h:
+  desc: null
+  value: 0.015
+hsv_s:
+  desc: null
+  value: 0.7
+hsv_v:
+  desc: null
+  value: 0.4
+degrees:
+  desc: null
+  value: 0.0
+translate:
+  desc: null
+  value: 0.1
+scale:
+  desc: null
+  value: 0.5
+shear:
+  desc: null
+  value: 0.0
+perspective:
+  desc: null
+  value: 0.0
+flipud:
+  desc: null
+  value: 0.0
+fliplr:
+  desc: null
+  value: 0.5
+mosaic:
+  desc: null
+  value: 1.0
+mixup:
+  desc: null
+  value: 0.0
+copy_paste:
+  desc: null
+  value: 0.0
+auto_augment:
+  desc: null
+  value: randaugment
+erasing:
+  desc: null
+  value: 0.4
+crop_fraction:
+  desc: null
+  value: 1.0
+cfg:
+  desc: null
+  value: null
+tracker:
+  desc: null
+  value: botsort.yaml
+save_dir:
+  desc: null
+  value: runs/detect/remote
+_wandb:
+  desc: null
+  value:
+    python_version: 3.9.7
+    cli_version: 0.15.7
+    framework: torch
+    is_jupyter_run: false
+    is_kaggle_kernel: true
+    start_time: 1722843702.907492
+    t:
+      1:
+      - 1
+      - 41
+      - 55
+      2:
+      - 1
+      - 41
+      - 55
+      - 80
+      3:
+      - 13
+      - 16
+      - 23
+      4: 3.9.7
+      5: 0.15.7
+      8:
+      - 2
+      - 5
