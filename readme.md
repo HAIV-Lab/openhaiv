@@ -3,6 +3,16 @@
 This is a framework for open-world object recognition, supporting out-of-distribution detection, novel class discovery, and incremental learning algorithms to enable robust and flexible object recognition in unconstrained environments.
 
 ### Install
+#### install python3
+#### in linux 
+It is recommended to use anaconda3 to manage and maintain the python library environment.
+1. Download the .sh file from the anaconda3 website
+2. install anaconda3 with .sh file
+```
+bash Anaconda3-2023.03-Linux-x86_64.sh
+```
+
+
 #### create virtual environment
 ```
 conda create -n ncdia python=3.10 -y
