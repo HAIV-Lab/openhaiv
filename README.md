@@ -17,6 +17,8 @@ bash Anaconda3-2023.03-Linux-x86_64.sh
 ```
 conda create -n ncdia python=3.10 -y
 conda activate ncdia
+pip install -r requirements.txt
+python setup.py install
 ```
 
 #### install package
