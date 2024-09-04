@@ -1,45 +1,33 @@
-import errno
 import os
 import os.path as osp
-import sys
-
+import time
 import yaml
 
-import ncdia.utils.comm as comm
+from .tools import mkdir_if_missing
 
 
-def mkdir_if_missing(dirname):
-    """Create dirname if it is missing."""
-    if not osp.exists(dirname):
-        try:
-            os.makedirs(dirname)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                raise
-
-
-class Logger:
-    """Write console output to external text file.
-
-    Imported from
-    `<https://github.com/Cysu/open-reid/blob/master/reid/utils/logging.py>`
+class Logger(object):
+    """Write output to console and external text file
 
     Args:
         fpath (str): directory to save logging file.
+            If None, do not write to external file.
 
     Examples:
-       >>> import sys
-       >>> import os.path as osp
-       >>> save_dir = 'output/experiment-1'
-       >>> log_name = 'train.log'
-       >>> sys.stdout = Logger(osp.join(save_dir, log_name))
+        >>> import sys
+        >>> import os.path as osp
+        >>> save_dir = 'output/experiment-1'
+        >>> log_name = 'train.log'
+        >>> sys.stdout = Logger(osp.join(save_dir, log_name))
     """
-    def __init__(self, fpath=None):
-        self.console = sys.stdout
+    def __init__(self, fpath: str | None = None):
+        self.fpath = fpath
+        self.fdir = osp.dirname(fpath) if fpath is not None else None
+
         self.file = None
         if fpath is not None:
-            mkdir_if_missing(osp.dirname(fpath))
-            self.file = open(fpath, 'w')
+            mkdir_if_missing(self.fdir)
+            self.file = open(fpath, 'a')
 
     def __del__(self):
         self.close()
@@ -50,76 +38,69 @@ class Logger:
     def __exit__(self, *args):
         self.close()
 
-    def write(self, msg):
-        self.console.write(msg)
+    def write(self, msg: str, timestamp: bool = False, end: str = '\n'):
+        """Write message to console and file
+
+        Args:
+            msg (str): message to be written
+            timestamp (bool): whether to add timestamp
+            end (str): end character
+
+        Examples:
+            >>> logger.write('Hello, world!')
+        """
+        msg = str(msg)
+        
+        if timestamp:
+            time_stamp = time.strftime(
+                "%Y-%m-%d %H:%M:%S", 
+                time.localtime())
+            msg = f'[{time_stamp}] {msg}'
+
+        msg += end
+        print(msg, end='')
         if self.file is not None:
             self.file.write(msg)
+        self.flush()
+
+    def info(self, msg: str, end: str = '\n'):
+        """Write message to console and file with timestamp
+
+        Args:
+            msg (str): message to be written
+            end (str): end character
+
+        Examples:
+            >>> logger.info('Hello, world!')
+        """
+        self.write(msg, timestamp=True, end=end)
+
+    def create_config(self, cfg: dict):
+        """Create config file and save to disk in the form of yaml
+
+        Args:
+            cfg (dict): arguments to be wrote
+        """
+        fpath = osp.join(self.fdir, 'cfg.yaml')
+
+        with open(fpath, 'w', encoding='utf-8') as f:
+            yaml.dump(cfg, f, allow_unicode=True)
 
     def flush(self):
-        self.console.flush()
+        """Flush the buffer to external file
+
+        Examples:
+            >>> logger.flush()
+        """
         if self.file is not None:
             self.file.flush()
             os.fsync(self.file.fileno())
 
     def close(self):
-        self.console.close()
+        """Close the file and console
+
+        Examples:
+            >>> logger.close()
+        """
         if self.file is not None:
             self.file.close()
-
-
-def setup_logger(config):
-    """generate exp directory to save configs, logger, checkpoints, etc.
-
-    Args:
-        config: all configs of the experiment
-    """
-    print('------------------ Config --------------------------', flush=True)
-    print(config, flush=True)
-    print(u'\u2500' * 70, flush=True)
-
-    output = config.output_dir
-
-    if config.save_output and comm.is_main_process():
-        print('Output dir: {}'.format(output), flush=True)
-        if osp.isdir(output):
-            if config.merge_option == 'default':
-                ans = input('Exp dir already exists, merge it? (y/n)')
-                if ans in ['yes', 'Yes', 'YES', 'y', 'Y', 'can']:
-                    save_logger(config, output)
-                elif ans in ['no', 'No', 'NO', 'n', 'N']:
-                    print('Quitting the process...', flush=True)
-                    quit()
-                else:
-                    raise ValueError('Unexpected Input.')
-            elif config.merge_option == 'merge':
-                save_logger(config, output)
-            elif config.merge_option == 'pass':
-                if os.path.exists(os.path.join(config.save_output, 'ood.csv')):
-                    print('Exp dir already exists, quitting the process...',
-                          flush=True)
-                    quit()
-                else:
-                    save_logger(config, output)
-        else:
-            save_logger(config, output)
-    else:
-        print('No output directory.', flush=True)
-
-    comm.synchronize()
-
-
-def save_logger(config, output):
-    print('Output directory path: {}'.format(output), flush=True)
-    os.makedirs(output, exist_ok=True)
-    # Save config
-    # FIXME: saved config file is not beautified.
-    config_save_path = osp.join(output, 'config.yml')
-    with open(config_save_path, 'w') as f:
-        yaml.dump(config,
-                  f,
-                  default_flow_style=False,
-                  sort_keys=False,
-                  indent=2)
-    # save log file
-    fpath = osp.join(output, 'log.txt')
-    sys.stdout = Logger(fpath)

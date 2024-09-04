@@ -1,0 +1,7 @@
+path: /new_data/dx450/Project/xz/ultralytics-main/dataobb/Det_data/all/remote_k # dataset root dir
+train: images/train
+val: images/val
+#test: images/test
+names:
+  0: plane
+  1: car
