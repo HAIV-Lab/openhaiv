@@ -1,6 +1,6 @@
 ### Welcome to openhaiv
 
-This is a framework for open-world object recognition, supporting out-of-distribution detection, novel class discovery, and incremental learning algorithms to enable robust and flexible object recognition in unconstrained environments.
+This is a framework for open-world object recognition, supporting Infrared-Visible recognize, out-of-distribution detection, novel class discovery, and incremental learning algorithms to enable robust and flexible object recognition in unconstrained environments.
 
 ### Install
 #### install python3
@@ -11,7 +11,6 @@ It is recommended to use anaconda3 to manage and maintain the python library env
 ```
 bash Anaconda3-2023.03-Linux-x86_64.sh
 ```
-
 
 #### create virtual environment
 ```
