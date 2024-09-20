@@ -26,6 +26,7 @@ class IncTrainer(PreTrainer):
         hist_testset (MergedDataset): Historical testing dataset.
 
     """
+
     def __init__(
             self,
             cfg: dict | None = None,
@@ -93,5 +94,5 @@ class IncTrainer(PreTrainer):
             # Store historical data
             self.hist_trainset.merge([self.train_loader.dataset], True)
             self.hist_testset.merge([self.test_loader.dataset], True)
-        
+
         return self.model

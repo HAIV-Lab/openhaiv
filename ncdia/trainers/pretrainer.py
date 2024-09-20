@@ -1,7 +1,6 @@
 from ncdia.utils import TRAINERS
 from .base import BaseTrainer
 
-
 @TRAINERS.register
 class PreTrainer(BaseTrainer):
     """PreTrainer class for pre-training a model on session 0.
@@ -20,6 +19,7 @@ class PreTrainer(BaseTrainer):
     ) -> None:
         super(PreTrainer, self).__init__(**kwargs)
         self._max_epochs = max_epochs
+
 
     def train_step(self, batch, **kwargs):
         """Training step.

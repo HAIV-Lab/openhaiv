@@ -5,9 +5,9 @@ import yaml
 from ncdia.utils.cfg import setup_cfg
 from ncdia.utils.tools import set_random_seed
 from ncdia.trainers import PreTrainer, IncTrainer
-from torchvision.models import resnet18
-from ncdia.algorithms.ood.autoood import AutoOOD
-from ncdia.algorithms.ncd.ncd_discover import NCDDiscover
+# from torchvision.models import resnet18
+# from ncdia.algorithms.ood.autoood import AutoOOD
+# from ncdia.algorithms.ncd.ncd_discover import NCDDiscover
 from ncdia.datasets.utils import get_dataloader
 from ncdia.inference.datasets import generate_classify_datasets
 

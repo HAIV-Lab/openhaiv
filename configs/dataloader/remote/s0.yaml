@@ -4,7 +4,7 @@ trainloader:
   dataset:
     _replace_: True
     type: remote
-    root: /data/datasets/CIL/0718/
+    root: /new_data/dx450/ATR-13-pingzhuang/0718_dy/
     split: train
     subset_labels: 11
     transform: train
@@ -13,7 +13,7 @@ valloader:
   dataset:
     _replace_: True
     type: remote
-    root: /data/datasets/CIL/0718/
+    root: /new_data/dx450/ATR-13-pingzhuang/0718_dy/
     split: test
     subset_labels: 11
     transform: test
@@ -22,7 +22,7 @@ testloader:
   dataset:
     _replace_: True
     type: remote
-    root: /data/datasets/CIL/0718/
+    root: /new_data/dx450/ATR-13-pingzhuang/0718_dy/
     split: test
     subset_labels: 11
     transform: test

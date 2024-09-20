@@ -171,6 +171,10 @@ class AutoNCD(object):
 
 
         threshold = self.ood_metrics[metric][6]
+
+        print('threshold:')
+        print(threshold)
+
         conf = torch.tensor(self.ood_metrics[metric][0])
         label = torch.tensor(self.ood_metrics[metric][1])
 
