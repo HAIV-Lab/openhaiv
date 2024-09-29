@@ -5,4 +5,4 @@ from .remote import Remote
 from .imagenetr import ImageNetR
 from .food101 import Food101
 from .caltech101 import Caltech101
-
+from .remoteiv import Remoteiv

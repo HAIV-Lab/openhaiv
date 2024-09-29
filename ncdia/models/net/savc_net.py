@@ -40,7 +40,7 @@ class SAVCNET(nn.Module):
 
 
     def forward_metric(self, x):
-        y, _ = self.encode_q(x)
+        y = self.encode_q(x)
         if 'cos' in self.mode:
             x = F.linear(F.normalize(y, p=2, dim=-1), F.normalize(self.fc.weight, p=2, dim=-1))
             x = self.net_savc.temperature * x
@@ -49,10 +49,11 @@ class SAVCNET(nn.Module):
         return x
 
     def encode_q(self, x):
-        x, y = self.encoder_q(x)
+        self.encoder_q(x)
+        x  = self.encoder_q.features
         x = F.adaptive_avg_pool2d(x, 1)
         x = x.squeeze(-1).squeeze(-1)
-        return x, y
+        return x
 
     def forward(self, im_cla):
         if self.mode != 'encoder':
@@ -125,18 +126,31 @@ class SAVCNET(nn.Module):
     def update_fc(self, dataloader, class_list, session):
 
         for batch in dataloader:
-            data = batch['data'].cuda()
-            label = batch['label'].cuda()
- 
-            b = data.size()[0]
-            data = self.transform(data)
-            m = data.size()[0] // b 
-            labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
-            # data, _ = self.encode_q(data)
-            # data.detach()
-            data = self.get_features(data)
-            data.detach()
-
+            if isinstance(batch['data'], dict):
+                if len(batch['data']) == 2:
+                    data_a, data_b = batch['data']["a"].cuda(), batch['data']["b"].cuda()
+                    label = batch['label'].cuda()
+        
+                    b = data_a.size()[0]
+                    data_a, data_b = self.transform(data_a), self.transform(data_b)
+                    m = data_a.size()[0] // b 
+                    labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
+                    # data, _ = self.encode_q(data)
+                    # data.detach()
+                    data = self.get_features((data_a, data_b))
+                    data.detach()
+            else:
+                data = batch['data'].cuda()
+                label = batch['label'].cuda()
+    
+                b = data.size()[0]
+                data = self.transform(data)
+                m = data.size()[0] // b 
+                labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
+                # data, _ = self.encode_q(data)
+                # data.detach()
+                data = self.get_features(data)
+                data.detach()
 
         new_fc = self.update_fc_avg(data, labels, class_list, m)
             
@@ -161,7 +175,8 @@ class SAVCNET(nn.Module):
             return self.model.net_savc.temperature * F.linear(F.normalize(x, p=2, dim=-1), F.normalize(fc, p=2, dim=-1))
     
     def get_features(self, x):
-        x, y = self.encoder_q(x)
+        self.encoder_q(x)
+        x = self.encoder_q.features
         x = F.adaptive_avg_pool2d(x, 1)
         x = x.squeeze(-1).squeeze(-1)
         return x

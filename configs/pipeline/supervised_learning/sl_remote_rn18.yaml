@@ -9,6 +9,8 @@ algorithm:
 
 model:
   type: ResNet18
+  weights: True
+  num_classes: 15
 
 criterion:
   type: CrossEntropyLoss

@@ -33,4 +33,4 @@ seed: 0
 device: cuda
 
 exp_name: exp
-work_dir: ./output/supervised/inc_imagenetr_alice
+work_dir: ./output/inc/inc_imagenetr_alice

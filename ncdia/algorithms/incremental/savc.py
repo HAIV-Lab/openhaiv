@@ -5,7 +5,7 @@ from ncdia.utils import ALGORITHMS
 from ncdia.algorithms.base import BaseAlg
 from ncdia.utils.losses import AngularPenaltySMLoss
 from ncdia.dataloader.augmentations import fantasy
-from ncdia.utils.metrics import accuracy
+from ncdia.utils.metrics import accuracy, per_class_accuracy
 from .hooks import SAVCHook
 
 
@@ -38,9 +38,9 @@ class SAVC(BaseAlg):
             tsfm = trainer.val_loader.dataset.transform
             trainloader.dataset.transform = tsfm
             class_list = list(range(self.args.CIL.base_class+ (session-1)*self.args.CIL.way, self.args.CIL.base_class + self.args.CIL.way * session))
-            print("###pre fc data: ", self._network.fc.weight.data[13])
-            # self._network.update_fc(trainloader, class_list, session)
-            print("###update fc data: ", self._network.fc.weight.data[13])
+            # print("###pre fc data: ", self._network.fc.weight.data[13])
+            self._network.update_fc(trainloader, class_list, session)
+            # print("###update fc data: ", self._network.fc.weight.data[13])
 
 
     def train_step(self, trainer, data, label, *args, **kwargs):
@@ -58,31 +58,50 @@ class SAVC(BaseAlg):
             self._network = trainer.model
             self._network.train()
             device = trainer.device
-            b, c, h, w = data[1].shape
-            original = data[0].to(device)
-            data[1] = data[1].to(device)
-            data[2] = data[2].to(device)
-            label = label.to(device)
+            if isinstance(data, dict):
+                if len(data) == 2:
+                    b, c, h, w = data["a"].shape
+                    original_a, original_b = data["a"].to(device), data["b"].to(device)
+                    data_1a, data_1b = data["a"].to(device), data["b"].to(device)
+                    data_2a, data_2b = data["a"].to(device), data["b"].to(device)
+                    label = label.to(device)
 
-            if len(self.config.CIL.num_crops) > 1:
-                    data_small = data[self.config.CIL.num_crops[0]+1].unsqueeze(1)
-                    for j in range(1, self.config.CIL.num_crops[1]):
-                        data_small = torch.cat((data_small, data[j+self.config.CIL.num_crops[0]+1].unsqueeze(1)), dim=1)
-                    data_small = data_small.view(-1, c, self.config.CIL.size_crops[1], \
-                                                self.config.CIL.size_crops[1]).cuda(non_blocking=True)
+                    data_classify_a, data_classify_b = self.transform(original_a), self.transform(original_b)
+                    data_query_a, data_query_b = self.transform(data_1a), self.transform(data_1b)
+                    data_key_a, data_key_b = self.transform(data_2a), self.transform(data_2b)
+                    # data_small = self.transform(data_small)
+
+                    m = data_query_a.size()[0] // b
+                    joint_labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
+
+                    # ------  forward  ------- #
+                    joint_preds = self._network(im_cla=(data_classify_a, data_classify_b))
             else:
-                data_small = None
+                b, c, h, w = data.shape
+                original = data.to(device)
+                data_1 = data.to(device)
+                data_2 = data.to(device)
+                label = label.to(device)
 
-            data_classify = self.transform(original)    
-            data_query = self.transform(data[1])
-            data_key = self.transform(data[2])
-            data_small = self.transform(data_small)
+                # if len(self.config.CIL.num_crops) > 1:
+                #         data_small = data[self.config.CIL.num_crops[0]+1].unsqueeze(1)
+                #         for j in range(1, self.config.CIL.num_crops[1]):
+                #             data_small = torch.cat((data_small, data[j+self.config.CIL.num_crops[0]+1].unsqueeze(1)), dim=1)
+                #         data_small = data_small.view(-1, c, self.config.CIL.size_crops[1], \
+                #                                     self.config.CIL.size_crops[1]).cuda(non_blocking=True)
+                # else:
+                #     data_small = None
 
-            m = data_query.size()[0] // b
-            joint_labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
+                data_classify = self.transform(original)    
+                data_query = self.transform(data_1)
+                data_key = self.transform(data_2)
+                # data_small = self.transform(data_small)
 
-            # ------  forward  ------- #
-            joint_preds = self._network(im_cla=data_classify)  
+                m = data_query.size()[0] // b
+                joint_labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
+
+                # ------  forward  ------- #
+                joint_preds = self._network(im_cla=data_classify)
             joint_preds = joint_preds[:, :self.config.CIL.base_class*m]
             joint_loss = F.cross_entropy(joint_preds, joint_labels)
 
@@ -99,10 +118,12 @@ class SAVC(BaseAlg):
             # print(joint_preds.shape)
             # input()
             acc = accuracy(joint_preds, joint_labels)[0]
+            per_acc = str(per_class_accuracy(joint_preds, joint_labels))
 
             ret = {}
             ret['loss'] = loss
             ret['acc'] = acc
+            ret['per_class_acc'] = per_acc
             return ret
         else:
             ret = {}
@@ -138,14 +159,26 @@ class SAVC(BaseAlg):
         feature_list = []
         test_class = self.config.CIL.base_class + session * self.config.CIL.way
         with torch.no_grad():
-            data = data.to(device)
-            label = label.to(device)
-            b = data.size()[0]
-            if self.transform is not None:
-                data = self.transform(data)
-            m = data.size()[0] // b
-            joint_preds = self._network(data)
-            feat = self._network.get_features(data)
+            if isinstance(data, dict):
+                if len(data) == 2:
+                    data_a, data_b = data["a"].to(device), data["b"].to(device)
+                    label = label.to(device)
+                    b = data_a.size()[0]
+                    if self.transform is not None:
+                        data_a = self.transform(data_a)
+                        data_b = self.transform(data_b)
+                    m = data_a.size()[0] // b
+                    joint_preds = self._network((data_a, data_b))
+                    feat = self._network.get_features((data_a, data_b))
+            else:
+                data = data.to(device)
+                label = label.to(device)
+                b = data.size()[0]
+                if self.transform is not None:
+                    data = self.transform(data)
+                m = data.size()[0] // b
+                joint_preds = self._network(data)
+                feat = self._network.get_features(data)
             joint_preds = joint_preds[:, :test_class*m]
             
             agg_preds = 0
@@ -193,14 +226,25 @@ class SAVC(BaseAlg):
             label_list = []
             with torch.no_grad():
                 for i, batch in enumerate(train_loader):
-                    data = batch['data'].cuda()
-                    label = batch['label'].cuda()
-    
-                    b = data.size()[0]
-                    data = self.transform(data)
-                    m = data.size()[0] // b
-                    labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
-                    embedding = self._network.get_features(data)
+                    if isinstance(batch['data'], dict):
+                        if len(batch['data']):
+                            data_a, data_b = batch['data']["a"].cuda(), batch['data']["b"].cuda()
+                            label = batch['label'].cuda()
+            
+                            b = data_a.size()[0]
+                            data_a, data_b = self.transform(data_a), self.transform(data_b)
+                            m = data_a.size()[0] // b
+                            labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
+                            embedding = self._network.get_features((data_a, data_b))
+                    else:
+                        data = batch['data'].cuda()
+                        label = batch['label'].cuda()
+        
+                        b = data.size()[0]
+                        data = self.transform(data)
+                        m = data.size()[0] // b
+                        labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
+                        embedding = self._network.get_features(data)
 
                     embedding_list.append(embedding.cpu())
                     label_list.append(labels.cpu())

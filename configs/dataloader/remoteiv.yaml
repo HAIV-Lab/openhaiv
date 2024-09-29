@@ -1,0 +1,29 @@
+# Load paired infrared and visible images   
+_base_: configs/dataloader/loader.yaml
+
+trainloader:
+  dataset:
+    _replace_: True
+    type: Remoteiv
+    root_a: /data/gjq/Dataset/VAIS/Fine_paired/vis
+    root_b: /data/gjq/Dataset/VAIS/Fine_paired/ir
+    split: train
+    transform: train
+
+valloader:
+  dataset:
+    _replace_: True
+    type: Remoteiv
+    root_a: /data/gjq/Dataset/VAIS/Fine_paired/vis
+    root_b: /data/gjq/Dataset/VAIS/Fine_paired/ir
+    split: test
+    transform: test
+
+testloader:
+  dataset:
+    _replace_: True
+    type: Remoteiv
+    root_a: /data/gjq/Dataset/VAIS/Fine_paired/vis
+    root_b: /data/gjq/Dataset/VAIS/Fine_paired/ir
+    split: test
+    transform: test

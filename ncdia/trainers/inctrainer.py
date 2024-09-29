@@ -1,7 +1,7 @@
 import torch.nn as nn
 
 from ncdia.utils import TRAINERS, Configs
-from ncdia.dataloader import MergedDataset
+from ncdia.dataloader import MergedDataset, MergedPairDataset
 from .pretrainer import PreTrainer
 from .hooks import NCDHook
 
@@ -33,8 +33,8 @@ class IncTrainer(PreTrainer):
             ncd_cfg: Configs | None = None,
             session: int = 0,
             model: nn.Module = None,
-            hist_trainset: MergedDataset = None,
-            hist_testset: MergedDataset = None,
+            hist_trainset: MergedDataset | MergedPairDataset = None,
+            hist_testset: MergedDataset | MergedPairDataset = None,
             **kwargs
     ) -> None:
         self.sess_cfg = sess_cfg
@@ -48,11 +48,17 @@ class IncTrainer(PreTrainer):
 
         # Specify historical datasets to store previous data
         if not hist_trainset:
-            hist_trainset = MergedDataset()
+            if 'pair' in cfg.model.network.type:
+                hist_trainset = MergedPairDataset()
+            else:
+                hist_trainset = MergedDataset()
         self.hist_trainset = hist_trainset
 
         if not hist_testset:
-            hist_testset = MergedDataset()
+            if 'pair' in cfg.model.network.type:
+                hist_testset = MergedPairDataset()
+            else:
+                hist_testset = MergedDataset()
         self.hist_testset = hist_testset
 
         super(IncTrainer, self).__init__(

@@ -118,15 +118,25 @@ class FACTNET(nn.Module):
         else:
             raise ValueError('Unknown mode')
 
-    def update_fc(self,dataloader,class_list,session):
+    def update_fc(self, dataloader, class_list, session):
         for batch in dataloader:
-            data = batch['data'].cuda()
-            label = batch['label'].cuda()
-            # data, label = [_.cuda() for _ in batch]
-            b = data.size()[0]
-            m = data.size()[0] // b 
-            labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
-            data=self.encode(data).detach()
+            if isinstance(batch['data'], dict):
+                if len(batch['data']) == 2:
+                    data_a, data_b = batch['data']["a"].cuda(), batch['data']["b"].cuda()
+                    label = batch['label'].cuda()
+                    # data, label = [_.cuda() for _ in batch]
+                    b = data_a.size()[0]
+                    m = data_a.size()[0] // b 
+                    labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
+                    data = self.encode((data_a, data_b)).detach()
+            else:
+                data = batch['data'].cuda()
+                label = batch['label'].cuda()
+                # data, label = [_.cuda() for _ in batch]
+                b = data.size()[0]
+                m = data.size()[0] // b 
+                labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
+                data = self.encode(data).detach()
 
         if self.net_fact.not_data_init:
             new_fc = nn.Parameter(
@@ -137,10 +147,10 @@ class FACTNET(nn.Module):
             new_fc = self.update_fc_avg(data, label, class_list, m)
 
         if 'ft' in self.net_fact.new_mode:  # further finetune
-            self.update_fc_ft(new_fc,data,label,session)
+            self.update_fc_ft(new_fc, data, label, session)
 
-    def update_fc_avg(self,data,labels,class_list,m):
-        new_fc=[]
+    def update_fc_avg(self, data, labels, class_list, m):
+        new_fc = []
         for class_index in class_list:
             for i in range(m):
                 index = class_index*m + i
@@ -149,7 +159,7 @@ class FACTNET(nn.Module):
                 proto = embedding.mean(0)
                 new_fc.append(proto)
                 self.fc.weight.data[index] = proto
-                self.dummy_orthogonal_classifier.weight.data[index-self.base_classes]
+                self.dummy_orthogonal_classifier.weight.data[index - self.base_classes]
         new_fc = torch.stack(new_fc, dim=0)
         return new_fc
 
@@ -159,17 +169,17 @@ class FACTNET(nn.Module):
         elif 'cos' in self.net_fact.new_mode:
             return self.net_fact.temperature * F.linear(F.normalize(x, p=2, dim=-1), F.normalize(fc, p=2, dim=-1))
 
-    def update_fc_ft(self,new_fc,data,label,session):
-        new_fc=new_fc.clone().detach()
-        new_fc.requires_grad=True
+    def update_fc_ft(self, new_fc, data, label, session):
+        new_fc = new_fc.clone().detach()
+        new_fc.requires_grad = True
         optimized_parameters = [{'params': new_fc}]
-        optimizer = torch.optim.SGD(optimized_parameters,lr=self.args.optimizer.lr_new, momentum=0.9, dampening=0.9, weight_decay=0)
+        optimizer = torch.optim.SGD(optimized_parameters, lr=self.args.optimizer.lr_new, momentum=0.9, dampening=0.9, weight_decay=0)
 
         with torch.enable_grad():
             for epoch in range(self.args.optimizer.epochs_new):
                 old_fc = self.fc.weight[:self.args.dataloader.base_classes + self.args.dataloader.way * (session - 1), :].detach()
                 fc = torch.cat([old_fc, new_fc], dim=0)
-                logits = self.get_logits(data,fc)
+                logits = self.get_logits(data, fc)
                 loss = F.cross_entropy(logits, label)
                 optimizer.zero_grad()
                 loss.backward()

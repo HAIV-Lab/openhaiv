@@ -4,16 +4,16 @@ trainloader:
   dataset:
     _replace_: True
     type: remote
-    root: /data/datasets/CIL/0718/
+    root: /data/gjq/Dataset/VAIS/Fine_paired/vis
     split: train
-    subset_file: /data/datasets/CIL/0718/session_1.txt
+    subset_file: /data/gjq/Dataset/VAIS/Fine_paired/session_2.txt
     transform: train
 
 valloader:
   dataset:
     _replace_: True
     type: remote
-    root: /data/datasets/CIL/0718/
+    root: /data/gjq/Dataset/VAIS/Fine_paired/vis
     split: test
     subset_labels: 14
     transform: test
@@ -22,7 +22,7 @@ testloader:
   dataset:
     _replace_: True
     type: remote
-    root: /data/datasets/CIL/0718/
+    root: /data/gjq/Dataset/VAIS/Fine_paired/vis
     split: test
     subset_labels: 14
     transform: test

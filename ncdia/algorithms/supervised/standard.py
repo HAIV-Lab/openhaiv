@@ -32,8 +32,13 @@ class StandardSL(BaseAlg):
         criterion = trainer.criterion
         device = trainer.device
 
-        data, label = data.to(device), label.to(device)
-        outputs = model(data)
+        if isinstance(data, dict):
+            if len(data) == 2:
+                data_a, data_b, label = data["a"].to(device), data["b"].to(device), label.to(device)
+                outputs = model((data_a, data_b))
+        else:
+            data, label = data.to(device), label.to(device)
+            outputs = model(data)
 
         loss = criterion(outputs, label)
         acc = accuracy(outputs, label)[0]
@@ -60,8 +65,13 @@ class StandardSL(BaseAlg):
         criterion = trainer.criterion
         device = trainer.device
 
-        data, label = data.to(device), label.to(device)
-        outputs = model(data)
+        if isinstance(data, dict):
+            if len(data) == 2:
+                data_a, data_b, label = data["a"].to(device), data["b"].to(device), label.to(device)
+                outputs = model((data_a, data_b))
+        else:
+            data, label = data.to(device), label.to(device)
+            outputs = model(data)
 
         loss = criterion(outputs, label)
         acc = accuracy(outputs, label)[0]

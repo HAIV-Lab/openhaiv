@@ -2,43 +2,14 @@ import os
 import random
 from torchvision import transforms
 
-from collections import defaultdict
-from PIL import Image
 from ncdia.utils import DATASETS
 from ncdia.dataloader.tools import pil_loader
 from .utils import BaseDataset
-from ncdia.dataloader.augmentations.constrained_cropping import CustomMultiCropping
-
-
-def get_transform():
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                         std=[0.229, 0.224, 0.225])
-    num_crops = [2, 4]
-    size_crops = [224, 96]
-    min_scale_crops =  [0.14, 0.05]
-    max_scale_crops = [1, 0.14]
-    constrained_cropping = False
-    crop_transform = CustomMultiCropping(size_large=size_crops[0],
-                                         scale_large=(min_scale_crops[0], max_scale_crops[0]),
-                                         size_small=size_crops[1],
-                                         scale_small=(min_scale_crops[1], max_scale_crops[1]),
-                                         N_large=num_crops[0], N_small=num_crops[1],
-                                         condition_small_crops_on_key=constrained_cropping)
-    secondary_transform = transforms.Compose([
-        transforms.RandomHorizontalFlip(),    
-        transforms.RandomApply([
-        transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)
-        ], p=0.8),
-        transforms.RandomGrayscale(p=0.2),
-        transforms.ToTensor(),
-        normalize]
-        )
-    return crop_transform, secondary_transform
 
 
 @DATASETS.register
-class Remote(BaseDataset):
-    """Remote dataset
+class Remoteiv(BaseDataset):
+    """Remoteiv dataset
 
     Args:
         root (str): root folder of the dataset
@@ -72,7 +43,8 @@ class Remote(BaseDataset):
 
     def __init__(
             self,
-            root: str,
+            root_a: str,
+            root_b: str,
             split: str = 'train',
             subset_labels: list = None,
             subset_file: str = None,
@@ -80,13 +52,16 @@ class Remote(BaseDataset):
             **kwargs,
     ) -> None:
         super().__init__()
-        self.root = root
+        self.root_a = root_a
+        self.root_b = root_b
         self.split = split
 
         if split == 'train':
-            self.images, self.labels = self._load_data(os.path.join(root, 'train'))
+            self.images, self.labels = self._load_data(os.path.join(self.root_a, 'train'), \
+                                                        os.path.join(self.root_b, 'train'))
         elif split == 'test':
-            self.images, self.labels = self._load_data(os.path.join(root, 'test'))
+            self.images, self.labels = self._load_data(os.path.join(self.root_a, 'test'), \
+                                                        os.path.join(self.root_b, 'test'))
         else:
             raise ValueError(f"Unknown split: {split}")
         
@@ -104,30 +79,8 @@ class Remote(BaseDataset):
                 raise ValueError(f"Unknown transform: {transform}")
         else:
             self.transform = transform
-        self.crop_transform, self.secondary_transform = get_transform()
-        self.multi_train = False
-        self.attr_dict = defaultdict(list)
 
-    def _load_att(self):
-        wb = load_workbook(self.config.dataloader.att_path)
-        sheets = wb.worksheets
-        sheet1 = sheets[0]
-        max_row_num = sheet1.max_row
-        for i in range(2, max_row_num + 1):
-            row_list2 = []
-            count = 0
-            for row in sheet1[i]:
-                if count == 0:
-                    tag = row.value
-                    count += 1
-                    continue
-                if row.value is None:
-                    continue
-                row_list2.append(row.value)
-                count += 1
-            self.attr_dict[tag] = row_list2
-
-    def _load_data(self, root: str):
+    def _load_data(self, root_a: str, root_b: str):
         """Load data from root folder
 
         Args:
@@ -137,23 +90,30 @@ class Remote(BaseDataset):
             list: list of image paths
             list: list of labels
         """
-        imgpaths, labels = [], []
-        for dir_name in os.listdir(root):
-            img_list = os.listdir(os.path.join(root, dir_name))
-            for k in range(len(img_list)):
-                imgpath = os.path.join(root, dir_name, img_list[k])
-                imgpaths.append(os.path.abspath(imgpath))
+        imgpaths, labels = {"a": [], "b": []}, []
+        for dir_name in os.listdir(root_a):
+            img_list_a = os.listdir(os.path.join(root_a, dir_name))
+            img_list_b = os.listdir(os.path.join(root_b, dir_name))
+            
+            mix_img_list = list(set(img_list_a) & set(img_list_b))
+
+            for img_name in mix_img_list:
+                imgpath_a = os.path.join(root_a, dir_name, img_name)
+                imgpath_b = os.path.join(root_b, dir_name, img_name)
+
+                imgpaths["a"].append(os.path.abspath(imgpath_a))
+                imgpaths["b"].append(os.path.abspath(imgpath_b))
                 if int(dir_name) >= 33:
                     labels.append(int(dir_name) - 3)
                 else:
                     labels.append(int(dir_name))
         return imgpaths, labels
     
-    def _select_from_label(self, images: list, labels: list, subset_labels: list | int):
+    def _select_from_label(self, images: dict, labels: list, subset_labels: list | int):
         """Select images from a subset of labels
 
         Args:
-            images (list): list of image paths
+            images (dict): dict of infrared and visble image paths
             labels (list): list of labels
             subset_labels (list | int): list of subset labels
 
@@ -163,18 +123,19 @@ class Remote(BaseDataset):
         """
         if isinstance(subset_labels, int):
             subset_labels = [i for i in range(subset_labels)]
-        selected_images, selected_labels = [], []
-        for img, label in zip(images, labels):
+        selected_images, selected_labels = {"a":[], "b":[]}, []
+        for img_a, img_b, label in zip(images["a"], images["b"], labels):
             if label in subset_labels:
-                selected_images.append(img)
+                selected_images["a"].append(img_a)
+                selected_images["b"].append(img_b)
                 selected_labels.append(label)
         return selected_images, selected_labels
 
-    def _select_from_file(self, images: list, labels: list, file: str):
+    def _select_from_file(self, images: dict, labels: list, file: str):
         """Select images from a subset of labels
 
         Args:
-            images (list): list of image paths
+            images (dict): dict of infrared and visble image paths
             labels (list): list of labels
             file (str): file containing the selected images
 
@@ -182,13 +143,20 @@ class Remote(BaseDataset):
             list: list of image paths
             list: list of labels
         """
-        selected_images, selected_labels = [], []
+        selected_images, selected_labels = {"a": [], "b": []}, []
         with open(file, 'r') as f:
             for line in f:
                 img = os.path.abspath(line.strip())
-                if img in images:
-                    selected_images.append(img)
-                    selected_labels.append(labels[images.index(img)])
+                if img in images["a"] and img not in selected_images["a"]:
+                    selected_images["a"].append(img)
+                    selected_images["b"].append(images["b"][images["a"].index(img)])
+                    selected_labels.append(labels[images["a"].index(img)])
+                
+                if img in images["b"] and img not in selected_images["b"]:
+                    selected_images["b"].append(img)
+                    selected_images["a"].append(images["a"][images["b"].index(img)])
+                    selected_labels.append(labels[images["b"].index(img)])
+
         return selected_images, selected_labels
     
     def sample_test_data(self, ratio: int | float):
@@ -206,13 +174,13 @@ class Remote(BaseDataset):
             raise ValueError("Sampling is only applicable in test mode")
 
         class_indices = {}
-        for idx, label in enumerate(self.targets):
+        for idx, label in enumerate(self.labels):
             if label in class_indices:
                 class_indices[label].append(idx)
             else:
                 class_indices[label] = [idx]
 
-        sampled_images, sampled_labels = [], []
+        sampled_images, sampled_labels = {"a": [], "b": []}, []
         for label, indices in class_indices.items():
             if isinstance(ratio, int) and ratio > 0:
                 sample_size = min(len(indices), ratio)
@@ -223,36 +191,28 @@ class Remote(BaseDataset):
             
             sampled_indices = random.sample(indices, sample_size)
             for i in sampled_indices:
-                sampled_images.append(self.images[i])
+                sampled_images["a"].append(self.images["a"][i])
+                sampled_images["b"].append(self.images["b"][i])
                 sampled_labels.append(self.labels[i])
 
         self.images, self.labels = sampled_images, sampled_labels
 
     def __len__(self) -> int:
-        return len(self.images)
+        return len(self.labels)
 
     def __getitem__(self, index: int) -> dict:
-        imgpath, label = self.images[index], self.labels[index]
-        img = pil_loader(imgpath)
-        if self.multi_train:
-            image = Image.open(imgpath).convert('RGB')
-            classify_image = [self.transform(image)]
-            # print(self.crop_transform(image))
-            multi_crop = self.crop_transform(image)
-            assert (len(multi_crop) == self.crop_transform.N_large + self.crop_transform.N_small)
-            if isinstance(self.secondary_transform, list):
-                multi_crop = [tf(x) for tf, x in zip(self.secondary_transform, multi_crop)]
-            else:
-                multi_crop = [self.secondary_transform(x) for x in multi_crop]
-            total_img = classify_image + multi_crop
+        imgpath_a, imgpath_b, label = self.images["a"][index], self.images["b"][index], self.labels[index]
+        img_a = pil_loader(imgpath_a)
+        img_b = pil_loader(imgpath_b)
 
         if self.transform is not None:
-            total_img = self.transform(img)
+            img_a = self.transform(img_a)
+            img_b = self.transform(img_b)
 
         return {
-            'data': total_img,
+            'data': {"a": img_a, "b": img_b},
             'label': label,
             'attribute': [],
-            'imgpath': imgpath,
+            'imgpath': {"a": imgpath_a, "b": imgpath_b},
         }
 

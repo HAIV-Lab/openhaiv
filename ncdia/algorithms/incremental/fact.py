@@ -28,7 +28,7 @@ class FACT(BaseAlg):
             session = 0
         else:
             session = self.trainer.session
-        if session==1:
+        if session == 1:
             self._network = trainer.model
             self._network.eval()
             self._network.mode = self.args.CIL.new_mode
@@ -57,13 +57,22 @@ class FACT(BaseAlg):
             label_list = []
             with torch.no_grad():
                 for i, batch in enumerate(train_loader):
-                    data = batch['data'].cuda()
-                    label = batch['label'].cuda()
-    
-                    b = data.size()[0]
-                    m = data.size()[0] // b
-                    labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
-                    embedding = self._network.get_features(data)
+                    if isinstance(batch['data'], dict):
+                        if len(batch['data']) == 2:
+                            data_a, data_b = batch['data']["a"].cuda(), batch['data']["b"].cuda()
+                            label = batch['label'].cuda()
+                            b = data_a.size()[0]
+                            m = data_a.size()[0] // b
+                            labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
+                            embedding = self._network.get_features((data_a, data_b))
+                    else:
+                        data = batch['data'].cuda()
+                        label = batch['label'].cuda()
+        
+                        b = data.size()[0]
+                        m = data.size()[0] // b
+                        labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
+                        embedding = self._network.get_features(data)
 
                     embedding_list.append(embedding.cpu())
                     label_list.append(labels.cpu())
@@ -100,23 +109,25 @@ class FACT(BaseAlg):
             session = 0
         else:
             session = self.trainer.session
-        if session==0:
+        if session == 0:
             self._network = trainer.model
             self._network.train()
             
             masknum = 3
-            mask=np.zeros((self.args.CIL.base_classes,self.args.CIL.num_classes))
-            for i in range(self.args.CIL.num_classes-self.args.CIL.base_classes):
-                picked_dummy=np.random.choice(self.args.CIL.base_classes,masknum,replace=False)
-                mask[:,i+self.args.CIL.base_classes][picked_dummy]=1
-            mask=torch.tensor(mask).cuda()
+            mask = np.zeros((self.args.CIL.base_classes, self.args.CIL.num_classes))
+            for i in range(self.args.CIL.num_classes - self.args.CIL.base_classes):
+                picked_dummy=np.random.choice(self.args.CIL.base_classes,masknum, replace=False)
+                mask[:, i + self.args.CIL.base_classes][picked_dummy] = 1
+            mask = torch.tensor(mask).cuda()
 
+            if isinstance(data, dict):
+                if len(data) == 2:
+                    data_a, data_b, labels = data["a"].cuda(), data["b"].cuda(), label.cuda()
+                    logits = self._network((data_a, data_b))
+            else:
+                data, labels = data.cuda(), label.cuda()
+                logits = self._network(data)
 
-            data = data.cuda()
-            labels = label.cuda()
-
-
-            logits = self._network(data)
             logits_ = logits[:, :self.base_classes]
             # _, pred = torch.max(logits_, dim=1)
             # acc = self._accuracy(labels, pred)
@@ -171,17 +182,21 @@ class FACT(BaseAlg):
             self._network.eval()
             
             masknum = 3
-            mask=np.zeros((self.args.CIL.base_classes,self.args.CIL.num_classes))
-            for i in range(self.args.CIL.num_classes-self.args.CIL.base_classes):
-                picked_dummy=np.random.choice(self.args.CIL.base_classes,masknum,replace=False)
-                mask[:,i+self.args.CIL.base_classes][picked_dummy]=1
-            mask=torch.tensor(mask).cuda()
+            mask = np.zeros((self.args.CIL.base_classes, self.args.CIL.num_classes))
+            for i in range(self.args.CIL.num_classes - self.args.CIL.base_classes):
+                picked_dummy = np.random.choice(self.args.CIL.base_classes,masknum, replace=False)
+                mask[:, i + self.args.CIL.base_classes][picked_dummy] = 1
+            mask = torch.tensor(mask).cuda()
 
             with torch.no_grad():
-                data = data.cuda()
-                labels = label.cuda()
+                if isinstance(data, dict):
+                    if len(data) == 2:
+                        data_a, data_b, labels = data["a"].cuda(), data["b"].cuda(), label.cuda()
+                        logits = self._network((data_a, data_b))
+                else:
+                    data, labels = data.cuda(), label.cuda()
+                    logits = self._network(data)
 
-                logits = self._network(data)
                 logits_ = logits[:, :self.base_classes]
                 # _, pred = torch.max(logits_, dim=1)
                 # acc = self._accuracy(labels, pred)

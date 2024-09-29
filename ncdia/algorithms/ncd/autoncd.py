@@ -70,21 +70,39 @@ class AutoNCD(object):
                 preds (torch.Tensor): prediction labels, (N,)
                 labels (torch.Tensor): ground truth labels, (N,)
         """
-        imgpaths, features, logits, preds, confs, labels = [], [], [], [], [], []
+        if isinstance(dataloader.dataset.images, dict):
+            if len(dataloader.dataset.images) == 2:
+                imgpaths, features, logits, preds, confs, labels = {"a": [], "b": []}, [], [], [], [], []
+        else:
+            imgpaths, features, logits, preds, confs, labels = [], [], [], [], [], []
         
         tbar = tqdm(dataloader, dynamic_ncols=True, disable=not self.verbose)
         for batch in tbar:
-            data = batch['data'].to(self.device)
-            label = batch['label'].to(self.device)
-            imgpath = batch['imgpath']
+            if isinstance(batch['data'], dict):
+                if len(batch['data']) == 2:
+                    data_a = batch['data']['a'].to(self.device)
+                    data_b = batch['data']['b'].to(self.device)
+                    label = batch['label'].to(self.device)
+                    imgpath_a = batch['imgpath']['a']
+                    imgpath_b = batch['imgpath']['b']
 
-            joint_preds = self.model(data)
+                    joint_preds = self.model((data_a, data_b))
+                    feats = self.model.get_features((data_a, data_b))
+                    imgpaths["a"] += imgpath_a
+                    imgpaths["b"] += imgpath_b
+            else:
+                data = batch['data'].to(self.device)
+                label = batch['label'].to(self.device)
+                imgpath = batch['imgpath']
+
+                joint_preds = self.model(data)
+                feats = self.model.get_features(data)
+                imgpaths += imgpath
+
             joint_preds = joint_preds[:, :self.all_classes]
             score = torch.softmax(joint_preds, dim=1)
             conf, pred = torch.max(score, dim=1)
-            feats = self.model.get_features(data)
 
-            imgpaths += imgpath
             features.append(feats.clone().detach().cpu())
             logits.append(joint_preds.clone().detach().cpu())
             preds.append(pred.clone().detach().cpu())
@@ -174,7 +192,13 @@ class AutoNCD(object):
         conf = torch.tensor(self.ood_metrics[metric][0])
         label = torch.tensor(self.ood_metrics[metric][1])
 
-        total_imgpath_list = self.id_imgpaths + self.ood_imgpaths
+        if isinstance(self.id_imgpaths, dict):
+            if len(self.id_imgpaths) == 2:
+                id_imgpaths_list = [[self.id_imgpaths["a"][i], self.id_imgpaths["b"][i]] for i in range(len(self.id_imgpaths["a"]))]
+                ood_imgpaths_list = [[self.ood_imgpaths["a"][i], self.ood_imgpaths["b"][i]] for i in range(len(self.ood_imgpaths["a"]))]
+                total_imgpath_list = id_imgpaths_list + ood_imgpaths_list
+        else:
+            total_imgpath_list = self.id_imgpaths + self.ood_imgpaths
         total_feat = torch.cat((self.id_feats, self.ood_feats), dim=0)
 
         novel_indices = torch.nonzero(conf < threshold)[:, 0]
@@ -199,7 +223,12 @@ class AutoNCD(object):
         pseudo_labels = pseudo_labels + self.inc_classes
         pseudo_labels = self._split_cluster_label(novel_target, pseudo_labels, self.ood_labels)
 
-        ood_loader.dataset.data = novel_imgpath_list
+        if isinstance(self.id_imgpaths, dict):
+            if len(self.id_imgpaths) == 2:
+                ood_loader.dataset.images["a"] = [novel_imgpath_list[i][0] for i in range(len(novel_imgpath_list))]
+                ood_loader.dataset.images["b"] = [novel_imgpath_list[i][1] for i in range(len(novel_imgpath_list))]
+        else:
+            ood_loader.dataset.data = novel_imgpath_list
         ood_loader.dataset.targets = pseudo_labels
 
         return ood_loader

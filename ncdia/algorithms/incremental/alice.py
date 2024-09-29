@@ -50,13 +50,23 @@ class Alice(BaseAlg):
             label_list = []
             with torch.no_grad():
                 for i, batch in enumerate(train_loader):
-                    data = batch['data'].cuda()
-                    label = batch['label'].cuda()
+                    if isinstance(batch['data'], dict):
+                        if len(batch['data']) == 2:
+                            data_a, data_b = batch['data']["a"].cuda(), batch['data']["b"].cuda()
+                            label = batch['label'].cuda()
+
+                            b = data_a.size()[0]
+                            m = data_a.size()[0] // b
+                            labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
+                            embedding = self._network.get_features((data_a, data_b))
+                    else:
+                        data = batch['data'].cuda()
+                        label = batch['label'].cuda()
     
-                    b = data.size()[0]
-                    m = data.size()[0] // b
-                    labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
-                    embedding = self._network.get_features(data)
+                        b = data.size()[0]
+                        m = data.size()[0] // b
+                        labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
+                        embedding = self._network.get_features(data)
 
                     embedding_list.append(embedding.cpu())
                     label_list.append(labels.cpu())
@@ -101,10 +111,14 @@ class Alice(BaseAlg):
                 mask[:,i+self.args.CIL.base_classes][picked_dummy]=1
             mask=torch.tensor(mask).cuda()
 
-            data = data.cuda()
-            labels = label.cuda()
-
-            logits = self._network(data)
+            if isinstance(data, dict):
+                if len(data) == 2:
+                    data_a, data_b, labels = data["a"].cuda(), data["b"].cuda(), label.cuda()
+                    logits = self._network((data_a, data_b))
+            else:
+                data, labels = data.cuda(), label.cuda()
+                logits = self._network(data)
+                
             logits_ = logits[:, :self.args.CIL.base_classes]
             # pred = F.softmax(logits_, dim=1)
             acc = accuracy(logits_, labels)[0]
@@ -148,10 +162,14 @@ class Alice(BaseAlg):
             self._network.eval()
 
             with torch.no_grad():
-                data = data.cuda()
-                labels = label.cuda()
+                if isinstance(data, dict):
+                    if len(data) == 2:
+                        data_a, data_b, labels = data["a"].cuda(), data["b"].cuda(), label.cuda()
+                        logits = self._network((data_a, data_b))
+                else:
+                    data, labels = data.cuda(), label.cuda()
+                    logits = self._network(data)
 
-                logits = self._network(data)
                 logits_ = logits[:, :self.args.CIL.base_classes]
                 # _, pred = torch.max(logits_, dim=1)
                 acc = accuracy(logits_, labels)[0]
@@ -166,23 +184,33 @@ class Alice(BaseAlg):
             # self._network.eval()
 
             with torch.no_grad():
-                data = data.cuda()
-                labels = label.cuda()
+                if isinstance(data, dict):
+                    if len(data) == 2:
+                        data_a, data_b, labels = data["a"].cuda(), data["b"].cuda(), label.cuda()
+                        b = data_a.size()[0]
+                        # 20240711 
+                        if self.transform is not None:
+                            data_a = self.transform(data_a)
+                            data_b = self.transform(data_b)
+                        m = data_a.size()[0] // b
+                        joint_preds = self._network((data_a, data_b))
+                else:
+                    data, labels = data.cuda(), label.cuda()
+                    b = data.size()[0]
+                    # 20240711 
+                    if self.transform is not None:
+                        data = self.transform(data)
+                    m = data.size()[0] // b
+                    joint_preds = self._network(data)
 
-                b = data.size()[0]
-                # 20240711 
-                if self.transform is not None:
-                    data = self.transform(data)
-                m = data.size()[0] // b
-                joint_preds = self._network(data)
-                feat = self._network.get_features(data)
+                    feat = self._network.get_features(data)
+                    agg_feat = feat.view(-1, m, feat.size(1)).mean(dim=1)
+
                 joint_preds = joint_preds[:, :test_class*m]
-                
+
                 agg_preds = 0
-                agg_feat = feat.view(-1, m, feat.size(1)).mean(dim=1)
                 for j in range(m):
                     agg_preds = agg_preds + joint_preds[j::m, j::m] / m
-
                 acc = accuracy(agg_preds, labels)[0]
                 # logits = self._network(data)
                 # logits_ = logits[:, :self.args.CIL.base_class+self.args.CIL.base_class*session]
