@@ -1,10 +1,42 @@
 import os
 import random
+import torch
 from torchvision import transforms
 
+from PIL import Image
+from openpyxl import load_workbook
 from ncdia.utils import DATASETS
 from ncdia.dataloader.tools import pil_loader
 from .utils import BaseDataset
+from ncdia.dataloader.augmentations.constrained_cropping import CustomMultiCropping
+
+from collections import defaultdict
+attr_path = "/data/datasets/remote/0718_dy/Attribute0718.xlsx"
+
+def get_transform():
+    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                         std=[0.229, 0.224, 0.225])
+    num_crops = [2, 4]
+    size_crops = [224, 96]
+    min_scale_crops =  [0.14, 0.05]
+    max_scale_crops = [1, 0.14]
+    constrained_cropping = False
+    crop_transform = CustomMultiCropping(size_large=size_crops[0],
+                                         scale_large=(min_scale_crops[0], max_scale_crops[0]),
+                                         size_small=size_crops[1],
+                                         scale_small=(min_scale_crops[1], max_scale_crops[1]),
+                                         N_large=num_crops[0], N_small=num_crops[1],
+                                         condition_small_crops_on_key=constrained_cropping)
+    secondary_transform = transforms.Compose([
+        transforms.RandomHorizontalFlip(),    
+        transforms.RandomApply([
+        transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)
+        ], p=0.8),
+        transforms.RandomGrayscale(p=0.2),
+        transforms.ToTensor(),
+        normalize]
+        )
+    return crop_transform, secondary_transform
 
 
 @DATASETS.register
@@ -75,6 +107,29 @@ class Remote(BaseDataset):
                 raise ValueError(f"Unknown transform: {transform}")
         else:
             self.transform = transform
+        self.crop_transform, self.secondary_transform = get_transform()
+        self.multi_train = False
+        self.attr_dict = defaultdict(list)
+        self._load_att()
+
+    def _load_att(self):
+        wb = load_workbook(attr_path)
+        sheets = wb.worksheets
+        sheet1 = sheets[0]
+        max_row_num = sheet1.max_row
+        for i in range(2, max_row_num + 1):
+            row_list2 = []
+            count = 0
+            for row in sheet1[i]:
+                if count == 0:
+                    tag = row.value
+                    count += 1
+                    continue
+                if row.value is None:
+                    continue
+                row_list2.append(row.value)
+                count += 1
+            self.attr_dict[tag] = row_list2
 
     def _load_data(self, root: str):
         """Load data from root folder
@@ -87,15 +142,16 @@ class Remote(BaseDataset):
             list: list of labels
         """
         imgpaths, labels = [], []
-        for dir_name in os.listdir(root):
+        for num, dir_name in enumerate(os.listdir(root)):
             img_list = os.listdir(os.path.join(root, dir_name))
             for k in range(len(img_list)):
                 imgpath = os.path.join(root, dir_name, img_list[k])
                 imgpaths.append(os.path.abspath(imgpath))
-                if int(dir_name) >= 33:
-                    labels.append(int(dir_name) - 3)
+                # if int(dir_name) >= 33:
+                if int(num) >= 33:
+                    labels.append(num)
                 else:
-                    labels.append(int(dir_name))
+                    labels.append(num)
         return imgpaths, labels
     
     def _select_from_label(self, images: list, labels: list, subset_labels: list | int):
@@ -183,13 +239,26 @@ class Remote(BaseDataset):
     def __getitem__(self, index: int) -> dict:
         imgpath, label = self.images[index], self.labels[index]
         img = pil_loader(imgpath)
+        if self.multi_train:
+            image = Image.open(imgpath).convert('RGB')
+            classify_image = [self.transform(image)]
+            # print(self.crop_transform(image))
+            multi_crop = self.crop_transform(image)
+            assert (len(multi_crop) == self.crop_transform.N_large + self.crop_transform.N_small)
+            if isinstance(self.secondary_transform, list):
+                multi_crop = [tf(x) for tf, x in zip(self.secondary_transform, multi_crop)]
+            else:
+                multi_crop = [self.secondary_transform(x) for x in multi_crop]
+            total_img = classify_image + multi_crop
 
         if self.transform is not None:
-            img = self.transform(img)
+            total_img = self.transform(img)
+        attrs = self.attr_dict[label]
+        attrs = torch.tensor(list(map(float, attrs)), dtype=torch.float)
 
         return {
-            'data': img,
+            'data': total_img,
             'label': label,
-            'attribute': [],
+            'attribute': attrs,
             'imgpath': imgpath,
         }

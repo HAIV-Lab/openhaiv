@@ -4,7 +4,7 @@ trainloader:
   dataset:
     _replace_: True
     type: remote
-    root: /data/datasets/CIL/0718/
+    root: /data/datasets/remote/0718_dy/
     split: train
     transform: train
 
@@ -12,7 +12,7 @@ valloader:
   dataset:
     _replace_: True
     type: remote
-    root: /data/datasets/CIL/0718/
+    root: /data/datasets/remote/0718_dy/
     split: test
     transform: test
 
@@ -20,6 +20,6 @@ testloader:
   dataset:
     _replace_: True
     type: remote
-    root: /data/datasets/CIL/0718/
+    root: /data/datasets/remote/0718_dy/
     split: test
     transform: test

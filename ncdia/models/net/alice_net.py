@@ -35,6 +35,8 @@ class AliceNET(nn.Module):
         network = network.cfg
         network['pretrained'] = True
         network['num_classes'] = 1000
+        if "type" not in network:
+            network['type'] = 'resnet18'
         self.encoder = MODELS.build(network)
         
         self.num_features = 512
@@ -187,3 +189,5 @@ class AliceNET(nn.Module):
                 pass
 
         self.fc.weight.data[self.args.dataloader.base_classes + self.args.dataloader.way * (session - 1):self.args.dataloader.base_class + self.args.dataloader.way * session, :].copy_(new_fc.data)
+
+    

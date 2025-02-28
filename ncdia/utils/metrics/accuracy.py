@@ -18,6 +18,37 @@ def accuracy(output, target, topk=(1,)):
     correct = pred.eq(target.reshape(1, -1).expand_as(pred))
     return [correct[:min(k, maxk)].reshape(-1).float().sum(0) * 100. / batch_size for k in topk]
 
+# def per_class_accuracy(output, target, topk=(1,)):
+#     """ Compute per class accuracy over the k-top predictions for the specified values of k 
+    
+#     Args:
+#         output (torch.Tensor): model output, shape (batch_size, num_classes)
+#         target (torch.Tensor): target labels, shape (batch_size)
+#         topk (tuple): top-k values, default is (1,)
+
+#     Returns:
+#         per_class_acc (dict): accuracy values for each class
+#     """
+#     maxk = max(topk)
+#     batch_size = target.size(0)
+#     unique_class = torch.unique(target)
+#     _, pred = output.topk(maxk, 1, True, True)
+#     pred = pred.t()
+#     correct = pred.eq(target.view(1, -1).expand_as(pred))
+
+#     # Compute class-wise accuracy
+#     per_class_acc = {c.item(): 0.0 for c in unique_class}
+
+#     for c in unique_class:
+#         class_mask = (target == c)
+#         class_count = class_mask.sum().item()
+
+#         if class_count > 0:  # Avoid division by zero
+#             correct_k = correct[:maxk][class_mask].sum().item()
+#             per_class_acc[c.item()] = (correct_k / class_count) * 100.0
+
+#     return per_class_acc
+
 
 def per_class_accuracy(output, target, topk=(1, )):
     """ Compute per class accuracy over the k-top predictions for the specified values of k 

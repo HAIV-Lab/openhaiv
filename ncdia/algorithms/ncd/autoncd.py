@@ -71,7 +71,8 @@ class AutoNCD(object):
                 labels (torch.Tensor): ground truth labels, (N,)
         """
         imgpaths, features, logits, preds, confs, labels = [], [], [], [], [], []
-        
+        logits_attrs = []
+        preds_attrs = []
         tbar = tqdm(dataloader, dynamic_ncols=True, disable=not self.verbose)
         for batch in tbar:
             data = batch['data'].to(self.device)
@@ -79,6 +80,9 @@ class AutoNCD(object):
             imgpath = batch['imgpath']
 
             joint_preds = self.model(data)
+            joint_preds_att = None
+            if isinstance(joint_preds, tuple):
+                joint_preds, joint_preds_att = joint_preds
             joint_preds = joint_preds[:, :self.all_classes]
             score = torch.softmax(joint_preds, dim=1)
             conf, pred = torch.max(score, dim=1)
@@ -90,6 +94,10 @@ class AutoNCD(object):
             preds.append(pred.clone().detach().cpu())
             confs.append(conf.clone().detach().cpu())
             labels.append(label.clone().detach().cpu())
+            if joint_preds_att is not None:
+                logits_attrs.append(joint_preds_att.clone().detach().cpu())
+                pred_att = (torch.sigmoid(joint_preds_att) > 0.5).type(torch.int)
+                preds_attrs.append(pred_att)
         
         # convert values into numpy array
         features = torch.cat(features, dim=0)
@@ -97,18 +105,31 @@ class AutoNCD(object):
         preds = torch.cat(preds, dim=0).to(torch.int)
         confs = torch.cat(confs, dim=0)
         labels = torch.cat(labels, dim=0).to(torch.int)
+        if logits_attrs != []:
+            logits_attrs = torch.cat(logits_attrs, dim=0)
+            preds_attrs = torch.cat(preds_attrs, dim=0).to(torch.int)
 
         if split == 'train':
             classes = torch.unique(labels)
             prototype_cls = []
+            prototype_att = []
 
             for cls in classes:
                 cls_indices = torch.where(labels == cls)
                 cls_preds = logits[cls_indices]
                 prototype_cls.append(torch.mean(cls_preds, dim=0))
+                if logits_attrs != []:
+                    att_predictions = logits_attrs[cls_indices]
+                    prototype_att.append(torch.mean(att_predictions, dim=0))
             
+            if prototype_att != []:
+                return features, logits, torch.stack(prototype_cls), torch.stack(prototype_att)
+
             return features, logits, torch.stack(prototype_cls)
 
+        if logits_attrs != []:
+            return imgpaths, features, logits, preds, labels, logits_attrs
+        
         return imgpaths, features, logits, preds, labels
     
     def relabel(
@@ -142,26 +163,55 @@ class AutoNCD(object):
         self.all_classes = self.base_classes + self.inc_classes
         
         # prepare prototype of training data
-        self.train_feats, self.train_logits, self.prototype_cls = \
-            self.inference(self.train_loader, split='train')
-        self.prototype_cls = F.normalize(self.prototype_cls, p=2, dim=1)
+        train_ret = self.inference(self.train_loader, split='train')
+        if len(train_ret)==3:
+            self.train_feats, self.train_logits, self.prototype_cls = train_ret
+        else:
+            self.train_feats, self.train_logits, self.prototype_cls, self.prototype_att = train_ret
+        # self.train_feats, self.train_logits, self.prototype_cls = \
+        #     self.inference(self.train_loader, split='train')
+        # self.prototype_cls = F.normalize(self.prototype_cls, p=2, dim=1)
+
+        self.attrs = None
+        self.ood_attrs = None
 
         # prepare id statistics from test data
-        self.id_imgpaths, self.id_feats, self.id_logits, self.id_preds, self.id_labels = \
-            self.inference(self.test_loader, split='test')
+        ret_test = self.inference(self.test_loader, split='test')
+        if len(ret_test)==5:
+            self.id_imgpaths, self.id_feats, self.id_logits, self.id_preds, self.id_labels = ret_test
+        else:
+            self.id_imgpaths, self.id_feats, self.id_logits, self.id_preds, self.id_labels, self.attrs = ret_test
+        # self.id_imgpaths, self.id_feats, self.id_logits, self.id_preds, self.id_labels = \
+        #     self.inference(self.test_loader, split='test')
         
         # prepare ood statistics from ood data
-        self.ood_imgpaths, self.ood_feats, self.ood_logits, self.ood_preds, self.ood_labels = \
-            self.inference(self.ood_loader, split='test')
+        ret_ood = self.inference(self.ood_loader, split='test')
+        if len(ret_ood)==5:
+            self.ood_imgpaths, self.ood_feats, self.ood_logits, self.ood_preds, self.ood_labels = ret_ood
+        else:
+            self.ood_imgpaths, self.ood_feats, self.ood_logits, self.ood_preds, self.ood_labels, self.ood_attrs = ret_ood
+        # self.ood_imgpaths, self.ood_feats, self.ood_logits, self.ood_preds, self.ood_labels = \
+        #     self.inference(self.ood_loader, split='test')
         
         # find the best ood threshold
-        self.ood_metrics = AutoOOD.eval(
-            self.prototype_cls, self.fc_weight,
-            self.train_feats, self.train_logits,
-            self.id_feats, self.id_logits, self.id_labels,
-            self.ood_feats, self.ood_logits, self.ood_labels,
-            metrics=metrics, tpr_th=tpr_th, prec_th=prec_th,
-        )
+        if self.attrs is not None:
+            self.ood_metrics = AutoOOD.eval(
+                self.prototype_cls, self.fc_weight,
+                self.train_feats, self.train_logits,
+                self.id_feats, self.id_logits, self.id_labels,
+                self.ood_feats, self.ood_logits, self.ood_labels,
+                metrics=metrics, tpr_th=tpr_th, prec_th=prec_th,
+                id_attrs=self.attrs, ood_attrs = self.ood_attrs,
+                prototype_att = self.prototype_att
+            )
+        else:
+            self.ood_metrics = AutoOOD.eval(
+                self.prototype_cls, self.fc_weight,
+                self.train_feats, self.train_logits,
+                self.id_feats, self.id_logits, self.id_labels,
+                self.ood_feats, self.ood_logits, self.ood_labels,
+                metrics=metrics, tpr_th=tpr_th, prec_th=prec_th,
+            )
         
 
         if isinstance(metrics, list):
@@ -177,6 +227,8 @@ class AutoNCD(object):
         total_imgpath_list = self.id_imgpaths + self.ood_imgpaths
         total_feat = torch.cat((self.id_feats, self.ood_feats), dim=0)
 
+        print("conf: ", conf)
+        print("threshold: ", threshold)
         novel_indices = torch.nonzero(conf < threshold)[:, 0]
         # novel_indices_list = novel_indices.tolist()
         novel_imgpath_list = [total_imgpath_list[i] for i in novel_indices]
