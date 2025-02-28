@@ -5,7 +5,7 @@ from ncdia.utils import ALGORITHMS
 from ncdia.algorithms.base import BaseAlg
 from ncdia.utils.losses import AngularPenaltySMLoss
 from ncdia.dataloader.augmentations import fantasy
-from ncdia.utils.metrics import accuracy
+from ncdia.utils.metrics import accuracy, per_class_accuracy
 from .hooks import SAVCHook
 
 
@@ -38,12 +38,11 @@ class SAVC(BaseAlg):
             tsfm = trainer.val_loader.dataset.transform
             trainloader.dataset.transform = tsfm
             class_list = list(range(self.args.CIL.base_class+ (session-1)*self.args.CIL.way, self.args.CIL.base_class + self.args.CIL.way * session))
-            print("###pre fc data: ", self._network.fc.weight.data[13])
-            # self._network.update_fc(trainloader, class_list, session)
-            print("###update fc data: ", self._network.fc.weight.data[13])
+            # print("###pre fc data: ", self._network.fc.weight.data[13])
+            self._network.update_fc(trainloader, class_list, session)
+            # print("###update fc data: ", self._network.fc.weight.data[13])
 
-
-    def train_step(self, trainer, data, label, *args, **kwargs):
+    def train_step(self, trainer, data, label, attribute, *args, **kwargs):
         """
         base train for fact method
         Args:
@@ -58,33 +57,43 @@ class SAVC(BaseAlg):
             self._network = trainer.model
             self._network.train()
             device = trainer.device
-            b, c, h, w = data[1].shape
-            original = data[0].to(device)
-            data[1] = data[1].to(device)
-            data[2] = data[2].to(device)
+            b, c, h, w = data.shape
+            original = data.to(device)
+            data_1 = data.to(device)
+            data_2 = data.to(device)
             label = label.to(device)
+            attribute = attribute
+            attribute = attribute.cuda(non_blocking=True)
 
-            if len(self.config.CIL.num_crops) > 1:
-                    data_small = data[self.config.CIL.num_crops[0]+1].unsqueeze(1)
-                    for j in range(1, self.config.CIL.num_crops[1]):
-                        data_small = torch.cat((data_small, data[j+self.config.CIL.num_crops[0]+1].unsqueeze(1)), dim=1)
-                    data_small = data_small.view(-1, c, self.config.CIL.size_crops[1], \
-                                                self.config.CIL.size_crops[1]).cuda(non_blocking=True)
-            else:
-                data_small = None
+            # if len(self.config.CIL.num_crops) > 1:
+            #         data_small = data[self.config.CIL.num_crops[0]+1].unsqueeze(1)
+            #         for j in range(1, self.config.CIL.num_crops[1]):
+            #             data_small = torch.cat((data_small, data[j+self.config.CIL.num_crops[0]+1].unsqueeze(1)), dim=1)
+            #         data_small = data_small.view(-1, c, self.config.CIL.size_crops[1], \
+            #                                     self.config.CIL.size_crops[1]).cuda(non_blocking=True)
+            # else:
+            #     data_small = None
 
             data_classify = self.transform(original)    
-            data_query = self.transform(data[1])
-            data_key = self.transform(data[2])
-            data_small = self.transform(data_small)
+            data_query = self.transform(data_1)
+            data_key = self.transform(data_2)
+            # data_small = self.transform(data_small)
 
             m = data_query.size()[0] // b
             joint_labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
+            att_b, att_c = attribute.shape
+            joint_attribute = attribute.unsqueeze(1).repeat(1, 2, 1)
+            joint_attribute = joint_attribute.reshape(2 * att_b, att_c)
 
             # ------  forward  ------- #
-            joint_preds = self._network(im_cla=data_classify)  
+            joint_preds, joint_preds_att = self._network(im_cla=data_classify)  
             joint_preds = joint_preds[:, :self.config.CIL.base_class*m]
-            joint_loss = F.cross_entropy(joint_preds, joint_labels)
+            
+            tmp_preds_att = joint_preds_att.sigmoid()
+            bceloss = torch.nn.BCELoss()
+            att_loss = bceloss(tmp_preds_att, joint_attribute.float())
+            cls_loss = F.cross_entropy(joint_preds, joint_labels)
+            joint_loss = 5.0 * att_loss + cls_loss
 
             agg_preds = 0
             for i in range(m):
@@ -99,10 +108,12 @@ class SAVC(BaseAlg):
             # print(joint_preds.shape)
             # input()
             acc = accuracy(joint_preds, joint_labels)[0]
+            per_acc = str(per_class_accuracy(joint_preds, joint_labels))
 
             ret = {}
             ret['loss'] = loss
             ret['acc'] = acc
+            ret['per_class_acc'] = per_acc
             return ret
         else:
             ret = {}
@@ -144,7 +155,7 @@ class SAVC(BaseAlg):
             if self.transform is not None:
                 data = self.transform(data)
             m = data.size()[0] // b
-            joint_preds = self._network(data)
+            joint_preds, _ = self._network(data)
             feat = self._network.get_features(data)
             joint_preds = joint_preds[:, :test_class*m]
             

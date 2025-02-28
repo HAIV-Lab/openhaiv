@@ -23,9 +23,8 @@ class Alice(BaseAlg):
         self.hook = AliceHook()
         trainer.register_hook(self.hook)
 
-        # session = trainer.session
         session = trainer.session
-        if session == 1:
+        if session >= 1:
             self._network = trainer.model
             self._network.eval()
             self._network.cuda()
@@ -156,10 +155,12 @@ class Alice(BaseAlg):
                 # _, pred = torch.max(logits_, dim=1)
                 acc = accuracy(logits_, labels)[0]
                 loss = self.loss(logits_, labels)
+                per_acc = str(per_class_accuracy(logits_, labels))
                 
                 ret = {}
                 ret['loss'] = loss.item()
                 ret['acc'] = acc.item()
+                ret['per_class_acc'] = per_acc
         else:
             test_class = self.args.CIL.base_classes + session * self.args.CIL.way
             # self._network = trainer.model
@@ -188,10 +189,12 @@ class Alice(BaseAlg):
                 # logits_ = logits[:, :self.args.CIL.base_class+self.args.CIL.base_class*session]
                 # acc = accuracy(logits_, labels)[0]
                 loss = self.loss(agg_preds, labels)
+                per_acc = str(per_class_accuracy(agg_preds, labels))
                 
                 ret = {}
                 ret['loss'] = loss.item()
                 ret['acc'] = acc.item()
+                ret['per_class_acc'] = per_acc
 
         return ret
 

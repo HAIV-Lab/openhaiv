@@ -1,7 +1,9 @@
 from .methods import (
     msp, mcm, max_logit, energy, vim, dml, dmlp, prot
 )
-
+from .inference import (
+    msp_inf, mcm_inf, max_logit_inf, energy_inf, vim_inf, dml_inf, dmlp_inf, prot_inf
+)
 
 class AutoOOD(object):
     """AutoOOD class for evaluating OOD detection methods.
@@ -18,6 +20,8 @@ class AutoOOD(object):
             metrics: list = [],
             tpr_th: float = 0.95,
             prec_th: float = None,
+            id_attrs = None, ood_attrs=None,
+            prototype_att = None
     ) -> dict:
         """Evaluate the OOD detection methods and return OOD scores.
 
@@ -75,7 +79,39 @@ class AutoOOD(object):
                 ood_scores['att'] = prot(id_labels, [id_logits], ood_labels, [ood_logits], [prototype_cls], tpr_th, prec_th)
             elif metric == 'merge':
                 ood_scores['merge'] = prot(id_labels, [id_logits], ood_labels, [ood_logits], [prototype_cls], tpr_th, prec_th)
+            elif metric == 'attr':
+                ood_scores['attr'] = prot(id_labels, [id_attrs], ood_labels, [ood_attrs], [prototype_att], tpr_th, prec_th)
             else:
                 raise ValueError(f"Unknown metric: {metric}")
-
+        print("ood scores: ", ood_scores)
         return ood_scores
+
+    @staticmethod
+    def inference(metrics, logits, feat, train_logits, train_feat, fc_weight, prototype, logits_att=None, prototype_att=None):
+        conf = {}
+        for metric in metrics:
+            if metric == 'msp':
+                conf['msp'] = msp_inf(logits)
+            elif metric == 'mcm':
+                conf['mcm'] = mcm_inf(logits)
+            elif metric == 'maxlogit':
+                conf['maxlogit'] = max_logit_inf(logits)
+            elif metric == 'energy':
+                conf['energy'] = energy_inf(logits)
+            elif metric == 'vim':
+                conf['vim'] = vim_inf(logits, feat, train_logits, train_feat)
+            elif metric == 'dml':
+                conf['dml'] = dml_inf(feat, fc_weight)
+            elif metric == 'dmlp':
+                conf['dmlp'] = dmlp_inf(logits, feat, fc_weight, prototype)
+            elif metric == 'cls':
+                conf['cls'] = prot_inf([logits], [prototype])
+            elif metric == 'att':
+                conf['att'] = prot_inf([logits], [prototype])
+            elif metric == 'merge':
+                conf['merge'] = prot_inf([logits], [prototype])
+            elif metric == 'attr':
+                conf['attr'] = prot_inf([logits_att], [prototype_att])
+            else:
+                raise ValueError(f"Unknown metric: {metric}")
+        return conf

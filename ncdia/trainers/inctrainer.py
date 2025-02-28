@@ -35,6 +35,7 @@ class IncTrainer(PreTrainer):
             model: nn.Module = None,
             hist_trainset: MergedDataset = None,
             hist_testset: MergedDataset = None,
+            old_model: nn.Module = None,
             **kwargs
     ) -> None:
         self.sess_cfg = sess_cfg
@@ -63,6 +64,7 @@ class IncTrainer(PreTrainer):
             custom_hooks=[NCDHook()],
             **self.kwargs
         )
+        self.old_model = old_model
 
     def train(self) -> nn.Module:
         """Incremental training.
@@ -83,6 +85,7 @@ class IncTrainer(PreTrainer):
                     model=self.model,
                     hist_trainset=self.hist_trainset,
                     hist_testset=self.hist_testset,
+                    old_model = self.old_model,
                     **self.kwargs
                 )
                 self.__class__ = type(new_instance)

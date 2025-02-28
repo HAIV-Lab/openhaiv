@@ -34,30 +34,34 @@ class SAVCNET(nn.Module):
 
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(self.num_features, self.num_classes*trans, bias=False)
-            
+        # att fc
+        self.att_fc = nn.Linear(self.num_features, 86, bias=False)
         if self.net_savc.mlp:  # hack: brute-force replacement
             self.encoder_q.fc = nn.Sequential(nn.Linear(self.num_features, self.num_features), nn.ReLU(), self.encoder_q.fc)
 
 
     def forward_metric(self, x):
-        y, _ = self.encode_q(x)
+        y = self.encode_q(x)
         if 'cos' in self.mode:
             x = F.linear(F.normalize(y, p=2, dim=-1), F.normalize(self.fc.weight, p=2, dim=-1))
             x = self.net_savc.temperature * x
+            x_att = self.att_fc(y)
         elif 'dot' in self.mode:
             x = self.fc(y)
-        return x
+            x_att = self.att_fc(y)
+        return x, x_att
 
     def encode_q(self, x):
-        x, y = self.encoder_q(x)
+        self.encoder_q(x)
+        x  = self.encoder_q.features
         x = F.adaptive_avg_pool2d(x, 1)
         x = x.squeeze(-1).squeeze(-1)
-        return x, y
+        return x
 
     def forward(self, im_cla):
         if self.mode != 'encoder':
-            x = self.forward_metric(im_cla)
-            return x          
+            x, x_att = self.forward_metric(im_cla)
+            return x, x_att         
         
         elif self.mode == 'encoder':  # 用来替换原型fc的
             x, _ = self.encode_q(im_cla)
@@ -161,7 +165,8 @@ class SAVCNET(nn.Module):
             return self.model.net_savc.temperature * F.linear(F.normalize(x, p=2, dim=-1), F.normalize(fc, p=2, dim=-1))
     
     def get_features(self, x):
-        x, y = self.encoder_q(x)
+        self.encoder_q(x)
+        x = self.encoder_q.features
         x = F.adaptive_avg_pool2d(x, 1)
         x = x.squeeze(-1).squeeze(-1)
         return x

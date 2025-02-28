@@ -1,5 +1,5 @@
 _base_: [
-  configs/algorithms/incremental/alice.yaml,
+  configs/algorithms/incremental/alice_save.yaml,
   configs/models/alice.yaml,
 ]
 
@@ -20,7 +20,7 @@ trainer:
     prec_th: 0.3
 
 algorithm:
-  type: alice
+  type: alice_save
 
 criterion:
   type: CrossEntropyLoss

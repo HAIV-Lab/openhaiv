@@ -449,4 +449,45 @@ def prot(
     if prec_th is None:
         return ood_metrics(conf, label, tpr_th), None
     else:
-        return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
+        return *ood_metrics(conf, label, tpr_th), *search_threshold(conf, label, prec_th)
+
+
+# def attr(
+#     id_gt, id_feat,
+#     ood_gt, ood_feat,
+#     fc_weight: torch.Tensor,
+#     tpr_th: float = 0.95,
+#     prec_th: float = None,
+# ) -> tuple:
+# """
+#     Decoupling MaxLogit for Out-of-Distribution Detection
+#     https://openaccess.thecvf.com/content/CVPR2023/html/Zhang_Decoupling_MaxLogit_for_Out-of-Distribution_Detection_CVPR_2023_paper
+
+#     Args:
+#         id_gt (torch.Tensor): ID ground truth labels. Shape (N,).
+#         id_feat (torch.Tensor): ID features. Shape (N, D).
+#         ood_gt (torch.Tensor): OOD ground truth labels. Shape (M,).
+#         ood_feat (torch.Tensor): OOD features. Shape (M, D).
+#         fc_weight (torch.Tensor): FC layer weight. Shape (C, D).
+#         tpr_th (float): True positive rate threshold to compute
+#             false positive rate. Default is 0.95.
+#         prec_th (float | None): Precision threshold for searching threshold.
+#             If None, not searching for threshold. Default is None.
+
+#     Returns:
+#         fpr (float): False positive rate.
+#         auroc (float): Area under the ROC curve.
+#         aupr_in (float): Area under the precision-recall curve 
+#             for in-distribution samples.
+#         aupr_out (float): Area under the precision-recall curve
+#             for out-of-distribution
+# """
+
+#     conf = torch.cat([id_att_conf, ood_att_conf])
+#     label = np.concatenate([id_gt, ood_gt])
+#     total_imgpath_list = id_imgpath_list + ood_imgpath_list
+#     conf = conf.view(-1)
+
+#     novel_imgpath_list, novel_target, pseudo_labels = self._get_pseudo(conf, label, ood_gt, threshold, total_imgpath_list, total_feat)
+#     count = sum(p1 == p2 for p1, p2 in zip(pseudo_labels, novel_target))
+#     ncd_acc = count / len(pseudo_labels)
