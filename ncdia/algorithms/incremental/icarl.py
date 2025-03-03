@@ -21,6 +21,11 @@ class iCaRL(BaseAlg):
         self.trainer = trainer
 
         self._network = None
+        self.loss = torch.nn.CrossEntropyLoss().cuda()
+        self.hook = iCaRLHook()
+        trainer.register_hook(self.hook)
+
+        session = trainer.session
     
     def train_step(self, trainer, data, label, attribute, imgpath):
         """
@@ -31,30 +36,36 @@ class iCaRL(BaseAlg):
             attribute: attribute in batch
             imgpath: imgpath in batch
         """
+
         session = self.trainer.session
+        known_class = self.args.CIL.base_classes + session * self.args.CIL.way
+        self._network = trainer.model
+        if session>=1:
+            self._old_network = trainer.old_model
+            self._old_network = self._old_network.cuda()
+            self._old_network.eval()
 
-        if session == 0:
-            self._network = trainer.model
-            self._network.train()
+        self._network.train()
 
-            data = data.cuda()
-            labels = label.cuda()
+        data = data.cuda()
+        labels = label.cuda()
+        logits = self._network(data)
+        if session >=1:
+            with torch.no_grad():
+                old_logits = self._old_network(data)
+        logits_ = logits[:, :known_class]
+        acc = accuracy(logits_, labels)[0]
+        per_acc = str(per_class_accuracy(logits_, labels))
+        loss = self.loss(logits_, labels)
+        if session >=1:
+            kd_loss = self._KD_loss(logits_, old_logits[:, :known_class], 1.0)
+            loss = loss + 3.0 * kd_loss
+        loss.backward()
 
-            logits = self._network(data)
-            logits_ = logits[:, :self.args.CIL.base_classes]
-
-            acc = accuracy(logits_, labels)[0]
-            per_acc = str(per_class_accuracy(logits_, labels))
-            loss = self.loss(logits_, labels)
-            loss.backward()
-
-            ret = {}
-            ret['loss'] = loss
-            ret['acc'] = acc
-            ret['per_class_acc'] = per_acc
-        else:
-            pass
-        
+        ret = {}
+        ret['loss'] = loss
+        ret['acc'] = acc
+        ret['per_class_acc'] = per_acc
         return ret
 
     def val_step(self, trainer, data, label, *args, **kwargs):
@@ -78,44 +89,23 @@ class iCaRL(BaseAlg):
                 - "acc": Accuracy value.
         """
         session = self.trainer.session
-
-        if session == 0:
-            self._network = trainer.model
-            self._network.eval()
-
-            with torch.no_grad():
-                data = data.cuda()
-                labels = label.cuda()
-
-                logits = self._network(data)
-                logits_ = logits[:, :self.args.CIL.base_classes]
-                acc = accuracy(logits_, labels)[0]
-                loss = self.loss(logits_, labels)
-                per_acc = str(per_class_accuracy(logits_, labels))
-                
-                ret = {}
-                ret['loss'] = loss.item()
-                ret['acc'] = acc.item()
-                ret['per_class_acc'] = per_acc
-            else:
-                test_class = self.args.CIL.base_classes + session * self.args.CIL.way
-
-                with torch.no_grad():
-                    data = data.cuda()
-                    labels = label.cuda()
-
-                    b = data.size()[0]
-                    joint_preds = self._network(data)
-                    acc = accuracy(joint_preds, labels)[0]
-                    loss = self.loss(agg_preds, labels)
-                    per_acc = str(per_class_accuracy(agg_preds, labels))
-                    
-                    ret = {}
-                    ret['loss'] = loss.item()
-                    ret['acc'] = acc.item()
-                    ret['per_class_acc'] = per_acc
-                    
-            return ret
+        test_class = self.args.CIL.base_classes + session  * self.args.CIL.way
+        self._network = trainer.model
+        self._network.eval()
+        data = data.cuda()
+        labels = label.cuda()
+        logits = self._network(data)
+        logits_ = logits[:, :test_class]
+        acc = accuracy(logits_, labels)[0]
+        loss = self.loss(logits_, labels)
+        per_acc = str(per_class_accuracy(logits_, labels))
+        
+        ret = {}
+        ret['loss'] = loss.item()
+        ret['acc'] = acc.item()
+        ret['per_class_acc'] = per_acc
+        
+        return ret
 
 
     def test_step(self, trainer, data, label, *args, **kwargs):
@@ -124,3 +114,8 @@ class iCaRL(BaseAlg):
     
     def get_net(self):
         return self._network
+    
+    def _KD_loss(self, pred, soft, T):
+        pred = torch.log_softmax(pred / T, dim=1)
+        soft = torch.softmax(soft / T, dim=1)
+        return -1 * torch.mul(soft, pred).sum() / pred.shape[0]
