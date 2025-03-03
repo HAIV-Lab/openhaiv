@@ -15,6 +15,9 @@ class IncTrainer(PreTrainer):
         cfg (dict, optional): Configuration for trainer.
         sess_cfg (Configs): Session configuration.
         session (int, optional): Session number. Default: 0.
+        hist_trainset (MergedDataset, optional): Historical training dataset.
+        hist_valset (MergedDataset, optional): Historical validation dataset.
+        hist_testset (MergedDataset, optional): Historical testing dataset.
 
     Attributes:
         sess_cfg (Configs): Session configuration.
@@ -34,6 +37,7 @@ class IncTrainer(PreTrainer):
             session: int = 0,
             model: nn.Module = None,
             hist_trainset: MergedDataset = None,
+            hist_valset: MergedDataset = None,
             hist_testset: MergedDataset = None,
             old_model: nn.Module = None,
             **kwargs
@@ -51,6 +55,10 @@ class IncTrainer(PreTrainer):
         if not hist_trainset:
             hist_trainset = MergedDataset()
         self.hist_trainset = hist_trainset
+
+        if not hist_valset:
+            hist_valset = MergedDataset()
+        self.hist_valset = hist_valset
 
         if not hist_testset:
             hist_testset = MergedDataset()
@@ -84,6 +92,7 @@ class IncTrainer(PreTrainer):
                     session=session,
                     model=self.model,
                     hist_trainset=self.hist_trainset,
+                    hist_valset=self.hist_valset,
                     hist_testset=self.hist_testset,
                     old_model = self.old_model,
                     **self.kwargs
@@ -92,9 +101,44 @@ class IncTrainer(PreTrainer):
                 self.__dict__ = new_instance.__dict__
 
             super(IncTrainer, self).train()
-
-            # Store historical data
-            self.hist_trainset.merge([self.train_loader.dataset], True)
-            self.hist_testset.merge([self.test_loader.dataset], True)
         
         return self.model
+
+    def update_hist_trainset(self, new_dataset, replace_transform=False, inplace=False):
+        """ Update historical training dataset.
+
+        Args:
+            new_dataset (Dataset): New dataset to be merged.
+            replace_transform (bool, optional): Replace transform or not. Default: False.
+            inplace (bool, optional): If True, use new_dataset to replace hist_trainset.
+        """
+        if inplace:
+            self.hist_trainset = MergedDataset([new_dataset], replace_transform)
+        else:
+            self.hist_trainset.merge([new_dataset], replace_transform)
+
+    def update_hist_valset(self, new_dataset, replace_transform=False, inplace=False):
+        """ Update historical validation dataset.
+
+        Args:
+            new_dataset (Dataset): New dataset to be merged.
+            replace_transform (bool, optional): Replace transform or not. Default: False.
+            inplace (bool, optional): If True, use new_dataset to replace hist_valset.
+        """
+        if inplace:
+            self.hist_valset = MergedDataset([new_dataset], replace_transform)
+        else:
+            self.hist_valset.merge([new_dataset], replace_transform)
+
+    def update_hist_testset(self, new_dataset, replace_transform=False, inplace=False):
+        """ Update historical testing dataset.
+
+        Args:
+            new_dataset (Dataset): New dataset to be merged.
+            replace_transform (bool, optional): Replace transform or not. Default: False.
+            inplace (bool, optional): If True, use new_dataset to replace hist_testset.
+        """
+        if inplace:
+            self.hist_testset = MergedDataset([new_dataset], replace_transform)
+        else:
+            self.hist_testset.merge([new_dataset], replace_transform)

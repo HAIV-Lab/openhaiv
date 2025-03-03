@@ -230,7 +230,8 @@ class BaseTrainer(object):
         if not self._train_loader:
             raise KeyError("Trainloader is not defined.")
         if isinstance(self._train_loader, dict):
-            self._train_loader = build_dataloader(self._train_loader)
+            self._train_loader, self._train_dataset_kwargs, \
+                    self._train_loader_kwargs = build_dataloader(self._train_loader)
         return self._train_loader
     
     @property
@@ -239,7 +240,8 @@ class BaseTrainer(object):
         if not self._val_loader:
             raise KeyError("Valloader is not defined.")
         if isinstance(self._val_loader, dict):
-            self._val_loader = build_dataloader(self._val_loader)
+            self._val_loader, self._val_dataset_kwargs, \
+                self._val_loader_kwargs = build_dataloader(self._val_loader)
         return self._val_loader
     
     @property
@@ -248,7 +250,8 @@ class BaseTrainer(object):
         if not self._test_loader:
             raise KeyError("Testloader is not defined.")
         if isinstance(self._test_loader, dict):
-            self._test_loader = build_dataloader(self._test_loader)
+            self._test_loader, self._test_dataset_kwargs, \
+                self._test_loader_kwargs = build_dataloader(self._test_loader)
         return self._test_loader
     
     @property

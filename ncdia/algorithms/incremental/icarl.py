@@ -97,8 +97,8 @@ class iCaRL(BaseAlg):
                 ret['loss'] = loss.item()
                 ret['acc'] = acc.item()
                 ret['per_class_acc'] = per_acc
-            else:
-                test_class = self.args.CIL.base_classes + session * self.args.CIL.way
+            # else:
+            #     test_class = self.args.CIL.base_classes + session * self.args.CIL.way
 
                 with torch.no_grad():
                     data = data.cuda()
