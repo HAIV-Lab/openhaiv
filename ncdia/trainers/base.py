@@ -179,7 +179,7 @@ class BaseTrainer(object):
         # log hooks information
         self.logger.write(f'Hooks will be executed in the following '
                           f'order:\n{self.get_hooks_info()}')
-    
+
     @property
     def cfg(self) -> object:
         """Configs: Configuration for trainer."""

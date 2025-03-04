@@ -1,6 +1,6 @@
 _base_: [
-  configs/algorithms/incremental/lwf.yaml,
-  configs/models/lwf.yaml,
+  configs/algorithms/incremental/icarl.yaml,
+  configs/models/icarl.yaml,
 ]
 
 trainer:
@@ -48,7 +48,7 @@ trainer:
         max_epochs: 60
 
 algorithm:
-  type: lwf
+  type: icarl
 
 criterion:
   type: CrossEntropyLoss
@@ -65,4 +65,4 @@ seed: 0
 device: cuda
 
 exp_name: exp
-work_dir: ./output/supervised/inc_cub_lwf
+work_dir: ./output/supervised/inc_cub_icarl

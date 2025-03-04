@@ -7,3 +7,5 @@ from .ewc import EWC
 from .wa import WA
 from .finetune import Finetune
 from .icarl import iCaRL
+from .bic import BiC
+from .joint import Joint
