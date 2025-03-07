@@ -120,14 +120,14 @@ class iCaRLHook(AlgHook):
         selected_features = {i: [] for i in range(known_class, total_class)}
 
         # 遍历 DataLoader 再次获取所有样本的特征和标签
-        all_features = []  # 存储所有特征
-        all_labels = []    # 存储所有标签
-        all_imgpaths = []  # 存储所有图像路径
+        all_features = []  
+        all_labels = []    
+        all_imgpaths = []  
 
         for batch in tqdm(data_loader, desc="Gathering all samples"):
-            images = batch['data'].cuda()  # 移动到 GPU
-            labels = batch['label'].cpu().numpy()  # 确保标签在 CPU 上
-            imgpaths = batch['imgpath']  # 获取图像路径
+            images = batch['data'].cuda()  
+            labels = batch['label'].cpu().numpy()  
+            imgpaths = batch['imgpath']  
 
             # 确保输入是连续的并转换为浮点型
             images = images.contiguous().float()
@@ -145,7 +145,7 @@ class iCaRLHook(AlgHook):
         all_features = np.concatenate(all_features, axis=0)
         all_labels = np.concatenate(all_labels, axis=0)
         all_imgpaths = list(itertools.chain.from_iterable(all_imgpaths))
-        # all_imgpaths = np.concatenate(all_imgpaths, axis=0)  # 如果需要合并图像路径
+        # all_imgpaths = np.concatenate(all_imgpaths, axis=0)  
         # print(all_imgpaths)
 
         # 计算每个类的最近 m 个样本
@@ -193,9 +193,6 @@ class iCaRLHook(AlgHook):
 
 
     def before_test(self, trainer) -> None:
-        """
-        在进入for epoch in range(max_epochs)循环之前，对测试数据集进行处理。
-        """
         trainer.test_loader
         _hist_testset = MergedDataset([trainer.hist_testset], replace_transform=True)
         _hist_testset.merge([trainer.test_loader.dataset], replace_transform=True)

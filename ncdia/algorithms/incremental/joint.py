@@ -18,7 +18,6 @@ class ExpHook(AlgHook):
         """
         在进入for epoch in range(max_epochs)循环之前，对训练数据集进行处理。
         """
-        # 初始化trainer的数据加载器
         trainer.train_loader
         
         # 获取IncTrainer上一个session保存的历史数据集
@@ -40,9 +39,6 @@ class ExpHook(AlgHook):
         """
         在训练结束后，将当前session中需要保存的数据保存到hist_trainset中。
         """
-        # Example：保存当前session的所有训练数据。
-        # 由于当前session的训练数据集已经融合和历史数据，
-        # 所以只需要用当前session的数据覆盖hist_trainset即可。
 
         # 将inplace设置为True，直接替换hist_trainset
         trainer.update_hist_trainset(

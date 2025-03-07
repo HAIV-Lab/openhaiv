@@ -107,11 +107,9 @@ class iCaRL(BaseAlg):
         
         return ret
 
-
     def test_step(self, trainer, data, label, *args, **kwargs):
         return self.val_step(trainer, data, label, *args, **kwargs)
 
-    
     def get_net(self):
         return self._network
     
