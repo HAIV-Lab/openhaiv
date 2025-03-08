@@ -5,7 +5,6 @@ import torch.nn.functional as F
 import numpy as np
 from tqdm import tqdm
 import itertools
-import ot
 
 from ncdia.utils import ALGORITHMS
 from ncdia.utils import HOOKS
@@ -193,6 +192,8 @@ class COILHook(AlgHook):
         return retained_datasets, all_remaining_datasets
     
     def solving_ot(self, trainer):
+        import ot
+
         session = trainer.session
         self.args = trainer.cfg
 
@@ -426,6 +427,8 @@ class COIL(BaseAlg):
     
     
     def solving_ot_to_old(self, trainer):
+        import ot
+        
         current_class_num = self.args.CIL.way
         known_class = max(self.args.CIL.base_classes + (session - 1) * self.args.CIL.way, 0)
         total_class = self.args.CIL.base_classes + self.args.CIL.way * session

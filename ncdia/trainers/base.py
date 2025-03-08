@@ -179,7 +179,7 @@ class BaseTrainer(object):
         # log hooks information
         self.logger.write(f'Hooks will be executed in the following '
                           f'order:\n{self.get_hooks_info()}')
-
+    
     @property
     def cfg(self) -> object:
         """Configs: Configuration for trainer."""
@@ -325,6 +325,16 @@ class BaseTrainer(object):
             self._device = auto_device(_device)
         
         return self._device
+    
+    def modify_attr(self, key: str, value) -> None:
+        """Modify hidden attribute (f'_{key}') for trainer.
+
+        Args:
+            key (str): Attribute name.
+            value: New value for the attribute.
+        """
+        assert ("_" + key) in self.__dict__, f"Attribute _{key} not found."
+        setattr(self, "_" + key, value)
     
     def train_step(self, batch, **kwargs):
         """Training step. This method should be implemented in subclasses.
