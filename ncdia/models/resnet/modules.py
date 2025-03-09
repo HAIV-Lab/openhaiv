@@ -256,6 +256,7 @@ class ResNet(nn.Module):
         self.features = x[:]
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
+        self.out_features = x[:]
         x = self.fc(x)
 
         return x

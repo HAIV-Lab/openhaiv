@@ -1,3 +1,8 @@
 from .alice_net import AliceNET
 from .fact_net import FACTNET
 from .savc_net import SAVCNET
+from .der_net import DERNET
+from .der_net import SimpleLinear
+from .inc_net import BaseNet
+from .inc_net import IncrementalNet
+

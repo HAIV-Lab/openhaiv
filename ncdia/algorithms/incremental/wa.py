@@ -17,7 +17,7 @@ class WA(BaseAlg):
 
         self._network = None
         self.transform = None
-        self.loss = AngularPenaltySMLoss(loss_type='cosface').cuda()
+        self.loss = torch.nn.CrossEntropyLoss().cuda()
         self.hook = WAHook()
         trainer.register_hook(self.hook)
 
@@ -45,10 +45,10 @@ class WA(BaseAlg):
 
         data = data.cuda()
         labels = label.cuda()
-        logits = self._network(data)
+        logits = self._network(data)['logits']
         if session >=1:
             with torch.no_grad():
-                old_logits = self._old_network(data)
+                old_logits = self._old_network(data)['logits']
         logits_ = logits[:, :known_class]
         acc = accuracy(logits_, labels)[0]
         per_acc = str(per_class_accuracy(logits_, labels))
@@ -91,7 +91,7 @@ class WA(BaseAlg):
         self._network.eval()
         data = data.cuda()
         labels = label.cuda()
-        logits = self._network(data)
+        logits = self._network(data)['logits']
         logits_ = logits[:, :test_class]
         acc = accuracy(logits_, labels)[0]
         loss = self.loss(logits_, labels)
