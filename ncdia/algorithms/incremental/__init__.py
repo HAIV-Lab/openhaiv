@@ -11,3 +11,4 @@ from .bic import BiC
 from .joint import Joint
 from .coil import COIL
 from .der import DER
+from .memo import MEMO
