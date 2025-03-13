@@ -8,7 +8,8 @@ from ncdia.utils import MODELS, Configs
 
 @MODELS.register
 class AliceNET(nn.Module):
-    """AliceNET for incremental learning.
+    """
+    AliceNET for incremental learning.
 
     Args:
         network (Configs): Network configuration.

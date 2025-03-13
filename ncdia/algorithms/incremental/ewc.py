@@ -17,7 +17,7 @@ class EWC(BaseAlg):
 
         self._network = None
         self.transform = None
-        self.loss = AngularPenaltySMLoss(loss_type='cosface').cuda()
+        self.loss = torch.nn.CrossEntropyLoss().cuda()
         self.hook = EWCHook()
         trainer.register_hook(self.hook)
         session = trainer.session
@@ -42,7 +42,7 @@ class EWC(BaseAlg):
         
         data = data.cuda()
         labels = label.cuda()
-        logits = self._network(data)
+        logits = self._network(data)['logits']
         logits_ = logits[:, :known_class]
         if session >=1:
             self.mean = torch.load(os.path.join(trainer.work_dir, 'mean task_ ' + str(trainer.session - 1) + '.pth'))
@@ -91,7 +91,7 @@ class EWC(BaseAlg):
         self._network.eval()
         data = data.cuda()
         labels = label.cuda()
-        logits = self._network(data)
+        logits = self._network(data)['logits']
         logits_ = logits[:, :test_class]
         acc = accuracy(logits_, labels)[0]
         loss = self.loss(logits_, labels)

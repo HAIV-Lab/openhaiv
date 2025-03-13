@@ -12,6 +12,7 @@ from ncdia.dataloader import BaseDataset
 from ncdia.utils import HOOKS
 from ncdia.trainers.hooks import AlgHook
 from ncdia.models.net.alice_net import AliceNET
+from ncdia.models.net.inc_net import IncrementalNet
 
 
 @HOOKS.register
@@ -248,7 +249,7 @@ class iCaRLHook(AlgHook):
         algorithm = trainer.algorithm
         filename = 'task_' + str(trainer.session) + '.pth'
         trainer.save_ckpt(os.path.join(trainer.work_dir, filename))
-        trainer.old_model = AliceNET(
+        trainer.old_model = IncrementalNet(
             trainer.cfg.model.network,
             trainer.cfg.CIL.base_classes,
             trainer.cfg.CIL.num_classes,
@@ -271,7 +272,7 @@ class iCaRLHook(AlgHook):
         known_class =  max(args.CIL.base_classes + (session - 1) * args.CIL.way, 0)
         start_class = max(args.CIL.base_classes + (session - 2) * args.CIL.way, 0)
         _network = trainer.model
-        _feature_dim = _network.num_features
+        _feature_dim = 512
         class_means = np.zeros((total_class, _feature_dim))
 
         
@@ -284,7 +285,7 @@ class iCaRLHook(AlgHook):
             labels = batch['label']
             images = images.cuda()
             with torch.no_grad():
-                features = _network.get_features(images)
+                features = _network.extract_vector(images)
             features_np = features.cpu().numpy()
 
             for i in range(len(labels)):
@@ -315,7 +316,7 @@ class iCaRLHook(AlgHook):
 
             # 获取当前批次的特征
             with torch.no_grad():
-                features = _network.get_features(images).cpu().numpy()
+                features = _network.extract_vector(images).cpu().numpy()
 
             # 将当前批次的特征和标签添加到列表中
             all_features.append(features)
@@ -418,7 +419,7 @@ class WAHook(AlgHook):
         algorithm = trainer.algorithm
         filename = 'task_' + str(trainer.session) + '.pth'
         trainer.save_ckpt(os.path.join(trainer.work_dir, filename))
-        trainer.old_model = AliceNET(
+        trainer.old_model = IncrementalNet(
             trainer.cfg.model.network,
             trainer.cfg.CIL.base_classes,
             trainer.cfg.CIL.num_classes,
@@ -524,7 +525,7 @@ class LwFHook(AlgHook):
         algorithm = trainer.algorithm
         filename = 'task_' + str(trainer.session) + '.pth'
         trainer.save_ckpt(os.path.join(trainer.work_dir, filename))
-        trainer.old_model = AliceNET(
+        trainer.old_model = IncrementalNet(
             trainer.cfg.model.network,
             trainer.cfg.CIL.base_classes,
             trainer.cfg.CIL.num_classes,

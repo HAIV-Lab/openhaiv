@@ -5,6 +5,7 @@ import torch.nn.functional as F
 import numpy as np
 from tqdm import tqdm
 import itertools
+import ot
 
 from ncdia.utils import ALGORITHMS
 from ncdia.utils import HOOKS
@@ -14,11 +15,12 @@ from ncdia.dataloader import MergedDataset
 from ncdia.dataloader import BaseDataset
 from torch.utils.data import DataLoader
 from ncdia.models.net.alice_net import AliceNET
+from ncdia.models.net.adaptive_net import AdaptiveNet
 from ncdia.utils.losses import AngularPenaltySMLoss
 from ncdia.utils.metrics import accuracy, per_class_accuracy
 
 @HOOKS.register
-class GEMHook(AlgHook):
+class MEMOHook(AlgHook):
     def __init__(self) -> None:
         super().__init__()
         self._fix_memory = True
@@ -62,17 +64,25 @@ class GEMHook(AlgHook):
         algorithm = trainer.algorithm
         filename = 'task_' + str(trainer.session) + '.pth'
         trainer.save_ckpt(os.path.join(trainer.work_dir, filename))
-        trainer.old_model = AliceNET(
+        att_classes = []
+        temp_class_num = trainer.cfg.CIL.base_classes
+        for i in range(trainer.session+1):
+            att_classes.append(temp_class_num)
+            temp_class_num += trainer.cfg.CIL.way
+        trainer.old_model = AdaptiveNet(
             trainer.cfg.model.network,
             trainer.cfg.CIL.base_classes,
             trainer.cfg.CIL.num_classes,
-            trainer.cfg.CIL.att_classes,
+            att_classes,
             trainer.cfg.model.net_alice
         )
         trainer.old_model.load_state_dict(trainer.model.state_dict())
         for param in trainer.old_model.parameters():
             param.requires_grad = False
-    
+
+        
+        trainer.model.update_fc(trainer.cfg.CIL.way * (trainer.session + 1) + trainer.cfg.CIL.base_classes)
+
     def construct_exemplar_unified(self, trainset, m, trainer):
         logging.info(
             "Constructing exemplars for new classes...({} per classes)".format(m)
@@ -98,7 +108,7 @@ class GEMHook(AlgHook):
             labels = batch['label']
             images = images.cuda()
             with torch.no_grad():
-                features = _network.get_features(images)
+                features = _network.extract_vector(images)
             features_np = features.cpu().numpy()
 
             for i in range(len(labels)):
@@ -129,7 +139,7 @@ class GEMHook(AlgHook):
 
             # 获取当前批次的特征
             with torch.no_grad():
-                features = _network.get_features(images).cpu().numpy()
+                features = _network.extract_vector(images).cpu().numpy()
 
             # 将当前批次的特征和标签添加到列表中
             all_features.append(features)
@@ -185,9 +195,9 @@ class GEMHook(AlgHook):
         all_remaining_datasets.labels = all_remaining_labels
 
         return retained_datasets, all_remaining_datasets
-    
+
 @ALGORITHMS.register
-class GEM(BaseAlg):
+class MEMO(BaseAlg):
     def __init__(self, trainer) -> None:
         super().__init__(trainer)
         self.args = trainer.cfg
@@ -197,8 +207,9 @@ class GEM(BaseAlg):
         self._old_network = None
         self.transform = None
         self.loss = torch.nn.CrossEntropyLoss().cuda()
-        self.hook = COILHook()
+        self.hook = MEMOHook()
         trainer.register_hook(self.hook)
+
         session = trainer.session
     
     def train_step(self, trainer, data, label, attribute, imgpath):
@@ -212,32 +223,44 @@ class GEM(BaseAlg):
         """
         session = self.trainer.session
         known_class = max(self.args.CIL.base_classes + (session - 1) * self.args.CIL.way, 0)
-        total_class = self.args.CIL.base_classes + self.args.CIL.way
+        total_class = self.args.CIL.base_classes + self.args.CIL.way * session
         self._network = trainer.model
-        if session >=1:
+
+        if session>=1:
             self._old_network = trainer.old_model
             self._old_network = self._old_network.cuda()
             self._old_network.eval()
-        
         self._network.train()
 
         data = data.cuda()
         labels = label.cuda()
-        logits = self._network(data)['logits']
+        outputs = self._network(data)
+        logits, aux_logits = outputs["logits"], outputs["aux_logits"]
 
-        logits_ = logits[:, :known_class]
+        logits_ = logits[:, :total_class]
         acc = accuracy(logits_, labels)[0]
         per_acc = str(per_class_accuracy(logits_, labels))
         loss = self.loss(logits_, labels)
 
+        if session>=1:
+            aux_labels = labels.clone()
+            aux_labels = torch.where(
+                aux_labels - known_class + 1 > 0,
+                aux_labels - known_class + 1,
+                0
+            )
+            # aux_labels = aux_labels.float()
+            loss_aux = F.cross_entropy(aux_logits, aux_labels)
+            loss = loss + loss_aux
+        
         loss.backward()
-
         ret = {}
         ret['loss'] = loss
         ret['acc'] = acc
         ret['per_class_acc'] = per_acc
 
         return ret
+        
     
     def val_step(self, trainer, data, label, *args, **kwargs):
         """Validation step for standard supervised learning.
@@ -265,7 +288,8 @@ class GEM(BaseAlg):
         self._network.eval()
         data = data.cuda()
         labels = label.cuda()
-        logits = self._network(data)['logits']
+        outputs = self._network(data)
+        logits, aux_logits = outputs["logits"], outputs["aux_logits"]
         logits_ = logits[:, :test_class]
         acc = accuracy(logits_, labels)[0]
         loss = self.loss(logits_, labels)

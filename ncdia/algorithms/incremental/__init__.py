@@ -12,3 +12,5 @@ from .joint import Joint
 from .coil import COIL
 from .ssre import SSRE
 from .fetril import FeTrIL
+from .der import DER
+from .memo import MEMO
