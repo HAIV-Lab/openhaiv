@@ -1,0 +1,54 @@
+# {
+#     "prefix": "ssre",
+#     "dataset": "cifar100",
+#     "memory_size": 0,
+#     "shuffle": true,
+#     "init_cls": 50,
+#     "increment": 10,
+#     "model_name": "ssre",
+#     "convnet_type": "resnet18_rep",
+#     "device": ["0"],
+#     "seed": [1993],
+#     "lambda_fkd":1,
+#     "lambda_proto":10,
+#     "temp":0.1,
+#     "mode": "parallel_adapters",
+#     "epochs" : 101,
+#     "lr" : 0.001,
+#     "batch_size" : 128,
+#     "weight_decay" : 5e-4,
+#     "step_size":45,
+#     "gamma":0.1,
+#     "threshold": 0.8,
+#     "num_workers" : 8,
+#     "T" : 2
+# }
+
+CIL:
+  name: ssre
+  moco_dim: 128
+  moco_k: 65536
+  moco_m: 0.999
+  moco_t: 0.07
+  mlp: False
+  temperature: 16
+  num_crops: [2, 4]
+  size_crops: [224, 96]
+  min_scale_crops: [0.14, 0.05]
+  max_scale_crops: [1, 0.14]
+  constrained_cropping: False
+  auto_augment: []
+  fantasy: rotation2
+  alpha: 1.0
+  beta: 0.0
+  base_mode: ft_cos
+  new_mode: avg_cos
+  incft: True
+  not_data_init: False
+  base_classes: 20
+  num_classes: 200
+  way: 20
+  shot: 100
+  sessions: 10
+  lambda_fkd: 1
+  lambda_proto: 10

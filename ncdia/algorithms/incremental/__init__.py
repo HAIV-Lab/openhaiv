@@ -10,3 +10,5 @@ from .icarl import iCaRL
 from .bic import BiC
 from .joint import Joint
 from .coil import COIL
+from .ssre import SSRE
+from .fetril import FeTrIL
