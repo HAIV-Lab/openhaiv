@@ -29,7 +29,7 @@ class SimpleLinear(nn.Module):
         nn.init.constant_(self.bias, 0)
 
     def forward(self, input):
-        return {'logits': F.linear(input, self.weight, self.bias)}
+        return F.linear(input, self.weight, self.bias)
 
 
 @MODELS.register
