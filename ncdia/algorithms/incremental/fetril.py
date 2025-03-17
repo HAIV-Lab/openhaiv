@@ -175,9 +175,9 @@ class FeTrIL(BaseAlg):
         labels = label.cuda()
         data = data.to(self._network_module_ptr.fc.weight.dtype)
         if session ==0:
-            logits = self._network(data)
+            logits = self._network(data)['logits']
         else:
-            logits = self._network_module_ptr.fc(data)
+            logits = self._network_module_ptr.fc(data)['logits']
         logits_ = logits[:, :self._total_classes]
         acc = accuracy(logits_, labels)[0]
         per_acc = str(per_class_accuracy(logits_, labels))
@@ -198,11 +198,11 @@ class FeTrIL(BaseAlg):
             _targets = _targets.numpy()
             if isinstance(self._network, nn.DataParallel):
                 _vectors = tensor2numpy(
-                    self._network.module.get_features(_inputs.to(self._device))
+                    self._network.module.extract_vector(_inputs.to(self._device))
                 )
             else:
                 _vectors = tensor2numpy(
-                    self._network.get_features(_inputs.to(self._device))
+                    self._network.extract_vector(_inputs.to(self._device))
                 )
 
             vectors.append(_vectors)
@@ -310,7 +310,7 @@ class FeTrIL(BaseAlg):
         self._network.eval()
         data = data.cuda()
         labels = label.cuda()
-        logits = self._network(data)
+        logits = self._network(data)['logits']
         logits_ = logits[:, :test_class]
         acc = accuracy(logits_, labels)[0]
         loss = self.loss(logits_, labels)
