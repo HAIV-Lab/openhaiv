@@ -16,18 +16,17 @@ class IncTrainer(PreTrainer):
         cfg (dict, optional): Configuration for trainer.
         sess_cfg (Configs): Session configuration.
         session (int, optional): Session number. Default: 0.
-        hist_trainset (MergedDataset, optional): Historical training dataset.
-        hist_valset (MergedDataset, optional): Historical validation dataset.
-        hist_testset (MergedDataset, optional): Historical testing dataset.
+        buffer (dict, optional): Buffer for inter-session communication. Default: None.
 
     Attributes:
         sess_cfg (Configs): Session configuration.
         num_sess (int): Number of sessions.
         session (int): Session number. If == 0, execute pre-training.
             If > 0, execute incremental training.
-        hist_trainset (MergedDataset): Historical training dataset.
-        hist_valset (MergedDataset): Historical validation dataset.
-        hist_testset (MergedDataset): Historical testing dataset.
+        buffer (dict): Buffer for inter-session communication.
+        hist_trainset (MergedDataset, optional): Historical training dataset.
+        hist_valset (MergedDataset, optional): Historical validation dataset.
+        hist_testset (MergedDataset, optional): Historical testing dataset.
 
     """
     def __init__(
@@ -37,10 +36,6 @@ class IncTrainer(PreTrainer):
             ncd_cfg: Configs | None = None,
             session: int = 0,
             model: nn.Module = None,
-            hist_trainset: MergedDataset = None,
-            hist_valset: MergedDataset = None,
-            hist_testset: MergedDataset = None,
-            old_model: nn.Module = None,
             buffer: dict | None = None,
             **kwargs
     ) -> None:
@@ -60,20 +55,14 @@ class IncTrainer(PreTrainer):
             self.buffer = buffer
 
         # Specify historical datasets to store previous data
-        if not hist_trainset:
-            hist_trainset = MergedDataset()
-        self.hist_trainset = hist_trainset
-        self.buffer['hist_trainset'] = hist_trainset
+        if not 'hist_trainset' in self.buffer:
+            self.buffer['hist_trainset'] = MergedDataset()
+        
+        if not 'hist_valset' in self.buffer:
+            self.buffer['hist_valset'] = MergedDataset()
 
-        if not hist_valset:
-            hist_valset = MergedDataset()
-        self.hist_valset = hist_valset
-        self.buffer['hist_valset'] = hist_valset
-
-        if not hist_testset:
-            hist_testset = MergedDataset()
-        self.hist_testset = hist_testset
-        self.buffer['hist_testset'] = hist_testset
+        if not 'hist_testset' in self.buffer:
+            self.buffer['hist_testset'] = MergedDataset()
 
         super(IncTrainer, self).__init__(
             cfg=cfg,
@@ -83,7 +72,18 @@ class IncTrainer(PreTrainer):
             custom_hooks=[NCDHook()],
             **self.kwargs
         )
-        self.old_model = old_model
+    
+    @property
+    def hist_trainset(self) -> MergedDataset:
+        return self.buffer['hist_trainset']
+    
+    @property
+    def hist_valset(self) -> MergedDataset:
+        return self.buffer['hist_valset']
+    
+    @property
+    def hist_testset(self) -> MergedDataset:
+        return self.buffer['hist_testset']
 
     def train(self) -> nn.Module:
         """Incremental training.
@@ -102,10 +102,6 @@ class IncTrainer(PreTrainer):
                     ncd_cfg=self.ncd_cfg,
                     session=session,
                     model=self.model,
-                    hist_trainset=self.hist_trainset,
-                    hist_valset=self.hist_valset,
-                    hist_testset=self.hist_testset,
-                    old_model = self.old_model,
                     buffer=self.buffer,
                     **self.kwargs
                 )
@@ -133,57 +129,25 @@ class IncTrainer(PreTrainer):
             self.buffer[key] = func(self.buffer[key], value)
         else:
             self.buffer[key] = value
- 
-    def update_hist_trainset(self, new_dataset, replace_transform=False, inplace=False):
-        """ Update historical training dataset.
+
+    def update_hist_dataset(self, key, new_dataset, replace_transform=False, inplace=False):
+        """ Update historical datasets.
 
         Args:
+            key (str): Key in buffer, a choice in ['hist_trainset', 'hist_valset', 'hist_testset].
             new_dataset (Dataset): New dataset to be merged.
             replace_transform (bool, optional): Replace transform or not. Default: False.
             inplace (bool, optional): If True, use new_dataset to replace hist_trainset.
+        
+        Returns:
+            MergedDataset: Merged dataset.
         """
-        # TODO:
-        warnings.warn("self.hist_trainset will be deprecated in the future. Use self.buffer['hist_trainset'] instead.")
+        def func(old_dataset, new_dataset):
+            if inplace:
+                return MergedDataset([new_dataset], replace_transform)
+            else:
+                return old_dataset.merge([new_dataset], replace_transform)
 
-        if inplace:
-            self.hist_trainset = MergedDataset([new_dataset], replace_transform)
-        else:
-            self.hist_trainset.merge([new_dataset], replace_transform)
+        self.update_buffer(key, new_dataset, func)
 
-        self.buffer['hist_trainset'] = self.hist_trainset
-
-    def update_hist_valset(self, new_dataset, replace_transform=False, inplace=False):
-        """ Update historical validation dataset.
-
-        Args:
-            new_dataset (Dataset): New dataset to be merged.
-            replace_transform (bool, optional): Replace transform or not. Default: False.
-            inplace (bool, optional): If True, use new_dataset to replace hist_valset.
-        """
-        # TODO:
-        warnings.warn("self.hist_valset will be deprecated in the future. Use self.buffer['hist_valset'] instead.")
-
-        if inplace:
-            self.hist_valset = MergedDataset([new_dataset], replace_transform)
-        else:
-            self.hist_valset.merge([new_dataset], replace_transform)
-
-        self.buffer['hist_valset'] = self.hist_valset
-
-    def update_hist_testset(self, new_dataset, replace_transform=False, inplace=False):
-        """ Update historical testing dataset.
-
-        Args:
-            new_dataset (Dataset): New dataset to be merged.
-            replace_transform (bool, optional): Replace transform or not. Default: False.
-            inplace (bool, optional): If True, use new_dataset to replace hist_testset.
-        """
-        # TODO:
-        warnings.warn("self.hist_testset will be deprecated in the future. Use self.buffer['hist_testset'] instead.")
-
-        if inplace:
-            self.hist_testset = MergedDataset([new_dataset], replace_transform)
-        else:
-            self.hist_testset.merge([new_dataset], replace_transform)
-
-        self.buffer['hist_testset'] = self.hist_testset
+        return self.buffer[key]
