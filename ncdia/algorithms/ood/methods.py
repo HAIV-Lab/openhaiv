@@ -7,14 +7,17 @@ from numpy.linalg import norm
 from scipy.special import logsumexp
 from sklearn.covariance import EmpiricalCovariance
 
+from ncdia.utils import ALGORITHMS
 from .metrics import ood_metrics, search_threshold
 
 
+@ALGORITHMS.register
 def msp(
         id_gt, id_logits,
         ood_gt, ood_logits,
         tpr_th: float = 0.95,
         prec_th: float = None,
+        **kwargs
 ) -> tuple:
     """Maximum Softmax Probability (MSP) method for OOD detection.
 
@@ -63,12 +66,14 @@ def msp(
         return conf, label, *ood_metrics(conf, neg_label, tpr_th), *search_threshold(conf, neg_label, prec_th)
 
 
+@ALGORITHMS.register
 def mcm(
         id_gt, id_logits,
         ood_gt, ood_logits,
         T: int = 2,
         tpr_th: float = 0.95,
         prec_th: float = None,
+        **kwargs
 ) -> tuple:
     """Maximum Concept Matching (MCM) method for OOD detection.
 
@@ -112,11 +117,13 @@ def mcm(
         return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
 
 
+@ALGORITHMS.register
 def max_logit(
         id_gt, id_logits,
         ood_gt, ood_logits,
         tpr_th: float = 0.95,
         prec_th: float = None,
+        **kwargs
 ) -> tuple:
     """Maximum Logit (MaxLogit) method for OOD detection.
 
@@ -157,11 +164,13 @@ def max_logit(
         return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
 
 
+@ALGORITHMS.register
 def energy(
         id_gt, id_logits,
         ood_gt, ood_logits,
         tpr_th: float = 0.95,
         prec_th: float = None,
+        **kwargs
 ) -> tuple:
     """Energy-based method for OOD detection.
 
@@ -202,13 +211,15 @@ def energy(
         return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
 
 
+@ALGORITHMS.register
 def vim(
         id_gt, id_logits, id_feat, 
         ood_gt, ood_logits, ood_feat, 
         train_logits, train_feat,
         tpr_th: float = 0.95,
         prec_th: float = None,
-    ) -> tuple:
+        **kwargs
+) -> tuple:
     """Virtual-Logit Matching (ViM) method for OOD detection.
 
     ViM: Out-of-Distribution With Virtual-Logit Matching
@@ -265,12 +276,14 @@ def vim(
         return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
 
 
+@ALGORITHMS.register
 def dml(
         id_gt, id_feat,
         ood_gt, ood_feat,
         fc_weight: torch.Tensor,
         tpr_th: float = 0.95,
         prec_th: float = None,
+        **kwargs
 ) -> tuple:
     """Decoupled MaxLogit (DML) method for OOD detection.
 
@@ -324,13 +337,15 @@ def dml(
         return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
 
 
+@ALGORITHMS.register
 def dmlp(
         id_gt, id_logits, id_feat, 
         ood_gt, ood_logits, ood_feat, 
         fc_weight, prototype,
         tpr_th: float = 0.95,
         prec_th: float = None,
-    ) -> tuple:
+        **kwargs
+) -> tuple:
     """Decoupled MaxLogit+ (DML+) method for OOD detection.
 
     Decoupling MaxLogit for Out-of-Distribution Detection
@@ -397,12 +412,14 @@ def dmlp(
         return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
 
 
+@ALGORITHMS.register
 def prot(
         id_gt, id_logits,
         ood_gt, ood_logits,
         prototypes: list,
         tpr_th: float = 0.95,
         prec_th: float = None,
+        **kwargs
 ) -> tuple:
     """Prototype-based (Prot) method for OOD detection.
 
