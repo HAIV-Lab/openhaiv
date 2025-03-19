@@ -62,8 +62,8 @@ class SAVC(BaseAlg):
             data_1 = data.to(device)
             data_2 = data.to(device)
             label = label.to(device)
-            attribute = attribute
-            attribute = attribute.cuda(non_blocking=True)
+            # attribute = attribute
+            # attribute = attribute.cuda(non_blocking=True)
 
             # if len(self.config.CIL.num_crops) > 1:
             #         data_small = data[self.config.CIL.num_crops[0]+1].unsqueeze(1)
@@ -81,9 +81,9 @@ class SAVC(BaseAlg):
 
             m = data_query.size()[0] // b
             joint_labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
-            att_b, att_c = attribute.shape
-            joint_attribute = attribute.unsqueeze(1).repeat(1, 2, 1)
-            joint_attribute = joint_attribute.reshape(2 * att_b, att_c)
+            # att_b, att_c = attribute.shape
+            # joint_attribute = attribute.unsqueeze(1).repeat(1, 2, 1)
+            # joint_attribute = joint_attribute.reshape(2 * att_b, att_c)
 
             # ------  forward  ------- #
             joint_preds, joint_preds_att = self._network(im_cla=data_classify)  
@@ -91,9 +91,11 @@ class SAVC(BaseAlg):
             
             tmp_preds_att = joint_preds_att.sigmoid()
             bceloss = torch.nn.BCELoss()
-            att_loss = bceloss(tmp_preds_att, joint_attribute.float())
+            # att_loss = bceloss(tmp_preds_att, joint_attribute.float())
             cls_loss = F.cross_entropy(joint_preds, joint_labels)
-            joint_loss = 5.0 * att_loss + cls_loss
+            # joint_loss = 5.0 * att_loss + cls_loss
+
+            joint_loss = cls_loss
 
             agg_preds = 0
             for i in range(m):
@@ -162,8 +164,9 @@ class SAVC(BaseAlg):
             agg_preds = 0
             agg_feat = feat.view(-1, m, feat.size(1)).mean(dim=1)
             for j in range(m):
-                agg_preds = agg_preds + joint_preds[j::m, j::m] / m
-            
+                agg_preds = agg_preds + joint_preds[j::m, j::m] / m  
+            # print(agg_preds)
+            # print(label)
             # loss = F.cross_entropy(joint_preds, label)
             
             feature_list.append(agg_feat)

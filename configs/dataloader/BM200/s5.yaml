@@ -4,25 +4,25 @@ trainloader:
   dataset:
     _replace_: True
     type: BM200
-    root: /data/datasets/CIL/BM200/CIL/
+    root: /data/datasets/CIL/BMF/
     split: train
-    subset_labels: 120
+    subset_labels: 109
     transform: train
 
 valloader:
   dataset:
     _replace_: True
     type: BM200
-    root: /data/datasets/CIL/BM200/CIL/
+    root: /data/datasets/CIL/BMF/
     split: test
-    subset_labels: 120
+    subset_labels: 109
     transform: test
 
 testloader:
   dataset:
     _replace_: True
     type: BM200
-    root: /data/datasets/CIL/BM200/CIL/
+    root: /data/datasets/CIL/BMF/
     split: test
-    subset_labels: 120
+    subset_labels: 109
     transform: test

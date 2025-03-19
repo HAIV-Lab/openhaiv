@@ -97,12 +97,12 @@ class LwF(BaseAlg):
         logits_ = logits[:, :test_class]
         acc = accuracy(logits_, labels)[0]
         loss = self.loss(logits_, labels)
-        per_acc = str(per_class_accuracy(logits_, labels))
+        # per_acc = str(per_class_accuracy(logits_, labels))
         
         ret = {}
         ret['loss'] = loss.item()
         ret['acc'] = acc.item()
-        ret['per_class_acc'] = per_acc
+        # ret['per_class_acc'] = per_acc
         
         return ret
         

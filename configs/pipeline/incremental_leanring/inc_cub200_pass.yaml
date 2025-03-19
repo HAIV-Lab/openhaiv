@@ -1,6 +1,6 @@
 _base_: [
-  configs/algorithms/incremental/ewc.yaml,
-  configs/models/ewc.yaml,
+  configs/algorithms/incremental/pass.yaml,
+  configs/models/pass.yaml,
 ]
 
 trainer:
@@ -48,14 +48,14 @@ trainer:
         max_epochs: 60
 
 algorithm:
-  type: ewc
+  type: pass
 
 criterion:
   type: CrossEntropyLoss
 
 optimizer:
   type: sgd
-  lr: 0.002
+  lr: 0.01
   weight_decay: 0.0001
 
 scheduler:
@@ -65,4 +65,4 @@ seed: 0
 device: cuda
 
 exp_name: exp
-work_dir: ./output/supervised/inc_cub_ewc_1
+work_dir: ./output/supervised/inc_cub_pass

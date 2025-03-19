@@ -450,6 +450,21 @@ class WAHook(AlgHook):
         print("alignweights,gamma=", gamma)
         trainer.model.fc.weight.data[:, -increment:] *= gamma
 
+    def before_test(self, trainer) -> None:
+        trainer.test_loader
+        _hist_testset = MergedDataset([trainer.hist_testset], replace_transform=True)
+        _hist_testset.merge([trainer.test_loader.dataset], replace_transform=True)
+        trainer._test_loader = DataLoader(_hist_testset, **trainer._test_loader_kwargs)
+
+    def after_test(self, trainer) -> None:
+        """
+        在测试结束后，将当前session中需要保存的数据保存到hist_testset中。
+        """
+        trainer.update_hist_testset(
+            trainer.test_loader.dataset,
+            replace_transform=True,
+            inplace=True
+        )
 
 @HOOKS.register
 class EWCHook(AlgHook):
@@ -503,7 +518,7 @@ class EWCHook(AlgHook):
         for i, batch in enumerate(train_loader):
             inputs = batch['data'].cuda()
             targets = batch['label'].cuda()
-            logits = trainer.model(inputs)
+            logits = trainer.model(inputs)['logits']
             loss = torch.nn.functional.cross_entropy(logits, targets)
             optimizer.zero_grad()
             loss.backward()
@@ -515,6 +530,19 @@ class EWCHook(AlgHook):
             fisher[n] = torch.min(fisher[n], torch.tensor(0.0001))
 
         return fisher
+
+    def before_test(self, trainer) -> None:
+        trainer.test_loader
+        _hist_testset = MergedDataset([trainer.hist_testset], replace_transform=True)
+        _hist_testset.merge([trainer.test_loader.dataset], replace_transform=True)
+        trainer._test_loader = DataLoader(_hist_testset, **trainer._test_loader_kwargs)
+
+    def after_test(self, trainer) -> None:
+        trainer.update_hist_testset(
+            trainer.test_loader.dataset,
+            replace_transform=True,
+            inplace=True
+        )
 
 @HOOKS.register
 class LwFHook(AlgHook):
@@ -536,7 +564,21 @@ class LwFHook(AlgHook):
         for param in trainer.old_model.parameters():
             param.requires_grad = False
             
+    def before_test(self, trainer) -> None:
+        trainer.test_loader
+        _hist_testset = MergedDataset([trainer.hist_testset], replace_transform=True)
+        _hist_testset.merge([trainer.test_loader.dataset], replace_transform=True)
+        trainer._test_loader = DataLoader(_hist_testset, **trainer._test_loader_kwargs)
 
+    def after_test(self, trainer) -> None:
+        """
+        在测试结束后，将当前session中需要保存的数据保存到hist_testset中。
+        """
+        trainer.update_hist_testset(
+            trainer.test_loader.dataset,
+            replace_transform=True,
+            inplace=True
+        )
 
 @HOOKS.register
 class FACTHook(AlgHook):
@@ -623,6 +665,26 @@ class AliceHook(AlgHook):
             prototype_cls.append(torch.mean(cls_preds, dim=0))
         filename = 'train_static.pt'
         torch.save({'train_features': features, 'train_logits': logits, 'prototype': torch.stack(prototype_cls)}, os.path.join(trainer.work_dir, filename))
+
+    def before_test(self, trainer) -> None:
+        """
+        在进入for epoch in range(max_epochs)循环之前，对测试数据集进行处理。
+        """
+        trainer.test_loader
+        _hist_testset = MergedDataset([trainer.hist_testset], replace_transform=True)
+        _hist_testset.merge([trainer.test_loader.dataset], replace_transform=True)
+        trainer._test_loader = DataLoader(_hist_testset, **trainer._test_loader_kwargs)
+
+    def after_test(self, trainer) -> None:
+        """
+        在测试结束后，将当前session中需要保存的数据保存到hist_testset中。
+        """
+        trainer.update_hist_testset(
+            trainer.test_loader.dataset,
+            replace_transform=True,
+            inplace=True
+        )
+
 
 @HOOKS.register
 class SAVCHook(AlgHook):
