@@ -89,5 +89,13 @@ class QuantifyHook(AlgHook):
             device=trainer.device,
             verbose=self.verbose
         )
-        torch.save(train_stats,
-                   os.path.join(trainer.work_dir, "train_stats_final.pt"))
+
+        # Assign training stats to trainer,
+        # which can be accessed in other hooks
+        trainer.train_stats = train_stats
+
+        if self.save_stats:
+            torch.save(
+                train_stats,
+                os.path.join(trainer.work_dir, "train_stats_final.pt")
+            )
