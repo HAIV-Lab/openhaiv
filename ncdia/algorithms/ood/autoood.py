@@ -1,9 +1,8 @@
-from .methods import (
-    msp, mcm, max_logit, energy, vim, dml, dmlp, prot
-)
+from ncdia.utils import ALGORITHMS
 from .inference import (
     msp_inf, mcm_inf, max_logit_inf, energy_inf, vim_inf, dml_inf, dmlp_inf, prot_inf
 )
+
 
 class AutoOOD(object):
     """AutoOOD class for evaluating OOD detection methods.
@@ -59,36 +58,60 @@ class AutoOOD(object):
         """
         ood_scores = {}
         for metric in metrics:
-            if metric == 'msp':
-                ood_scores['msp'] = msp(id_labels, id_logits, ood_labels, ood_logits, tpr_th, prec_th)
-            elif metric == 'mcm':
-                ood_scores['mcm'] = mcm(id_labels, id_logits, ood_labels, ood_logits, tpr_th, prec_th)
-            elif metric == 'maxlogit':
-                ood_scores['maxlogit'] = max_logit(id_labels, id_logits, ood_labels, ood_logits, tpr_th, prec_th)
-            elif metric == 'energy':
-                ood_scores['energy'] = energy(id_labels, id_logits, ood_labels, ood_logits, tpr_th, prec_th)
-            elif metric == 'vim':
-                ood_scores['vim'] = vim(id_labels, id_logits, id_feats, ood_labels, ood_logits, ood_feats, train_logits, train_feats, tpr_th, prec_th)
-            elif metric == 'dml':
-                ood_scores['dml'] = dml(id_labels, id_feats, ood_labels, ood_feats, fc_weight, tpr_th, prec_th)
-            elif metric == 'dmlp':
-                ood_scores['dmlp'] = dmlp(id_labels, id_logits, id_feats, ood_labels, ood_logits, ood_feats, fc_weight, prototype_cls, tpr_th, prec_th)
-            elif metric == 'cls':
-                ood_scores['cls'] = prot(id_labels, [id_logits], ood_labels, [ood_logits], [prototype_cls], tpr_th, prec_th)
-            elif metric == 'att':
-                ood_scores['att'] = prot(id_labels, [id_logits], ood_labels, [ood_logits], [prototype_cls], tpr_th, prec_th)
-            elif metric == 'merge':
-                ood_scores['merge'] = prot(id_labels, [id_logits], ood_labels, [ood_logits], [prototype_cls], tpr_th, prec_th)
-            elif metric == 'attr':
-                ood_scores['attr'] = prot(id_labels, [id_attrs], ood_labels, [ood_attrs], [prototype_att], tpr_th, prec_th)
-            else:
-                raise ValueError(f"Unknown metric: {metric}")
-        print("ood scores: ", ood_scores)
+            ood_scores[metric] = ALGORITHMS[metric](
+                id_gt=id_labels,
+                id_logits=id_logits,
+                id_feat=id_feats,
+                ood_gt=ood_labels,
+                ood_logits=ood_logits,
+                ood_feat=ood_feats,
+                train_logits=train_logits,
+                train_feat=train_feats,
+                fc_weight=fc_weight,
+                prototypes=prototype_cls,
+                tpr_th=tpr_th,
+                prec_th=prec_th
+            )
+            # if metric == 'msp':
+            #     ood_scores['msp'] = msp(id_labels, id_logits, ood_labels, ood_logits, tpr_th, prec_th)
+            # elif metric == 'mcm':
+            #     ood_scores['mcm'] = mcm(id_labels, id_logits, ood_labels, ood_logits, tpr_th, prec_th)
+            # elif metric == 'maxlogit':
+            #     ood_scores['maxlogit'] = max_logit(id_labels, id_logits, ood_labels, ood_logits, tpr_th, prec_th)
+            # elif metric == 'energy':
+            #     ood_scores['energy'] = energy(id_labels, id_logits, ood_labels, ood_logits, tpr_th, prec_th)
+            # elif metric == 'vim':
+            #     ood_scores['vim'] = vim(id_labels, id_logits, id_feats, ood_labels, ood_logits, ood_feats, train_logits, train_feats, tpr_th, prec_th)
+            # elif metric == 'dml':
+            #     ood_scores['dml'] = dml(id_labels, id_feats, ood_labels, ood_feats, fc_weight, tpr_th, prec_th)
+            # elif metric == 'dmlp':
+            #     ood_scores['dmlp'] = dmlp(id_labels, id_logits, id_feats, ood_labels, ood_logits, ood_feats, fc_weight, prototype_cls, tpr_th, prec_th)
+            # elif metric == 'cls':
+            #     ood_scores['cls'] = prot(id_labels, [id_logits], ood_labels, [ood_logits], [prototype_cls], tpr_th, prec_th)
+            # elif metric == 'att':
+            #     ood_scores['att'] = prot(id_labels, [id_logits], ood_labels, [ood_logits], [prototype_cls], tpr_th, prec_th)
+            # elif metric == 'merge':
+            #     ood_scores['merge'] = prot(id_labels, [id_logits], ood_labels, [ood_logits], [prototype_cls], tpr_th, prec_th)
+            # elif metric == 'attr':
+            #     ood_scores['attr'] = prot(id_labels, [id_attrs], ood_labels, [ood_attrs], [prototype_att], tpr_th, prec_th)
+            # else:
+            #     raise ValueError(f"Unknown metric: {metric}")
+        
         return ood_scores
 
     @staticmethod
-    def inference(metrics, logits, feat, train_logits, train_feat, fc_weight, prototype, logits_att=None, prototype_att=None):
+    def inference(
+            metrics,
+            logits, feat,
+            train_logits,
+            train_feat,
+            fc_weight,
+            prototype,
+            logits_att=None,
+            prototype_att=None,
+    ) -> dict:
         conf = {}
+
         for metric in metrics:
             if metric == 'msp':
                 conf['msp'] = msp_inf(logits)
@@ -114,4 +137,5 @@ class AutoOOD(object):
                 conf['attr'] = prot_inf([logits_att], [prototype_att])
             else:
                 raise ValueError(f"Unknown metric: {metric}")
+            
         return conf

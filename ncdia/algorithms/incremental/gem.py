@@ -1,191 +1,34 @@
-import os
-import logging
 import torch
-import torch.nn.functional as F
 import numpy as np
-from tqdm import tqdm
-import itertools
+import quadprog
 
 from ncdia.utils import ALGORITHMS
-from ncdia.utils import HOOKS
-from ncdia.trainers.hooks import AlgHook
 from ncdia.algorithms.base import BaseAlg
-from ncdia.dataloader import MergedDataset
-from ncdia.dataloader import BaseDataset
-from torch.utils.data import DataLoader
-from ncdia.models.net.alice_net import AliceNET
 from ncdia.utils.losses import AngularPenaltySMLoss
 from ncdia.utils.metrics import accuracy, per_class_accuracy
+from ncdia.utils import HOOKS
+from ncdia.trainers.hooks import AlgHook
+from ncdia.models.net.alice_net import AliceNET
+
+import os
+import logging
+from tqdm import tqdm
+import itertools
+from torch import optim
+import copy
+from torch.utils.data import DataLoader
+from ncdia.dataloader import MergedDataset
+from ncdia.dataloader import BaseDataset
 
 @HOOKS.register
 class GEMHook(AlgHook):
     def __init__(self) -> None:
         super().__init__()
-        self._fix_memory = True
-    
-    def before_train(self, trainer) -> None:
-        trainer.train_loader
-        _hist_trainset = trainer.hist_trainset
-        now_dataset = trainer.train_loader.dataset
-        _hist_trainset = MergedDataset([_hist_trainset], replace_transform=True)    
 
-        if self._fix_memory and trainer.session >=1:
-            _hist_trainset , new_dataset = self.construct_exemplar_unified(_hist_trainset, trainer.cfg.CIL.per_classes, trainer)
-            _hist_trainset = MergedDataset([_hist_trainset], replace_transform=True)
-            new_dataset = MergedDataset([new_dataset], replace_transform=True)
-
-        if trainer.session >=1:
-            _hist_trainset.merge([new_dataset], replace_transform=True)
-        else:
-            _hist_trainset.merge([now_dataset], replace_transform=True)
-        # print(_hist_trainset.labels)
-        trainer._train_loader = DataLoader(_hist_trainset, **trainer._train_loader_kwargs)
-
-        # val_loader
-        trainer.val_loader
-        _hist_valset = MergedDataset([trainer.hist_valset], replace_transform=True)
-        _hist_valset.merge([trainer.val_loader.dataset], replace_transform=True)
-        trainer._val_loader = DataLoader(_hist_valset, **trainer._val_loader_kwargs)
-    
     def after_train(self, trainer) -> None:
-        trainer.update_hist_trainset(
-            trainer.train_loader.dataset,
-            replace_transform=True,
-            inplace=True
-        )
-
-        trainer.update_hist_valset(
-            trainer.val_loader.dataset,
-            replace_transform=True,
-            inplace=True
-        )
-        algorithm = trainer.algorithm
         filename = 'task_' + str(trainer.session) + '.pth'
         trainer.save_ckpt(os.path.join(trainer.work_dir, filename))
-        trainer.old_model = AliceNET(
-            trainer.cfg.model.network,
-            trainer.cfg.CIL.base_classes,
-            trainer.cfg.CIL.num_classes,
-            trainer.cfg.CIL.att_classes,
-            trainer.cfg.model.net_alice
-        )
-        trainer.old_model.load_state_dict(trainer.model.state_dict())
-        for param in trainer.old_model.parameters():
-            param.requires_grad = False
-    
-    def construct_exemplar_unified(self, trainset, m, trainer):
-        logging.info(
-            "Constructing exemplars for new classes...({} per classes)".format(m)
-        )
-        
-        trainset.merge([trainer.train_loader.dataset], replace_transform=True)
-        args = trainer.cfg
-        session = trainer.session
-        total_class = args.CIL.base_classes + (session) * args.CIL.way
-        known_class =  max(args.CIL.base_classes + (session - 1) * args.CIL.way, 0)
-        start_class = max(args.CIL.base_classes + (session - 2) * args.CIL.way, 0)
-        _network = trainer.model
-        _feature_dim = _network.num_features
-        class_means = np.zeros((total_class, _feature_dim))
 
-        
-        data_loader = DataLoader(trainset, **trainer._train_loader_kwargs)
-        class_sums = np.zeros((total_class, _feature_dim))
-        class_counts = np.zeros(total_class)
-        
-        for i, batch in enumerate(tqdm(data_loader, desc="Calculating class means")):
-            images = batch['data']
-            labels = batch['label']
-            images = images.cuda()
-            with torch.no_grad():
-                features = _network.get_features(images)
-            features_np = features.cpu().numpy()
-
-            for i in range(len(labels)):
-                class_index = labels[i].item()
-                class_sums[class_index] += features_np[i]
-                class_counts[class_index] += 1
-        
-        for i in range(total_class):
-            if class_counts[i] > 0:
-                mean = class_sums[i] / class_counts[i]
-                class_means[i] = mean
-        
-        selected_indices = {i: [] for i in range(known_class, total_class)}
-        selected_features = {i: [] for i in range(known_class, total_class)}
-
-        # 遍历 DataLoader 再次获取所有样本的特征和标签
-        all_features = []  
-        all_labels = []    
-        all_imgpaths = []  
-
-        for batch in tqdm(data_loader, desc="Gathering all samples"):
-            images = batch['data'].cuda()  
-            labels = batch['label'].cpu().numpy()  
-            imgpaths = batch['imgpath']  
-
-            # 确保输入是连续的并转换为浮点型
-            images = images.contiguous().float()
-
-            # 获取当前批次的特征
-            with torch.no_grad():
-                features = _network.get_features(images).cpu().numpy()
-
-            # 将当前批次的特征和标签添加到列表中
-            all_features.append(features)
-            all_labels.append(labels)
-            all_imgpaths.append(imgpaths)
-
-        # 最后合并所有特征和标签
-        all_features = np.concatenate(all_features, axis=0)
-        all_labels = np.concatenate(all_labels, axis=0)
-        all_imgpaths = list(itertools.chain.from_iterable(all_imgpaths))
-        # all_imgpaths = np.concatenate(all_imgpaths, axis=0)  
-        # print(all_imgpaths)
-
-        # 计算每个类的最近 m 个样本
-        for class_id in tqdm(range(start_class, known_class), desc="Selecting nearest samples"):
-            class_indices = np.where(all_labels == class_id)[0]
-            if len(class_indices) == 0:
-                continue
-
-            class_center = class_means[class_id]
-            
-            # 计算到类中心的距离
-            distances = np.linalg.norm(all_features[class_indices] - class_center, axis=1)
-            
-            # 获取距离最小的 m 个样本的索引
-            nearest_indices = np.argsort(distances)[:m]
-            selected_indices[class_id] = class_indices[nearest_indices].tolist()
-            selected_features[class_id] = all_features[class_indices][nearest_indices]
-        
-        retained_images = []
-        retained_labels = []
-        for class_id in range(start_class, known_class):
-            indices = selected_indices[class_id]
-            retained_images.extend([all_imgpaths[i] for i in indices])
-            retained_labels.extend([all_labels[i] for i in indices])     
-    
-        retained_datasets = BaseDataset(loader = trainer.train_loader.dataset.loader, 
-                                        transform = trainer.train_loader.dataset.transform)
-
-        retained_datasets.images = retained_images
-        retained_datasets.labels = retained_labels
-
-        # 新类
-        all_remaining_images = []
-        all_remaining_labels = []
-        for class_id in range(known_class, total_class):
-            class_indices = np.where(all_labels == class_id)[0]
-            all_remaining_images.extend([all_imgpaths[i] for i in class_indices])
-            all_remaining_labels.extend([all_labels[i] for i in class_indices])
-        all_remaining_datasets = BaseDataset(loader = trainer.train_loader.dataset.loader, 
-                                        transform = trainer.train_loader.dataset.transform)
-        all_remaining_datasets.images = all_remaining_images
-        all_remaining_datasets.labels = all_remaining_labels
-
-        return retained_datasets, all_remaining_datasets
-    
 @ALGORITHMS.register
 class GEM(BaseAlg):
     def __init__(self, trainer) -> None:
@@ -197,13 +40,25 @@ class GEM(BaseAlg):
         self._old_network = None
         self.transform = None
         self.loss = torch.nn.CrossEntropyLoss().cuda()
-        self.hook = COILHook()
+        # self.loss = AngularPenaltySMLoss(loss_type='cosface').cuda()
+        self.hook = GEMHook()
         trainer.register_hook(self.hook)
-        session = trainer.session
-    
+
+        self.grad_dims = []
+        self.margin = 0.5
+        self.n_memories = 256
+        for param in trainer.model.parameters():
+            self.grad_dims.append(param.data.numel())
+        self.grads = torch.Tensor(sum(self.grad_dims), self.args.CIL.sessions).cuda()
+
+        self.memory_data = torch.FloatTensor(self.args.CIL.sessions, self.n_memories, 3, 224, 224).cuda()
+        self.memory_label = torch.LongTensor(self.args.CIL.sessions, self.n_memories).cuda()
+        self.memory_pointer = 0
+
+
     def train_step(self, trainer, data, label, attribute, imgpath):
         """
-        base train for fact method
+        base train for Gradient Episodic Memory method
         Args:
             data: data in batch
             label: label in batch
@@ -211,36 +66,44 @@ class GEM(BaseAlg):
             imgpath: imgpath in batch
         """
         session = self.trainer.session
-        known_class = max(self.args.CIL.base_classes + (session - 1) * self.args.CIL.way, 0)
-        total_class = self.args.CIL.base_classes + self.args.CIL.way
         self._network = trainer.model
-        if session >=1:
-            self._old_network = trainer.old_model
-            self._old_network = self._old_network.cuda()
-            self._old_network.eval()
-        
+        if session > 0:
+            self.update_memory(data, label, session)
+
         self._network.train()
 
-        data = data.cuda()
-        labels = label.cuda()
-        logits = self._network(data)['logits']
+        for past_session in range(session):
+            self._network.zero_grad()
+            inf, sup = self.calc_range(past_session)
+            mask = torch.where((self.memory_label[past_session] >= inf) & (self.memory_label[past_session] < sup))[0].cuda()
+            if len(mask) > 0:
+                data_ = self.memory_data[past_session][mask]
+                label_ = self.memory_label[past_session][mask]
+                _ = self.forward(data_, label_, past_session, train=True, current=False)
+                self.store_grad(past_session)
 
-        logits_ = logits[:, :known_class]
-        acc = accuracy(logits_, labels)[0]
-        per_acc = str(per_class_accuracy(logits_, labels))
-        loss = self.loss(logits_, labels)
+        self._network.zero_grad()
+        inf, sup = self.calc_range(session)
+        mask = torch.where((label >= inf) & (label < sup))[0].cuda()
+        if len(mask) > 0:
+            data_ = (data.cuda())[mask]
+            label_ = (label.cuda())[mask]
+            _ = self.forward(data_, label_, session, train=True, current=True)
 
-        loss.backward()
+        if session > 0:
+            self.store_grad(session)
+            dotp = torch.mm(self.grads[:, session].unsqueeze(0), self.grads[:, : session])
+            if (dotp < 0).sum() != 0:
+                new_grad = self.project2cone2(session)
+                self.overwrite_grad(new_grad)
 
-        ret = {}
-        ret['loss'] = loss
-        ret['acc'] = acc
-        ret['per_class_acc'] = per_acc
+        loss, acc, per_acc = self.forward(data, label, session, train=False, current=True)
+        ret = {'loss': loss.item(), 'acc': acc.item(), 'per_class_acc': per_acc}
 
         return ret
-    
+
     def val_step(self, trainer, data, label, *args, **kwargs):
-        """Validation step for standard supervised learning.
+        """Validation step for Gradient Episodic Memory.
 
         Args:
             trainer (object): Trainer object.
@@ -260,24 +123,110 @@ class GEM(BaseAlg):
                 - "acc": Accuracy value.
         """
         session = self.trainer.session
-        test_class = self.args.CIL.base_classes + session  * self.args.CIL.way
         self._network = trainer.model
         self._network.eval()
-        data = data.cuda()
-        labels = label.cuda()
-        logits = self._network(data)['logits']
-        logits_ = logits[:, :test_class]
-        acc = accuracy(logits_, labels)[0]
-        loss = self.loss(logits_, labels)
-        per_acc = str(per_class_accuracy(logits_, labels))
-        
-        ret = {}
-        ret['loss'] = loss.item()
-        ret['acc'] = acc.item()
-        ret['per_class_acc'] = per_acc
-        
+        loss, acc, per_acc = self.forward(data, label, session, train=False)
+        ret = {'loss': loss.item(), 'acc': acc.item(), 'per_class_acc': per_acc}
         return ret
-        
-    
+
     def test_step(self, trainer, data, label, *args, **kwargs):
         return self.val_step(trainer, data, label, *args, **kwargs)
+
+    def get_net(self):
+        return self._network
+
+    def calc_range(self, session):
+        sup = self.args.CIL.base_classes + session * self.args.CIL.way
+        if session == 0:
+            inf = 0
+        else:
+            inf = sup - self.args.CIL.way
+        return inf, sup
+
+    def forward(self, data, label, session, train=True, current=False):
+        inf, sup = self.calc_range(session)
+        data = data.cuda()
+        labels = label.cuda()
+        logits = self._network(data)
+        if train:
+            logits[:, : inf].data.fill_(-10e10)
+            if not current:
+                logits[:, sup : ].data.fill_(-10e10)
+        logits_ = logits[:, : sup]
+        acc = accuracy(logits_, labels)[0]
+        per_acc = str(per_class_accuracy(logits_, labels))
+        loss = self.loss(logits_, labels)
+        if train:
+            loss.backward()
+        return loss, acc, per_acc
+
+    def update_memory(self, data, label, session):
+        batchsize = label.data.size(0)
+        start = self.memory_pointer
+        end = min(start + batchsize, self.n_memories)
+        inc = end - start
+        self.memory_data[session, start: end].copy_(data.data[: inc])
+        if batchsize == 1:
+            self.memory_label[session, start] = label.data[0]
+        else:
+            self.memory_label[session, start: end].copy_(label.data[: inc])
+        self.memory_pointer += batchsize
+        if self.memory_pointer >= self.n_memories:
+            self.memory_pointer = 0
+
+    def store_grad(self, session):
+        """
+            This stores parameter gradients of past tasks.
+            pp: parameters
+            grads: gradients
+            grad_dims: list with number of parameters per layers
+            tid: task id
+        """
+        # store the gradients
+        self.grads[:, session].fill_(0.0)
+        cnt = 0
+        for param in self._network.parameters():
+            if param.grad is not None:
+                beg = 0 if cnt == 0 else sum(self.grad_dims[:cnt])
+                en = sum(self.grad_dims[:cnt + 1])
+                self.grads[beg: en, session].copy_(param.grad.data.view(-1))
+            cnt += 1
+
+    def overwrite_grad(self, newgrad):
+        """
+            This is used to overwrite the gradients with a new gradient
+            vector, whenever violations occur.
+            pp: parameters
+            newgrad: corrected gradient
+            grad_dims: list storing number of parameters at each layer
+        """
+        print("Overwriting Gradient......")
+        cnt = 0
+        for param in self._network.parameters():
+            if param.grad is not None:
+                beg = 0 if cnt == 0 else sum(self.grad_dims[:cnt])
+                en = sum(self.grad_dims[:cnt + 1])
+                this_grad = newgrad[beg: en].contiguous().view(param.grad.data.size())
+                param.grad.data.copy_(this_grad)
+            cnt += 1
+
+    def project2cone2(self, session):
+        """
+            Solves the GEM dual QP described in the paper given a proposed
+            gradient "gradient", and a memory of task gradients "memories".
+            Overwrites "gradient" with the final projected update.
+
+            input:  gradient, p-vector
+            input:  memories, (t * p)-vector
+            output: x, p-vector
+        """
+        old_grad = self.grads[:, : session].cpu().t().double().numpy()
+        cur_grad = self.grads[:, session].cpu().contiguous().view(-1).double().numpy()
+        C = old_grad @ old_grad.T
+        p = old_grad @ cur_grad
+        A = np.eye(old_grad.shape[0])
+        b = np.zeros(old_grad.shape[0]) + self.margin
+        v = quadprog.solve_qp(C, -p, A, b)[0]
+        new_grad = old_grad.T @ v + cur_grad
+        new_grad = torch.tensor(new_grad).float().cuda()
+        return new_grad
