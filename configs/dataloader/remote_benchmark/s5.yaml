@@ -1,0 +1,28 @@
+_base_: configs/dataloader/loader.yaml
+
+trainloader:
+  dataset:
+    _replace_: True
+    type: BM200
+    root: /data/datasets/CIL_new/
+    split: train
+    subset_labels: 109
+    transform: train
+
+valloader:
+  dataset:
+    _replace_: True
+    type: BM200
+    root: /data/datasets/CIL_new/
+    split: test
+    subset_labels: 109
+    transform: test
+
+testloader:
+  dataset:
+    _replace_: True
+    type: BM200
+    root: /data/datasets/CIL_new/
+    split: test
+    subset_labels: 109
+    transform: test
