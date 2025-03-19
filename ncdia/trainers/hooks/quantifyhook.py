@@ -3,11 +3,11 @@ import torch
 from tqdm import tqdm
 
 from ncdia.utils import HOOKS
-from .hook import Hook
+from .alghook import AlgHook
 
 
 @HOOKS.register
-class QuantifyHook(Hook):
+class QuantifyHook(AlgHook):
     """A hook to quantify and save the statistics of training, evaluation and testing.
 
     Args:
