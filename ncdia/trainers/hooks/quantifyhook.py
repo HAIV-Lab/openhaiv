@@ -11,7 +11,7 @@ class QuantifyHook(AlgHook):
     """A hook to quantify and save the statistics of training, evaluation and testing.
 
     Args:
-        save_stats (bool, optional): Whether to save the statistics. Defaults to True.
+        save_stats (bool, optional): Whether to save the statistics. Defaults to False.
         verbose (bool, optional): Whether to print the progress. Defaults to False.
     """
 
@@ -19,7 +19,7 @@ class QuantifyHook(AlgHook):
 
     def __init__(
             self,
-            save_stats=True,
+            save_stats=False,
             verbose=False,
     ) -> None:
         super(QuantifyHook, self).__init__()
@@ -92,7 +92,7 @@ class QuantifyHook(AlgHook):
 
         # Assign training stats to trainer,
         # which can be accessed in other hooks
-        trainer.train_stats = train_stats
+        trainer._train_stats = train_stats
 
         if self.save_stats:
             torch.save(

@@ -68,6 +68,13 @@ class DetTrainer(PreTrainer):
             self._eval_loader, self._eval_dataset_kwargs, \
                 self._eval_loader_kwargs = build_dataloader(self._eval_loader)
         return self._eval_loader
+    
+    @property
+    def train_stats(self) -> dict:
+        """Get training stats, including features, logits, labels, and prototypes."""
+        if "_train_stats" not in self.__dict__:
+            return None
+        return self._train_stats
 
     def evaluate(
             self,
@@ -88,7 +95,8 @@ class DetTrainer(PreTrainer):
             dict: OOD scores, keys are the names of the OOD detection methods,
                 values are the OOD scores and search threshold.
         """
-        train_stats = torch.load(os.path.join(self.work_dir, 'train_stats_final.pt'))
+        # train_stats = torch.load(os.path.join(self.work_dir, 'train_stats_final.pt'))
+        train_stats = self.train_stats
 
         eval_stats = self.quantify_hook.gather_stats(
             model=self.model,
@@ -130,7 +138,8 @@ class DetTrainer(PreTrainer):
             dict: OOD confidence, keys are the names of the OOD detection methods,
                 values are the OOD confidence.
         """
-        train_stats = torch.load(os.path.join(self.work_dir, 'train_stats_final.pt'))
+        # train_stats = torch.load(os.path.join(self.work_dir, 'train_stats_final.pt'))
+        train_stats = self.train_stats
 
         eval_stats = self.quantify_hook.gather_stats(
             model=self.model,
