@@ -41,7 +41,11 @@ class DetTrainer(PreTrainer):
     ) -> None:
         self.kwargs = kwargs
         self.verbose = verbose
-        self.quantify_hook = QuantifyHook(verbose=verbose)
+        self.quantify_hook = QuantifyHook(
+            gather_train_stats=True,
+            gather_test_stats=True,
+            verbose=verbose
+        )
 
         self._eval_loader = {}
         if 'evalloader' in self._cfg:
@@ -75,6 +79,13 @@ class DetTrainer(PreTrainer):
         if "_train_stats" not in self.__dict__:
             return None
         return self._train_stats
+    
+    @property
+    def test_stats(self) -> dict:
+        """Get testing stats, including features, logits, labeld, and prototypes."""
+        if "_test_stats" not in self.__dict__:
+            return None
+        return self._test_stats
     
     def train(self):
         """Training and evaluation for out-of-distribution (OOD) detection.
@@ -115,6 +126,7 @@ class DetTrainer(PreTrainer):
                 values are the OOD scores and search threshold.
         """
         train_stats = self.train_stats
+        test_stats = self.test_stats
 
         eval_stats = self.quantify_hook.gather_stats(
             model=self.model,
@@ -129,9 +141,9 @@ class DetTrainer(PreTrainer):
             fc_weight=self.model.fc.weight.clone().detach().cpu(),
             train_feats=train_stats['features'],
             train_logits=train_stats['logits'],
-            id_feats=train_stats['features'],
-            id_logits=train_stats['logits'],
-            id_labels=train_stats['labels'],
+            id_feats=test_stats['features'],
+            id_logits=test_stats['logits'],
+            id_labels=test_stats['labels'],
             ood_feats=eval_stats['features'],
             ood_logits=eval_stats['logits'],
             ood_labels=eval_stats['labels'],
@@ -157,6 +169,7 @@ class DetTrainer(PreTrainer):
                 values are the OOD confidence.
         """
         train_stats = self.train_stats
+        test_stats = self.test_stats
 
         eval_stats = self.quantify_hook.gather_stats(
             model=self.model,
