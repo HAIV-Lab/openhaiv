@@ -11,6 +11,8 @@ class QuantifyHook(AlgHook):
     """A hook to quantify and save the statistics of training, evaluation and testing.
 
     Args:
+        gather_train_stats (bool, optional): Whether to gather the statistics of training data. Defaults to False.
+        gather_test_stats (bool, optional): Whether to gather the statistics of testing data. Defaults to False.
         save_stats (bool, optional): Whether to save the statistics. Defaults to False.
         verbose (bool, optional): Whether to print the progress. Defaults to False.
     """
