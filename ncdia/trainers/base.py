@@ -594,30 +594,30 @@ class BaseTrainer(object):
         +----------------------+-------------------------+
         | Hooks                | Priority                |
         +======================+=========================+
-        | RuntimeInfoHook      | VERY_HIGH (10)          |
-        +----------------------+-------------------------+
-        | IterTimerHook        | NORMAL (50)             |
-        +----------------------+-------------------------+
-        | DistSamplerSeedHook  | NORMAL (50)             |
-        +----------------------+-------------------------+
         | LoggerHook           | BELOW_NORMAL (60)       |
         +----------------------+-------------------------+
-        | ParamSchedulerHook   | LOW (70)                |
+        | ModelHook            | HIGHEST (0)             |
         +----------------------+-------------------------+
-        | CheckpointHook       | VERY_LOW (90)           |
+        | AlgHook              | NORMAL (50)             |
+        +----------------------+-------------------------+
+        | OptimizerHook        | NORMAL (50)             |
+        +----------------------+-------------------------+
+        | SchedulerHook        | NORMAL (50)             |
+        +----------------------+-------------------------+
+        | MetricHook           | NORMAL (50)             |
         +----------------------+-------------------------+
         ```
 
         If ``hooks`` is None, above hooks will be registered by
         default::
 
-            default_hooks = dict(
-                runtime_info=dict(type='RuntimeInfoHook'),
-                timer=dict(type='IterTimerHook'),
-                sampler_seed=dict(type='DistSamplerSeedHook'),
-                logger=dict(type='LoggerHook'),
-                param_scheduler=dict(type='ParamSchedulerHook'),
-                checkpoint=dict(type='CheckpointHook', interval=1),
+            default_hooks: dict = dict(
+                logger=dict(type='LoggerHook', interval=self.cfg.trainer.interval or 25),
+                model=dict(type='ModelHook'),
+                alg=dict(type='AlgHook'),
+                optimizer = dict(type='OptimizerHook'),
+                scheduler = dict(type='SchedulerHook'),
+                metric = dict(type='MetricHook'),
             )
 
         If not None, ``hooks`` will be merged into ``default_hooks``.
@@ -626,22 +626,16 @@ class BaseTrainer(object):
 
             hooks = dict(timer=None)
 
-        The final registered default hooks will be :obj:`RuntimeInfoHook`,
-        :obj:`DistSamplerSeedHook`, :obj:`LoggerHook`,
-        :obj:`ParamSchedulerHook` and :obj:`CheckpointHook`.
+        The final registered default hooks will be :obj:`LoggerHook`,
+        :obj:`ModelHook`, :obj:`AlgHook`,
+        :obj:`OptimizerHook`, :obj:`SchedulerHook` and :obj:`MetricHook`.
 
         Args:
             hooks (dict[str, Hook or dict], optional): Default hooks or configs
                 to be registered.
         """
         default_hooks: dict = dict(
-            # runtime_info=dict(type='RuntimeInfoHook'),
-            # timer=dict(type='IterTimerHook'),
-            # sampler_seed=dict(type='DistSamplerSeedHook'),
-            # param_scheduler=dict(type='ParamSchedulerHook'),
-            # checkpoint=dict(type='CheckpointHook', interval=1),
-
-            logger=dict(type='LoggerHook'),
+            logger=dict(type='LoggerHook', interval=self.cfg.trainer.interval or 25),
             model=dict(type='ModelHook'),
             alg=dict(type='AlgHook'),
             optimizer = dict(type='OptimizerHook'),

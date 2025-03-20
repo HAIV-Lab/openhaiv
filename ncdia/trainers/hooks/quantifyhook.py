@@ -11,6 +11,8 @@ class QuantifyHook(AlgHook):
     """A hook to quantify and save the statistics of training, evaluation and testing.
 
     Args:
+        gather_train_stats (bool, optional): Whether to gather the statistics of training data. Defaults to False.
+        gather_test_stats (bool, optional): Whether to gather the statistics of testing data. Defaults to False.
         save_stats (bool, optional): Whether to save the statistics. Defaults to False.
         verbose (bool, optional): Whether to print the progress. Defaults to False.
     """
@@ -19,10 +21,14 @@ class QuantifyHook(AlgHook):
 
     def __init__(
             self,
+            gather_train_stats=False,
+            gather_test_stats=False,
             save_stats=False,
             verbose=False,
     ) -> None:
         super(QuantifyHook, self).__init__()
+        self.gather_train_stats = gather_train_stats
+        self.gather_test_stats = gather_test_stats
         self.save_stats = save_stats
         self.verbose = verbose
 
@@ -83,6 +89,9 @@ class QuantifyHook(AlgHook):
         Args:
             trainer (Trainer): The trainer.
         """
+        if not self.gather_train_stats:
+            return
+
         train_stats = self.gather_stats(
             model=trainer.model,
             dataloader=trainer.train_loader,
@@ -98,4 +107,30 @@ class QuantifyHook(AlgHook):
             torch.save(
                 train_stats,
                 os.path.join(trainer.work_dir, "train_stats_final.pt")
+            )
+
+    def after_test(self, trainer) -> None:
+        """Calculate the statistics of testing data.
+
+        Args:
+            trainer (Trainer): The trainer
+        """
+        if not self.gather_test_stats:
+            return
+
+        test_stats = self.gather_stats(
+            model=trainer.model,
+            dataloader=trainer.test_loader,
+            device=trainer.device,
+            verbose=self.verbose
+        )
+
+        # Assign testing statistics to trainer,
+        # which can be accessed in other hooks
+        trainer._test_stats = test_stats
+
+        if self.save_stats:
+            torch.save(
+                test_stats,
+                os.path.join(trainer.work_dir, "test_stats.pt")
             )
