@@ -1,0 +1,40 @@
+_base_: configs/dataloader/cifar10.yaml
+
+trainer:
+  type: DetTrainer
+  max_epochs: 10
+
+algorithm:
+  type: DML_Cosine
+
+model:
+  type: DMLNet
+  network_C:
+    type: resnet18
+    num_classes: 10
+  network_N:
+    type: resnet18
+    num_classes: 10
+
+criterion:
+  type: centerloss
+  device: cuda
+  num_classes: 10
+  feat_dim: 512
+
+# resnet18 -> 512
+# resnet50 -> 2048
+
+optimizer:
+  type: Adam
+  lr: 0.0003
+  weight_decay: 0.0001
+
+scheduler:
+  type: Constant
+
+seed: 0
+device: cuda
+
+exp_name: exp
+work_dir: ./output/supervised/sl_cifar10_rn18_DML_Norm
