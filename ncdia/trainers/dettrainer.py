@@ -75,6 +75,25 @@ class DetTrainer(PreTrainer):
         if "_train_stats" not in self.__dict__:
             return None
         return self._train_stats
+    
+    def train(self):
+        """Training and evaluation for out-of-distribution (OOD) detection.
+        Firstly, train a model, and then evaluate the model on the OOD dataset.
+
+        Returns:
+            model (nn.Module): Trained model.
+        """
+        super(DetTrainer, self).train()
+
+        # If the configuration of eval_loader is provided,
+        # then evaluate the model on the eval_loader.
+        # If not, trainer only train the model but not run OOD detection.
+        # Furthermore, OOD detection can also be run after training 
+        # by calling `trainer.evaluate(evalloader=DataLoader)`.
+        if self.eval_loader:
+            self.evaluate()
+
+        return self.model
 
     def evaluate(
             self,
@@ -95,7 +114,6 @@ class DetTrainer(PreTrainer):
             dict: OOD scores, keys are the names of the OOD detection methods,
                 values are the OOD scores and search threshold.
         """
-        # train_stats = torch.load(os.path.join(self.work_dir, 'train_stats_final.pt'))
         train_stats = self.train_stats
 
         eval_stats = self.quantify_hook.gather_stats(
@@ -138,7 +156,6 @@ class DetTrainer(PreTrainer):
             dict: OOD confidence, keys are the names of the OOD detection methods,
                 values are the OOD confidence.
         """
-        # train_stats = torch.load(os.path.join(self.work_dir, 'train_stats_final.pt'))
         train_stats = self.train_stats
 
         eval_stats = self.quantify_hook.gather_stats(
