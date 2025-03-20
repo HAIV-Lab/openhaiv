@@ -1,16 +1,17 @@
 _base_: configs/dataloader/cifar10.yaml
 
 trainer:
-  type: PreTrainer
-  max_epochs: 10
+  type: DetTrainer
+  max_epochs: 1
 
 algorithm:
   type: DML_Cosine
-  feature_norm: True
-  use_norm: True
 
 model:
   type: ResNet18
+  num_classes: 10
+  feature_norm: True
+  use_norm: True
 
 criterion:
   type: CrossEntropyLoss

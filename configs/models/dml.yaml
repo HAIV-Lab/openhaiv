@@ -7,4 +7,5 @@ model:
     type: resnet18
     num_classes: 10
   # pretrained: True
-  # checkpoint: /new_data/dx450/Project/zzh_ood/NCD_Attr/results/remote_resnet18_savc_att_q_savc_att_e15_lr0.002_default/s0/best_epoch15_acc0.9920.ckpt   # ignore if pretrained is false
+  checkpoint_C: output/supervised/sl_cifar10_rn18_DML_Cosine/exp/latest.pth 
+  checkpoint_N: output/supervised/sl_cifar10_rn18_DML_Norm/exp/latest.pth

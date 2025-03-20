@@ -2,7 +2,10 @@ _base_: configs/dataloader/cifar10.yaml
 
 trainer:
   type: DetTrainer
-  max_epochs: 10
+  max_epochs: 1
+  verbose: True
+  if_train: False
+  method: ['dmlp']
 
 algorithm:
   type: DML_Cosine
@@ -10,20 +13,20 @@ algorithm:
 model:
   type: DMLNet
   network_C:
-    type: resnet18
+    type: ResNet18
     num_classes: 10
+    feature_norm: True
+    use_norm: True
   network_N:
-    type: resnet18
+    type: ResNet18
     num_classes: 10
+    feature_norm: False
+    use_norm: True
+  checkpoint_C: output/supervised/sl_cifar10_rn18_DML_Cosine/exp/latest.pth 
+  checkpoint_N: output/supervised/sl_cifar10_rn18_DML_Norm/exp/latest.pth
 
 criterion:
-  type: centerloss
-  device: cuda
-  num_classes: 10
-  feat_dim: 512
-
-# resnet18 -> 512
-# resnet50 -> 2048
+  type: CrossEntropyLoss
 
 optimizer:
   type: Adam
@@ -37,4 +40,4 @@ seed: 0
 device: cuda
 
 exp_name: exp
-work_dir: ./output/supervised/sl_cifar10_rn18_DML_Norm
+work_dir: ./output/supervised/sl_cifar10_rn18_DML

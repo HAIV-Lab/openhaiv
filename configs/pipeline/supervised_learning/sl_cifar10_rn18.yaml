@@ -5,10 +5,13 @@ trainer:
   max_epochs: 1
 
 algorithm:
-  type: DML_Cosine
+  type: StandardSL
 
 model:
   type: ResNet18
+  # pretrained: True
+  # checkpoint:   # ignore if pretrained is false
+
 
 criterion:
   type: CrossEntropyLoss

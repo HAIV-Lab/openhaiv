@@ -341,7 +341,7 @@ def dml(
 def dmlp(
         id_gt, id_logits, id_feat, 
         ood_gt, ood_logits, ood_feat, 
-        fc_weight, prototype,
+        train_logits, train_feat,
         tpr_th: float = 0.95,
         prec_th: float = None,
         **kwargs
