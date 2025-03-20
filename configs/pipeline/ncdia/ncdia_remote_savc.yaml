@@ -38,4 +38,4 @@ device: cuda
 
 exp_name: exp
 # work_dir: ./output/supervised/ncdia_remote_savc_xz
-work_dir: ./output/supervised/ncdia_remote_savc
+work_dir: ./output/supervised/ncdia_remote_savc_1

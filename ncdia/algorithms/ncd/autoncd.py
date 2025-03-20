@@ -73,6 +73,7 @@ class AutoNCD(object):
         imgpaths, features, logits, preds, confs, labels = [], [], [], [], [], []
         logits_attrs = []
         preds_attrs = []
+        print("dataloader.datasets: ", dataloader.dataset)
         tbar = tqdm(dataloader, dynamic_ncols=True, disable=not self.verbose)
         for batch in tbar:
             data = batch['data'].to(self.device)

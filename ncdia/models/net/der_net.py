@@ -41,7 +41,7 @@ class DERNET(nn.Module):
         network (Configs): Network configuration.
     
     """
-    cur_class  = [20]
+    cur_class  = [9]
     def __init__(
             self,
             network: Configs,
