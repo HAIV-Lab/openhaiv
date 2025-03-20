@@ -1,3 +1,4 @@
+import os
 import torch
 import numpy as np
 
@@ -5,7 +6,30 @@ from ncdia.utils import ALGORITHMS
 from ncdia.algorithms.base import BaseAlg
 from ncdia.utils.losses import AngularPenaltySMLoss
 from ncdia.utils.metrics import accuracy, per_class_accuracy
-from .hooks import LwFHook
+from ncdia.utils import HOOKS
+from ncdia.trainers.hooks import QuantifyHook
+from ncdia.models.net.inc_net import IncrementalNet
+
+@HOOKS.register
+class LwFHook(QuantifyHook):
+    def __init__(self) -> None:
+        super().__init__()
+    
+    def after_train(self, trainer) -> None:
+        algorithm = trainer.algorithm
+        filename = 'task_' + str(trainer.session) + '.pth'
+        trainer.save_ckpt(os.path.join(trainer.work_dir, filename))
+        old_model = IncrementalNet(
+            trainer.cfg.model.network,
+            trainer.cfg.CIL.base_classes,
+            trainer.cfg.CIL.num_classes,
+            trainer.cfg.CIL.att_classes,
+            trainer.cfg.model.net_alice
+        )
+        old_model.load_state_dict(trainer.model.state_dict())
+        for param in old_model.parameters():
+            param.requires_grad = False
+        trainer.buffer["old_model"] = old_model
 
 
 @ALGORITHMS.register
@@ -38,7 +62,7 @@ class LwF(BaseAlg):
         known_class = self.args.CIL.base_classes + session * self.args.CIL.way
         self._network = trainer.model
         if session>=1:
-            self._old_network = trainer.old_model
+            self._old_network = trainer.buffer["old_model"]
             self._old_network = self._old_network.cuda()
             self._old_network.eval()
 
@@ -46,11 +70,11 @@ class LwF(BaseAlg):
 
         data = data.cuda()
         labels = label.cuda()
-        logits = self._network(data)['logits']
+        logits = self._network(data)
         # print(logits)
         if session >=1:
             with torch.no_grad():
-                old_logits = self._old_network(data)['logits']
+                old_logits = self._old_network(data)
         logits_ = logits[:, :known_class]
         acc = accuracy(logits_, labels)[0]
         per_acc = str(per_class_accuracy(logits_, labels))
@@ -93,7 +117,7 @@ class LwF(BaseAlg):
         self._network.eval()
         data = data.cuda()
         labels = label.cuda()
-        logits = self._network(data)['logits']
+        logits = self._network(data)
         logits_ = logits[:, :test_class]
         acc = accuracy(logits_, labels)[0]
         loss = self.loss(logits_, labels)

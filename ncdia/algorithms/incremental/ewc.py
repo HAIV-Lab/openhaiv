@@ -1,12 +1,80 @@
 import os
 import torch
 import numpy as np
+from torch import optim
 
 from ncdia.utils import ALGORITHMS
 from ncdia.algorithms.base import BaseAlg
 from ncdia.utils.losses import AngularPenaltySMLoss
 from ncdia.utils.metrics import accuracy, per_class_accuracy
-from .hooks import EWCHook
+from ncdia.utils import HOOKS
+from ncdia.trainers.hooks import QuantifyHook
+from ncdia.models.net.inc_net import IncrementalNet
+
+@HOOKS.register
+class EWCHook(QuantifyHook):
+    def __init__(self) -> None:
+        super().__init__()
+    
+    def after_train(self, trainer) -> None:
+        algorithm = trainer.algorithm
+        filename = 'task_' + str(trainer.session) + '.pth'
+        trainer.save_ckpt(os.path.join(trainer.work_dir, filename))
+        self.update_fisher(trainer)
+    
+    def update_fisher(self, trainer):
+        session = trainer.session
+        if session == 0:
+            fisher = self.getFisherDiagonal(trainer.train_loader, trainer)
+            filename = 'fisher task_ ' + str(trainer.session) + '.pth'
+            torch.save(fisher, os.path.join(trainer.work_dir, filename))
+        else:
+            known_classes = trainer.cfg.CIL.base_classes + session * trainer.cfg.CIL.way
+            alpha = known_classes / trainer.cfg.CIL.num_classes
+            fisher = self.fisher = torch.load(os.path.join(trainer.work_dir, 'fisher task_ ' + str(trainer.session - 1) + '.pth'))
+            new_fisher = self.getFisherDiagonal(trainer.train_loader, trainer)
+            for n, p in new_fisher.items():
+                new_fisher[n][: len(fisher[n])] = (
+                    alpha * fisher[n]
+                    + (1 - alpha) * new_fisher[n][: len(fisher[n])]
+                )
+            fisher = new_fisher
+            filename = 'fisher task_ ' + str(trainer.session) + '.pth'
+            torch.save(fisher, os.path.join(trainer.work_dir, filename))
+        mean = {
+            n: p.clone().detach()
+            for n, p in trainer.model.named_parameters()
+            if p.requires_grad
+        }
+        mean_name = 'mean task_ ' + str(trainer.session) + '.pth'
+        torch.save(mean, os.path.join(trainer.work_dir, mean_name))
+ 
+
+        
+    def getFisherDiagonal(self, train_loader, trainer):
+        fisher = {
+            n: torch.zeros(p.shape).cuda()
+            for n, p in  trainer.model.named_parameters()
+            if p.requires_grad
+        }
+
+        trainer.model.train()
+        optimizer = optim.SGD(trainer.model.parameters(), lr=0.1)
+        for i, batch in enumerate(train_loader):
+            inputs = batch['data'].cuda()
+            targets = batch['label'].cuda()
+            logits = trainer.model(inputs)
+            loss = torch.nn.functional.cross_entropy(logits, targets)
+            optimizer.zero_grad()
+            loss.backward()
+            for n, p in trainer.model.named_parameters():
+                if p.grad is not None:
+                    fisher[n] += p.grad.pow(2).clone()
+        for n, p in fisher.items():
+            fisher[n] = p / len(train_loader)
+            fisher[n] = torch.min(fisher[n], torch.tensor(0.0001))
+
+        return fisher
 
 @ALGORITHMS.register
 class EWC(BaseAlg):
@@ -42,7 +110,7 @@ class EWC(BaseAlg):
         
         data = data.cuda()
         labels = label.cuda()
-        logits = self._network(data)['logits']
+        logits = self._network(data)
         logits_ = logits[:, :known_class]
         if session >=1:
             self.mean = torch.load(os.path.join(trainer.work_dir, 'mean task_ ' + str(trainer.session - 1) + '.pth'))
@@ -91,7 +159,7 @@ class EWC(BaseAlg):
         self._network.eval()
         data = data.cuda()
         labels = label.cuda()
-        logits = self._network(data)['logits']
+        logits = self._network(data)
         logits_ = logits[:, :test_class]
         acc = accuracy(logits_, labels)[0]
         loss = self.loss(logits_, labels)

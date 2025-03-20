@@ -6,7 +6,77 @@ from ncdia.algorithms.base import BaseAlg
 from ncdia.utils.losses import AngularPenaltySMLoss
 from ncdia.dataloader.augmentations import fantasy
 from ncdia.utils.metrics import accuracy, per_class_accuracy
-from .hooks import SAVCHook
+from ncdia.utils import HOOKS
+from ncdia.trainers.hooks import AlgHook
+from ncdia.models.net.alice_net import AliceNET
+from ncdia.models.net.inc_net import IncrementalNet
+
+@HOOKS.register
+class SAVCHook(AlgHook):
+    def __init__(self) -> None:
+        super().__init__()
+    
+    def after_train(self, trainer) -> None:
+        algorithm = trainer.algorithm
+        algorithm.replace_fc()
+
+        filename = 'task_' + str(trainer.session) + '.pth'
+        trainer.save_ckpt(os.path.join(trainer.work_dir, filename))
+        if trainer.session == 0:
+            self.save_train_static(trainer)
+    
+    def save_train_static(self, trainer):
+        all_class = trainer.train_loader.dataset.num_classes
+        features, logits, labels, att_logits = [], [], [], []
+        tbar = tqdm(trainer.train_loader, dynamic_ncols=True, disable=True)
+        for batch in tbar:
+            data = batch['data'].to(trainer.device)
+            label = batch['label'].to(trainer.device)
+            joint_preds, joint_preds_att = trainer.model(data)
+            joint_preds = joint_preds[:, :all_class]
+            feats = trainer.model.get_features(data)
+
+            att_logits.append(joint_preds_att.clone().detach().cpu())
+            features.append(feats.clone().detach().cpu())
+            logits.append(joint_preds.clone().detach().cpu())
+            labels.append(label.clone().detach().cpu())
+
+        features = torch.cat(features, dim=0)
+        logits = torch.cat(logits, dim=0)
+        labels = torch.cat(labels, dim=0).to(torch.int)
+        att_logits = torch.cat(att_logits, dim=0)
+
+        classes = torch.unique(labels)
+        prototype_att = []
+        prototype_cls = []
+        for cls in classes:
+            cls_indices = torch.where(labels == cls)
+            cls_preds = logits[cls_indices]
+            att_predictions = att_logits[cls_indices]
+            prototype_cls.append(torch.mean(cls_preds, dim=0))
+            prototype_att.append(torch.mean(att_predictions, dim=0))
+
+        att_logits = self.get_test_logits(trainer)
+        filename = 'train_static.pt'
+        torch.save({'train_features': features, 'train_logits': logits, 'att_logits': att_logits, 'prototype': torch.stack(prototype_cls), 'prototype_att': torch.stack(prototype_att)}, os.path.join(trainer.work_dir, filename))
+    
+    def before_train(self, trainer) -> None:
+        trainer.train_loader.dataset.multi_train = True\
+    
+    def get_test_logits(self, trainer) -> None:
+        all_class = trainer.train_loader.dataset.num_classes
+        att_logits = []
+        tbar = tqdm(trainer.test_loader, dynamic_ncols=True, disable=True)
+        for batch in tbar:
+            data = batch['data'].to(trainer.device)
+            label = batch['label'].to(trainer.device)
+            joint_preds, joint_preds_att = trainer.model(data)
+            joint_preds = joint_preds[:, :all_class]
+
+            att_logits.append(joint_preds_att.clone().detach().cpu())
+        
+        att_logits = torch.cat(att_logits, dim=0)
+        return att_logits
 
 
 @ALGORITHMS.register

@@ -5,7 +5,18 @@ from ncdia.utils import ALGORITHMS
 from ncdia.algorithms.base import BaseAlg
 from ncdia.utils.losses import AngularPenaltySMLoss
 from ncdia.utils.metrics import accuracy, per_class_accuracy
-from .hooks import AliceHook_s
+from ncdia.utils import HOOKS
+from ncdia.trainers.hooks import AlgHook
+from ncdia.trainers.hooks import QuantifyHook
+
+@HOOKS.register
+class AliceHook_s(QuantifyHook):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def after_train(self, trainer) -> None:
+        super().after_train(trainer)
+
 
 
 @ALGORITHMS.register
