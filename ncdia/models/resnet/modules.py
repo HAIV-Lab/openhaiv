@@ -1,8 +1,6 @@
 import torch
 import torch.nn as nn
 from torch import Tensor
-from torch.nn import Parameter
-import torch.nn.functional as F
 
 from torchvision.utils import _log_api_usage_once
 from torchvision.models._utils import _ovewrite_named_param
@@ -139,17 +137,7 @@ class Bottleneck(nn.Module):
         out = self.relu(out)
 
         return out
-
-class NormedLinear(nn.Module):
-    def __init__(self, in_features, out_features):
-        super(NormedLinear, self).__init__()
-        self.weight = Parameter(torch.Tensor(in_features, out_features))
-        self.weight.data.uniform_(-1, 1).renorm_(2, 1, 1e-5).mul_(1e5)
-
-    def forward(self, x):
-        #out = F.normalize(x, dim=1).mm(F.normalize(self.weight, dim=0))
-        out = x.mm(F.normalize(self.weight, dim=0))
-        return out
+    
 
 # 模型ResNet具体实现类
 class ResNet(nn.Module):
@@ -163,9 +151,6 @@ class ResNet(nn.Module):
             width_per_group: int = 64,
             replace_stride_with_dilation: Optional[List[bool]] = None,
             norm_layer: Optional[Callable[..., nn.Module]] = None,
-            feature_norm: bool = False,
-            use_norm: bool = False,
-
     ) -> None:
         super().__init__()
         _log_api_usage_once(self)
@@ -195,16 +180,7 @@ class ResNet(nn.Module):
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2, dilate=replace_stride_with_dilation[1])
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2, dilate=replace_stride_with_dilation[2])
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        
-        # self.fc = nn.Linear(512 * block.expansion, num_classes)
-        self.feature_norm = feature_norm
-        if use_norm:
-            self.fc = NormedLinear(512 * block.expansion, num_classes)
-            print(self.fc.weight.shape, "norm")
-        else:
-            self.fc = nn.Linear(512 * block.expansion, num_classes)
-            print(self.fc.weight.shape, "no norm")
-
+        self.fc = nn.Linear(512 * block.expansion, num_classes)
         self.features = None
 
         for m in self.modules():
@@ -280,8 +256,6 @@ class ResNet(nn.Module):
         self.features = x[:]
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
-        if self.feature_norm:
-            x = F.normalize(x, dim=1) * 40  #self.scale
         self.out_features = x[:]
         x = self.fc(x)
 

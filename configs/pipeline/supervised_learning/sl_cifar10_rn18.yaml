@@ -9,9 +9,6 @@ algorithm:
 
 model:
   type: ResNet18
-  # pretrained: True
-  # checkpoint:   # ignore if pretrained is false
-
 
 criterion:
   type: CrossEntropyLoss

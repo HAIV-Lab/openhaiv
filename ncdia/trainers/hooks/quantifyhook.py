@@ -53,13 +53,12 @@ class QuantifyHook(AlgHook):
 
         # Gather the statistics
         features, logits, labels = [], [], []
-        model.eval()
         for batch in tbar:
             data = batch['data'].to(device)
             label = batch['label'].to(device)
             preds = model(data)
             preds = preds[:, :num_classes]
-            feats = model.out_features
+            feats = model.get_features(data)
 
             features.append(feats.clone().detach().cpu())
             logits.append(preds.clone().detach().cpu())

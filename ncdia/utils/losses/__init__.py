@@ -1,4 +1,4 @@
 from .crossentropy import CrossEntropyLoss
 from .angular import AngularPenaltySMLoss
-from .FocalLoss import FocalLoss
-from .CenterLoss import CenterLoss
+from .focalLoss import FocalLoss
+from .centerLoss import CenterLoss

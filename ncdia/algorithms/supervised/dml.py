@@ -7,15 +7,30 @@ from ncdia.algorithms.base import BaseAlg
 from ncdia.utils import HOOKS
 from ncdia.trainers.hooks import AlgHook
 
-
 @HOOKS.register
 class ExpHook(AlgHook):
     def __init__(self) -> None:
         super().__init__()
 
     def before_train(self, trainer) -> None:
-        trainer.train_loader
         trainer.center_optimizer = torch.optim.SGD(trainer.criterion.parameters(), lr=0.5)
+
+    def before_train_iter(self, trainer, batch_idx, data_batch) -> None:
+        trainer.center_optimizer.zero_grad()
+        epoch = trainer.epoch
+        center_milestones = [0, 60, 80]
+        assigned_center_weights = [0.0, 0.001, 0.005]
+        center_weight = assigned_center_weights[0]
+        for i, ms in enumerate(center_milestones):
+            if epoch >= ms:
+                center_weight = assigned_center_weights[i]
+        trainer.center_weight = center_weight
+
+    def after_train_iter(self, trainer, batch_idx, data_batch, outputs) -> None:
+        center_weight = trainer.center_weight
+        for param in trainer.criterion.parameters():
+            param.grad.data *= (1./(center_weight + 1e-12))
+        trainer.center_optimizer.step()
 
 
 @ALGORITHMS.register
@@ -32,8 +47,9 @@ class DML(BaseAlg):
         super().__init__(trainer)
         self.trainer = trainer
 
-        hook = ExpHook()
-        trainer.register_hook(hook)
+        if trainer.model.loss == 'center':
+            hook = ExpHook()
+            trainer.register_hook(hook)
 
     def train_step(self, trainer, data, label, *args, **kwargs):
         """Training step for standard supervised learning.
@@ -56,13 +72,17 @@ class DML(BaseAlg):
 
         data, label = data.to(device), label.to(device)
         outputs = model(data)
-        features = model.out_features
+        if model.loss == 'center':
+            features = model.out_features
 
-        loss_ct = criterion(features, label)
-        loss_func = nn.CrossEntropyLoss()
-        loss_ce = loss_func(outputs, label)
+            loss_ct = criterion(features, label)
+            loss_func = nn.CrossEntropyLoss()
+            loss_ce = loss_func(outputs, label)
 
-        loss = loss_ce + loss_ct * trainer.center_weight
+            loss = loss_ce + loss_ct * trainer.center_weight
+        else:
+            loss = criterion(outputs, label)
+        
         acc = accuracy(outputs, label)[0]
 
         loss.backward()

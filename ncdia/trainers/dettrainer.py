@@ -37,27 +37,14 @@ class DetTrainer(PreTrainer):
             eval_loader: DataLoader | dict | None = None,
             max_epochs: int = 1,
             verbose: bool = False,
-            if_train: bool = True,
-            method: list | None = None,
             **kwargs
     ) -> None:
         self.kwargs = kwargs
         self.verbose = verbose
-        self.if_train = if_train
-        self.method = method
-        print(method)
         self.quantify_hook = QuantifyHook(
             gather_train_stats=True,
             gather_test_stats=True,
             verbose=verbose
-        )
-
-        super(DetTrainer, self).__init__(
-            cfg=cfg,
-            model=model,
-            max_epochs=max_epochs,
-            custom_hooks=[self.quantify_hook],
-            **self.kwargs
         )
 
         self._eval_loader = {}
@@ -68,6 +55,13 @@ class DetTrainer(PreTrainer):
         elif isinstance(eval_loader, DataLoader):
             self._eval_loader = eval_loader
         
+        super(DetTrainer, self).__init__(
+            cfg=cfg,
+            model=model,
+            max_epochs=max_epochs,
+            custom_hooks=[self.quantify_hook],
+            **self.kwargs
+        )
 
     @property
     def eval_loader(self) -> DataLoader:
@@ -100,8 +94,7 @@ class DetTrainer(PreTrainer):
         Returns:
             model (nn.Module): Trained model.
         """
-        if self.if_train:
-            super(DetTrainer, self).train()
+        super(DetTrainer, self).train()
 
         # If the configuration of eval_loader is provided,
         # then evaluate the model on the eval_loader.
@@ -109,7 +102,7 @@ class DetTrainer(PreTrainer):
         # Furthermore, OOD detection can also be run after training 
         # by calling `trainer.evaluate(evalloader=DataLoader)`.
         if self.eval_loader:
-            print(self.evaluate(['msp'] if not self.method else self.method))
+            self.evaluate()
 
         return self.model
 
@@ -132,18 +125,9 @@ class DetTrainer(PreTrainer):
             dict: OOD scores, keys are the names of the OOD detection methods,
                 values are the OOD scores and search threshold.
         """
-        train_stats = self.quantify_hook.gather_stats(
-            model=self.model,
-            dataloader=self.train_loader,
-            device=self.device,
-            verbose=self.verbose
-        )
-        test_stats = self.quantify_hook.gather_stats(
-            model=self.model,
-            dataloader=self.test_loader,
-            device=self.device,
-            verbose=self.verbose
-        )
+        train_stats = self.train_stats
+        test_stats = self.test_stats
+
         eval_stats = self.quantify_hook.gather_stats(
             model=self.model,
             dataloader=evalloader if evalloader else self.eval_loader,
@@ -153,7 +137,7 @@ class DetTrainer(PreTrainer):
 
         scores = AutoOOD().eval(
             metrics=metrics,
-            prototype_cls=train_stats['prototypes'] if 'train_prototypes' in train_stats else None,
+            prototype_cls=train_stats['prototypes'],
             fc_weight=self.model.fc.weight.clone().detach().cpu(),
             train_feats=train_stats['features'],
             train_logits=train_stats['logits'],

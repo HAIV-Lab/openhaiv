@@ -12,10 +12,14 @@ from torch.optim.optimizer import Optimizer, required
 from torch import Tensor
 from typing import List, Optional
 
+from ncdia.utils import LOSSES
+
+@LOSSES.register
 class CenterLoss(nn.Module):
 
-    def __init__(self, device, num_classes=100, feat_dim=128):  #128 100
+    def __init__(self, device='cuda', num_classes=100, feat_dim=128):  #128 100
         super(CenterLoss, self).__init__()
+        print(f"device: {device}, num_classes: {num_classes}, feat_dim: {feat_dim}")
         self.num_class = num_classes
         self.num_feature = feat_dim
         self.device = device
