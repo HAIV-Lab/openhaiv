@@ -1,3 +1,5 @@
 tqdm
 mkdocs
 mkdocs-material
+pot
+quadprog

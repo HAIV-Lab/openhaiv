@@ -300,6 +300,13 @@ class Configs():
     
     def items(self):
         return self.cfg.items()
+    
+    def __deepcopy__(self, memo):
+        new_obj = self.__class__()
+        for key, value in self.__dict__.items():
+            import copy
+            setattr(new_obj, key, copy.deepcopy(value, memo))
+        return new_obj
 
 
 def setup_cfg(args, default: dict = {}):
