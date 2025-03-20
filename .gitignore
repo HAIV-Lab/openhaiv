@@ -191,4 +191,7 @@ pyrightconfig.json
 # Output directory
 output/
 
+# Vscode settings
+.vscode/
+
 # End of https://www.toptal.com/developers/gitignore/api/python,linux
