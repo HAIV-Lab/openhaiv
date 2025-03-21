@@ -1,0 +1,35 @@
+_base_: configs/dataloader/cifar10.yaml
+
+trainer:
+  type: DetTrainer
+  max_epochs: 1
+
+algorithm:
+  type: DML
+
+model:
+  type: DMLNet
+  network:
+    type: ResNet18
+    num_classes: 10
+  # focal center dml
+  loss: focal
+  # checkpoint_C: output/supervised/sl_cifar10_rn18_DML_Cosine/exp/latest.pth 
+  # checkpoint_N: output/supervised/sl_cifar10_rn18_DML_Norm/exp/latest.pth
+
+criterion:
+  type: FocalLoss
+
+optimizer:
+  type: Adam
+  lr: 0.0003
+  weight_decay: 0.0001
+
+scheduler:
+  type: Constant
+
+seed: 0
+device: cuda
+
+exp_name: exp
+work_dir: ./output/supervised/sl_cifar10_rn18_dml_cosine

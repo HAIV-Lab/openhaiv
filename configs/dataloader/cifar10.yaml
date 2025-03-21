@@ -40,3 +40,16 @@ testloader:
       normalize:
         mean: [0.4914, 0.4822, 0.4465]
         std: [0.2023, 0.1994, 0.2010]
+
+evalloader:
+  dataset:
+    type: CIFAR10
+    root: /data/hdd/datasets/cifar10/
+    train: False
+    download: True
+    transform:
+      to_tensor: null
+      normalize:
+        mean: [0.4914, 0.4822, 0.4465]
+        std: [0.2023, 0.1994, 0.2010]
+
