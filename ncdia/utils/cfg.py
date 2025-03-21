@@ -1,5 +1,6 @@
 import os
 import yaml
+from copy import deepcopy
 
 _cfg = None
 
@@ -304,8 +305,7 @@ class Configs():
     def __deepcopy__(self, memo):
         new_obj = self.__class__()
         for key, value in self.__dict__.items():
-            import copy
-            setattr(new_obj, key, copy.deepcopy(value, memo))
+            setattr(new_obj, key, deepcopy(value, memo))
         return new_obj
 
 
