@@ -14,7 +14,7 @@ from ncdia.utils import ALGORITHMS
 from ncdia.algorithms.base import BaseAlg
 from ncdia.utils.losses import AngularPenaltySMLoss
 from ncdia.utils.metrics import accuracy, per_class_accuracy
-from .hooks import iCaRLHook
+# from .hooks import iCaRLHook
 from ncdia.utils import HOOKS
 from ncdia.trainers.hooks import QuantifyHook
 from ncdia.models.net.inc_net import IncrementalNet

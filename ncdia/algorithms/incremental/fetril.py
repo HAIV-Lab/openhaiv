@@ -175,9 +175,9 @@ class FeTrIL(BaseAlg):
         labels = label.cuda()
         data = data.to(self._network_module_ptr.fc.weight.dtype)
         if session ==0:
-            logits = self._network(data)['logits']
+            logits = self._network(data)
         else:
-            logits = self._network_module_ptr.fc(data)['logits']
+            logits = self._network_module_ptr.fc(data)
         logits_ = logits[:, :self._total_classes]
         acc = accuracy(logits_, labels)[0]
         per_acc = str(per_class_accuracy(logits_, labels))
@@ -306,11 +306,12 @@ class FeTrIL(BaseAlg):
         """
         session = self.trainer.session
         test_class = self.args.CIL.base_classes + session  * self.args.CIL.way
+        print(f"test_class {test_class}")
         self._network = trainer.model
         self._network.eval()
         data = data.cuda()
         labels = label.cuda()
-        logits = self._network(data)['logits']
+        logits = self._network(data)
         logits_ = logits[:, :test_class]
         acc = accuracy(logits_, labels)[0]
         loss = self.loss(logits_, labels)
