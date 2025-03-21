@@ -13,3 +13,4 @@ from .coil import COIL
 from .der import DER
 from .memo import MEMO
 from .gem import GEM
+from .pa2s import PASS
