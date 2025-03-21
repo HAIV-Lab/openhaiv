@@ -5,7 +5,44 @@ from ncdia.utils import ALGORITHMS
 from ncdia.algorithms.base import BaseAlg
 from ncdia.utils.losses import AngularPenaltySMLoss
 from ncdia.utils.metrics import accuracy, per_class_accuracy
-from .hooks import AliceHook
+from ncdia.utils import HOOKS
+from ncdia.trainers.hooks import AlgHook
+from ncdia.trainers.hooks import QuantifyHook
+
+@HOOKS.register
+class AliceHook(QuantifyHook):
+    def __init__(self) -> None:
+        super().__init__()
+    
+    def after_train(self, trainer) -> None:
+        algorithm = trainer.algorithm
+        algorithm.replace_fc()
+
+        filename = 'task_' + str(trainer.session) + '.pth'
+        trainer.save_ckpt(os.path.join(trainer.work_dir, filename))
+        if trainer.session == 0:
+            self.gather_stats(trainer.model, trainer.train_loader, trainer.device)
+    
+
+    def before_test(self, trainer) -> None:
+        """
+        在进入for epoch in range(max_epochs)循环之前，对测试数据集进行处理。
+        """
+        trainer.test_loader
+        _hist_testset = MergedDataset([trainer.hist_testset], replace_transform=True)
+        _hist_testset.merge([trainer.test_loader.dataset], replace_transform=True)
+        trainer._test_loader = DataLoader(_hist_testset, **trainer._test_loader_kwargs)
+
+    def after_test(self, trainer) -> None:
+        """
+
+        """
+        trainer.update_hist_testset(
+            trainer.test_loader.dataset,
+            replace_transform=True,
+            inplace=True
+        )
+
 
 
 @ALGORITHMS.register

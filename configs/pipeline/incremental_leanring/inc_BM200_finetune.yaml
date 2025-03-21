@@ -47,7 +47,7 @@ trainer:
       trainer:
         max_epochs: 60
 algorithm:
-  type: alice
+  type: finetune
 
 criterion:
   type: CrossEntropyLoss

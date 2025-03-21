@@ -29,7 +29,7 @@ class SimpleLinear(nn.Module):
         nn.init.constant_(self.bias, 0)
 
     def forward(self, input):
-        return {'logits': F.linear(input, self.weight, self.bias)}
+        return F.linear(input, self.weight, self.bias)
 
 
 @MODELS.register
@@ -41,7 +41,7 @@ class DERNET(nn.Module):
         network (Configs): Network configuration.
     
     """
-    cur_class  = [20]
+    cur_class  = [9]
     def __init__(
             self,
             network: Configs,

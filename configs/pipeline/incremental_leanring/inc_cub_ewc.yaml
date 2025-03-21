@@ -65,4 +65,4 @@ seed: 0
 device: cuda
 
 exp_name: exp
-work_dir: ./output/supervised/inc_cub_ewc
+work_dir: ./output/supervised/inc_cub_ewc_1
