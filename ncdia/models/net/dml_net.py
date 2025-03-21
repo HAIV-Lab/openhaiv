@@ -9,6 +9,7 @@ from torch.nn.parameter import Parameter
 
 from ncdia.utils import MODELS, Configs
 
+
 class NormedLinear(nn.Module):
     def __init__(self, in_features, out_features):
         super(NormedLinear, self).__init__()
@@ -20,6 +21,7 @@ class NormedLinear(nn.Module):
         out = x.mm(F.normalize(self.weight, dim=0))
         return out
     
+
 @MODELS.register
 class DMLNet(nn.Module):
     """Net for Decoupling Maxlogit.
@@ -83,11 +85,12 @@ class DMLNet(nn.Module):
         x = model.layer2(x)
         x = model.layer3(x)
         x = model.layer4(x)
-        self.features = x[:]
+        model.features = x[:]
         x = model.avgpool(x)
         x = torch.flatten(x, 1)
         x = F.normalize(x, dim=1) * 40
-        self.out_features = x[:]
+        model.out_features = x[:]
+        x = model.fc(x)
         return x
     
     def parameters(self, recurse: bool = True):
@@ -102,9 +105,15 @@ class DMLNet(nn.Module):
         if self.loss == 'focal':
             return self.feature_norm_forward(self.network_C, x)
         elif self.loss == 'center':
-            return self.feature_norm_forward(self.network_N, x)
+            return self.network_N(x)
         
         _ = self.network_N(x)
         self.out_features = self.network_N.out_features
         return self.network_C(x)
     
+    def get_features(self):
+        if self.loss == 'focal':
+            return self.network_C.get_features()
+        elif self.loss == 'center':
+            return self.network_N.get_features()
+        return self.out_features

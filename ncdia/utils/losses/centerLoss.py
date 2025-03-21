@@ -14,6 +14,7 @@ from typing import List, Optional
 
 from ncdia.utils import LOSSES
 
+
 @LOSSES.register
 class CenterLoss(nn.Module):
 
@@ -33,5 +34,3 @@ class CenterLoss(nn.Module):
         loss = torch.clamp(dist, min=1e-12, max=1e+12).mean(dim=-1)
 
         return loss
-
-

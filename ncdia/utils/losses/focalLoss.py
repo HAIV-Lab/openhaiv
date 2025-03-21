@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from ncdia.utils import LOSSES
 
+
 @LOSSES.register
 class FocalLoss(nn.Module):
     def __init__(self, gamma=2, alpha=None, size_average=True, **options):
@@ -32,8 +33,6 @@ class FocalLoss(nn.Module):
             at = self.alpha.gather(0,target.data.view(-1))
             logpt = logpt * Variable(at)
 
-        loss = -1 * (1-pt)**2 * logpt  ###############
+        loss = -1 * (1-pt)**2 * logpt
         if self.size_average: return loss.mean()
         else: return loss.sum()
-        
-        

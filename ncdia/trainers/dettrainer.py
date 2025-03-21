@@ -46,14 +46,6 @@ class DetTrainer(PreTrainer):
             gather_test_stats=True,
             verbose=verbose
         )
-
-        self._eval_loader = {}
-        if 'evalloader' in self._cfg:
-            self._eval_loader.update(dict(self._cfg['evalloader']))
-        if isinstance(eval_loader, dict):
-            self._eval_loader.update(eval_loader)
-        elif isinstance(eval_loader, DataLoader):
-            self._eval_loader = eval_loader
         
         super(DetTrainer, self).__init__(
             cfg=cfg,
@@ -62,6 +54,14 @@ class DetTrainer(PreTrainer):
             custom_hooks=[self.quantify_hook],
             **self.kwargs
         )
+
+        self._eval_loader = {}
+        if 'evalloader' in self._cfg:
+            self._eval_loader.update(dict(self._cfg['evalloader']))
+        if isinstance(eval_loader, dict):
+            self._eval_loader.update(eval_loader)
+        elif isinstance(eval_loader, DataLoader):
+            self._eval_loader = eval_loader
 
     @property
     def eval_loader(self) -> DataLoader:

@@ -14,19 +14,9 @@ model:
     num_classes: 10
   # focal center dml
   loss: focal
-  # checkpoint_C: output/supervised/sl_cifar10_rn18_DML_Cosine/exp/latest.pth 
-  # checkpoint_N: output/supervised/sl_cifar10_rn18_DML_Norm/exp/latest.pth
 
 criterion:
-  # FocalLoss CenterLoss CrossEntropyLoss
   type: FocalLoss
-  # type: CenterLoss
-  # device: cuda
-  # num_classes: 10
-  # feat_dim: 512
-
-# resnet18 -> 512
-# resnet50 -> 2048
 
 optimizer:
   type: Adam
@@ -40,4 +30,4 @@ seed: 0
 device: cuda
 
 exp_name: exp
-work_dir: ./output/supervised/sl_cifar10_rn18_DML
+work_dir: ./output/ood/det_cifar10_rn18_dml_cosine

@@ -1,0 +1,33 @@
+_base_: configs/dataloader/imagenet.yaml
+
+trainer:
+  type: DetTrainer
+  max_epochs: 1
+
+algorithm:
+  type: DML
+
+model:
+  type: DMLNet
+  network:
+    type: ResNet50
+    num_classes: 1000
+  # focal center dml
+  loss: focal
+
+criterion:
+  type: FocalLoss
+
+optimizer:
+  type: Adam
+  lr: 0.0003
+  weight_decay: 0.0001
+
+scheduler:
+  type: Constant
+
+seed: 0
+device: cuda
+
+exp_name: exp
+work_dir: ./output/ood/det_in1k_rn50_dml_cosine
