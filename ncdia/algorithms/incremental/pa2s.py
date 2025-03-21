@@ -42,15 +42,15 @@ class PASSHook(AlgHook):
         algorithm = trainer.algorithm
         filename = 'task_' + str(trainer.session) + '.pth'
         trainer.save_ckpt(os.path.join(trainer.work_dir, filename))
-        trainer.old_model = IncrementalNet(
+        trainer.buffer["old_model"] = IncrementalNet(
             trainer.cfg.model.network,
             trainer.cfg.CIL.base_classes,
             trainer.cfg.CIL.num_classes,
             trainer.cfg.CIL.att_classes,
             trainer.cfg.model.net_alice
         )
-        trainer.old_model.load_state_dict(trainer.model.state_dict())
-        for param in trainer.old_model.parameters():
+        trainer.buffer["old_model"].load_state_dict(trainer.model.state_dict())
+        for param in trainer.buffer["old_model"].parameters():
             param.requires_grad = False
 
         self._build_protos(trainer)
@@ -73,7 +73,7 @@ class PASSHook(AlgHook):
         labels = []
         radii = []
         prototype = []
-
+        
         if session == 0:
             known_class = 0
         else:
@@ -136,7 +136,7 @@ class PASS(BaseAlg):
         session = self.trainer.session
         self._network = trainer.model
         if session >= 1:
-            self._old_network = trainer.old_model
+            self._old_network = trainer.buffer["old_model"]
             self._old_network = self._old_network.cuda()
             self._old_network.eval()
 
