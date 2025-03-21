@@ -1,4 +1,7 @@
-_base_: configs/dataloader/imagenet.yaml
+_base_: [
+  configs/dataloader/cifar10.yaml,
+  configs/algorithms/ood_detection/dml.yaml,
+]
 
 trainer:
   type: DetTrainer
