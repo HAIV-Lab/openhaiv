@@ -65,4 +65,4 @@ seed: 1
 device: cuda
 
 exp_name: exp
-work_dir: ./output/supervised/inc_remote_ssre
+work_dir: ./output/supervised/inc_remote_ssre_new
