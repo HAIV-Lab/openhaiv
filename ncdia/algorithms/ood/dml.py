@@ -7,8 +7,9 @@ from ncdia.algorithms.base import BaseAlg
 from ncdia.utils import HOOKS
 from ncdia.trainers.hooks import AlgHook
 
+
 @HOOKS.register
-class ExpHook(AlgHook):
+class DMLHook(AlgHook):
     def __init__(self) -> None:
         super().__init__()
 
@@ -48,7 +49,7 @@ class DML(BaseAlg):
         self.trainer = trainer
 
         if trainer.model.loss == 'center':
-            hook = ExpHook()
+            hook = DMLHook()
             trainer.register_hook(hook)
 
     def train_step(self, trainer, data, label, *args, **kwargs):

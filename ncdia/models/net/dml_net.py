@@ -9,6 +9,7 @@ from torch.nn.parameter import Parameter
 
 from ncdia.utils import MODELS, Configs
 
+
 class NormedLinear(nn.Module):
     def __init__(self, in_features, out_features):
         super(NormedLinear, self).__init__()
@@ -20,6 +21,7 @@ class NormedLinear(nn.Module):
         out = x.mm(F.normalize(self.weight, dim=0))
         return out
     
+
 @MODELS.register
 class DMLNet(nn.Module):
     """Net for Decoupling Maxlogit.
