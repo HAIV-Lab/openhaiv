@@ -1,4 +1,4 @@
-_base_: configs/dataloader/cifar10.yaml
+_base_: configs/dataloader/imagenet.yaml
 
 trainer:
   type: DetTrainer
@@ -10,13 +10,15 @@ algorithm:
 model:
   type: DMLNet
   network:
-    type: ResNet18
-    num_classes: 10
-  # focal center dml
-  loss: focal
+    type: ResNet50
+    num_classes: 1000
+  loss: center
 
 criterion:
-  type: FocalLoss
+  type: CenterLoss
+  device: cuda
+  num_classes: 1000
+  feat_dim: 2048
 
 optimizer:
   type: Adam
@@ -30,4 +32,4 @@ seed: 0
 device: cuda
 
 exp_name: exp
-work_dir: ./output/ood/det_cifar10_rn18_dml_cosine
+work_dir: ./output/ood/det_in1k_rn50_dml_norm

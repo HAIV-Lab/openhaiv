@@ -13,8 +13,6 @@ model:
     type: ResNet18
     num_classes: 10
   loss: center
-  # checkpoint_C: output/supervised/sl_cifar10_rn18_DML_Cosine/exp/latest.pth 
-  # checkpoint_N: output/supervised/sl_cifar10_rn18_DML_Norm/exp/latest.pth
 
 criterion:
   # FocalLoss CenterLoss CrossEntropyLoss
@@ -37,4 +35,4 @@ seed: 0
 device: cuda
 
 exp_name: exp
-work_dir: ./output/supervised/sl_cifar10_rn18_dml_norm
+work_dir: ./output/ood/det_cifar10_rn18_dml_norm
