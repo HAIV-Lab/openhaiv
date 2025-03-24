@@ -306,7 +306,6 @@ class FeTrIL(BaseAlg):
         """
         session = self.trainer.session
         test_class = self.args.CIL.base_classes + session  * self.args.CIL.way
-        print(f"test_class {test_class}")
         self._network = trainer.model
         self._network.eval()
         data = data.cuda()
