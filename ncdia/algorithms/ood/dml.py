@@ -74,7 +74,7 @@ class DML(BaseAlg):
         data, label = data.to(device), label.to(device)
         outputs = model(data)
         if model.loss == 'center':
-            features = model.out_features
+            features = model.get_features()
 
             loss_ct = criterion(features, label)
             loss_func = nn.CrossEntropyLoss()
