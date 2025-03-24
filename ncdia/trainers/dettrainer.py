@@ -43,18 +43,18 @@ class DetTrainer(PreTrainer):
             verbose: bool = False,
             **kwargs
     ) -> None:
+        self.quantify_hook = QuantifyHook(
+            gather_train_stats=gather_train_stats,
+            gather_test_stats=gather_test_stats,
+            verbose=verbose
+        )
+        
         super(DetTrainer, self).__init__(
             cfg=cfg,
             model=model,
             max_epochs=max_epochs,
             custom_hooks=[self.quantify_hook],
-            **self.kwargs
-        )
-
-        self.quantify_hook = QuantifyHook(
-            gather_train_stats=gather_train_stats,
-            gather_test_stats=gather_test_stats,
-            verbose=verbose
+            **kwargs
         )
 
         self._eval_loader = {}
