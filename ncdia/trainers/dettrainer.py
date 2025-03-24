@@ -54,7 +54,7 @@ class DetTrainer(PreTrainer):
             model=model,
             max_epochs=max_epochs,
             custom_hooks=[self.quantify_hook],
-            **self.kwargs
+            **kwargs
         )
 
         self._eval_loader = {}
