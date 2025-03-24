@@ -6,8 +6,9 @@ from ncdia.utils.metrics import accuracy
 from ncdia.algorithms.base import BaseAlg
 from ncdia.utils import HOOKS
 from ncdia.trainers.hooks import AlgHook
-
-
+import numpy as np
+from tqdm import tqdm
+from .metrics import ood_metrics, search_threshold
 @HOOKS.register
 class DMLHook(AlgHook):
     def __init__(self) -> None:
@@ -36,7 +37,7 @@ class DMLHook(AlgHook):
 
 @ALGORITHMS.register
 class DML(BaseAlg):
-    """Standard supervised learning algorithm.
+    """Decoupling MaxLogit.
 
     Containing:
         - train_step(trainer, data, label, *args, **kwargs)
@@ -53,7 +54,7 @@ class DML(BaseAlg):
             trainer.register_hook(hook)
 
     def train_step(self, trainer, data, label, *args, **kwargs):
-        """Training step for standard supervised learning.
+        """Training step for Decoupling MaxLogit.
 
         Args:
             trainer (object): Trainer object.
@@ -90,7 +91,7 @@ class DML(BaseAlg):
         return {"loss": loss.item(), "acc": acc.item()}
 
     def val_step(self, trainer, data, label, *args, **kwargs):
-        """Validation step for standard supervised learning.
+        """Validation step for Decoupling MaxLogit.
 
         Args:
             trainer (object): Trainer object.
@@ -118,7 +119,7 @@ class DML(BaseAlg):
         return {"loss": loss.item(), "acc": acc.item()}
 
     def test_step(self, trainer, data, label, *args, **kwargs):
-        """Test step for standard supervised learning.
+        """Test step for Decoupling MaxLogit.
 
         Args:
             trainer (object): Trainer object.
@@ -133,3 +134,56 @@ class DML(BaseAlg):
                 - "acc": Accuracy value.
         """
         return self.val_step(trainer, data, label, *args, **kwargs)
+    
+    @staticmethod
+    def eval(self, id_logits, id_feat, ood_logits, ood_feat, train_logits, train_feat, 
+            tpr_th: float = 0.95, prec_th: float = None,):
+        """Decoupled MaxLogit+ (DML+) method for OOD detection.
+
+        Decoupling MaxLogit for Out-of-Distribution Detection
+        https://openaccess.thecvf.com/content/CVPR2023/html/Zhang_Decoupling_MaxLogit_for_Out-of-Distribution_Detection_CVPR_2023_paper
+
+        Args:
+            id_logits (torch.Tensor): ID logits. Shape (N, C).
+            id_feat (torch.Tensor): ID features. Shape (N, D).
+            ood_logits (torch.Tensor): OOD logits. Shape (M, C).
+            ood_feat (torch.Tensor): OOD features. Shape (M, D).
+            train_logits (torch.Tensor): Training logits. Shape (K, C).
+            train_feat (torch.Tensor): Training features. Shape (K, D).
+            tpr_th (float): True positive rate threshold to compute
+                false positive rate. Default is 0.95.
+            prec_th (float | None): Precision threshold for searching threshold.
+                If None, not searching for threshold. Default is None.
+
+        Returns:
+            fpr (float): False positive rate.
+            auroc (float): Area under the ROC curve.
+            aupr_in (float): Area under the precision-recall curve 
+                for in-distribution samples.
+            aupr_out (float): Area under the precision-recall curve
+                for out-of-distribution
+        """
+        in_score1 = np.max(id_logits.data.cpu().numpy(), axis=1)
+        out_score1 = np.max(id_logits.data.cpu().numpy(), axis=1)
+
+        tmp1 = np.sum(in_score1)
+        in_score1_tmp = in_score1/tmp1
+        out_score1_tmp = out_score1/tmp1
+
+        in_score2 = id_feat.norm(2, dim=1).data.cpu().numpy()
+        out_score2 = id_feat.norm(2, dim=1).data.cpu().numpy()
+
+        tmp1 = np.sum(in_score2)
+        in_score2_tmp = in_score2/tmp1
+        out_score2_tmp = out_score2/tmp1
+
+        in_score = in_score1_tmp + in_score2_tmp  
+        out_score = out_score1_tmp + out_score2_tmp
+
+        conf = np.concatenate([in_score, out_score])
+        ood_gt = -1 * np.ones_like(ood_gt)
+        label = np.concatenate([np.ones_like(in_score), ood_gt])
+        if prec_th is None:
+            return ood_metrics(conf, label, tpr_th), None
+        else:
+            return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
