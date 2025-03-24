@@ -1,6 +1,6 @@
 _base_: [
-  configs/algorithms/incremental/icarl.yaml,
-  configs/models/icarl.yaml,
+  configs/algorithms/incremental/bic.yaml,
+  configs/models/bic.yaml,
 ]
 
 trainer:
@@ -47,7 +47,7 @@ trainer:
       trainer:
         max_epochs: 60
 algorithm:
-  type: icarl
+  type: bic
 
 criterion:
   type: CrossEntropyLoss
@@ -64,4 +64,4 @@ seed: 0
 device: cuda
 
 exp_name: exp
-work_dir: ./output/supervised/inc_BM200_icarl
+work_dir: ./output/supervised/inc_BM200_bic

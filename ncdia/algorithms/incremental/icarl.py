@@ -14,7 +14,6 @@ from ncdia.utils import ALGORITHMS
 from ncdia.algorithms.base import BaseAlg
 from ncdia.utils.losses import AngularPenaltySMLoss
 from ncdia.utils.metrics import accuracy, per_class_accuracy
-from .hooks import iCaRLHook
 from ncdia.utils import HOOKS
 from ncdia.trainers.hooks import QuantifyHook
 from ncdia.models.net.inc_net import IncrementalNet
@@ -243,7 +242,7 @@ class iCaRL(BaseAlg):
         session = self.trainer.session
         known_class = self.args.CIL.base_classes + session * self.args.CIL.way
         self._network = trainer.model
-        
+
         if session>=1:
             self._old_network = trainer.buffer['old_model']
             self._old_network = self._old_network.cuda()

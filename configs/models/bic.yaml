@@ -1,5 +1,5 @@
 model:
-  type: AliceNET
+  type: IncrementalNet
   network:
     type: resnet18
     pretrained: True
