@@ -7,88 +7,46 @@ from ncdia.algorithms.base import BaseAlg
 from ncdia.utils import HOOKS
 from ncdia.trainers.hooks import AlgHook
 import numpy as np
+from numpy.linalg import norm, pinv
+from sklearn.covariance import EmpiricalCovariance
+from scipy.special import logsumexp
 from tqdm import tqdm
 from .metrics import ood_metrics, search_threshold
-@HOOKS.register
-class DMLHook(AlgHook):
-    def __init__(self) -> None:
-        super().__init__()
-
-    def before_train(self, trainer) -> None:
-        trainer.center_optimizer = torch.optim.SGD(trainer.criterion.parameters(), lr=0.5)
-
-    def before_train_iter(self, trainer, batch_idx, data_batch) -> None:
-        trainer.center_optimizer.zero_grad()
-        epoch = trainer.epoch
-        center_milestones = [0, 60, 80]
-        assigned_center_weights = [0.0, 0.001, 0.005]
-        center_weight = assigned_center_weights[0]
-        for i, ms in enumerate(center_milestones):
-            if epoch >= ms:
-                center_weight = assigned_center_weights[i]
-        trainer.center_weight = center_weight
-
-    def after_train_iter(self, trainer, batch_idx, data_batch, outputs) -> None:
-        center_weight = trainer.center_weight
-        for param in trainer.criterion.parameters():
-            param.grad.data *= (1./(center_weight + 1e-12))
-        trainer.center_optimizer.step()
-
 
 @ALGORITHMS.register
-class DML(BaseAlg):
-    """Decoupling MaxLogit.
+class VIM(BaseAlg):
+    """Virtual-Logit Matching (ViM) method for OOD detection.
 
-    Containing:
-        - train_step(trainer, data, label, *args, **kwargs)
-        - val_step(trainer, data, label, *args, **kwargs)
-        - test_step(trainer, data, label, *args, **kwargs)
+    ViM: Out-of-Distribution With Virtual-Logit Matching
+    https://openaccess.thecvf.com/content/CVPR2022/html/Wang_ViM_Out-of-Distribution_With_Virtual-Logit_Matching_CVPR_2022_paper.html
 
+    Args:
+        id_gt (torch.Tensor): ID ground truth labels. Shape (N,).
+        id_logits (torch.Tensor): ID logits. Shape (N, C).
+        id_feat (torch.Tensor): ID features. Shape (N, D).
+        ood_gt (torch.Tensor): OOD ground truth labels. Shape (M,).
+        ood_logits (torch.Tensor): OOD logits. Shape (M, C).
+        ood_feat (torch.Tensor): OOD features. Shape (M, D).
+        train_logits (torch.Tensor): Training logits. Shape (K, C).
+        train_feat (torch.Tensor): Training features. Shape (K, D).
+        tpr_th (float): True positive rate threshold to compute
+            false positive rate. Default is 0.95.
+        prec_th (float | None): Precision threshold for searching threshold.
+            If None, not searching for threshold. Default is None.
+
+    Returns:
+        fpr (float): False positive rate.
+        auroc (float): Area under the ROC curve.
+        aupr_in (float): Area under the precision-recall curve 
+            for in-distribution samples.
+        aupr_out (float): Area under the precision-recall curve
+            for out-of-distribution
     """
-    def __init__(self, trainer) -> None:
+    def __init__(self, trainer, dim) -> None:
         super().__init__(trainer)
         self.trainer = trainer
-
-        if trainer.model.loss == 'center':
-            hook = DMLHook()
-            trainer.register_hook(hook)
-
-    def train_step(self, trainer, data, label, *args, **kwargs):
-        """Training step for Decoupling MaxLogit.
-
-        Args:
-            trainer (object): Trainer object.
-            data (torch.Tensor): Input data.
-            label (torch.Tensor): Label data.
-            args (tuple): Additional arguments.
-            kwargs (dict): Additional keyword arguments.
-
-        Returns:
-            results (dict): Training results. Contains the following keys:
-                - "loss": Loss value.
-                - "acc": Accuracy value.
-        """
-        model = trainer.model
-        criterion = trainer.criterion
-        device = trainer.device
-
-        data, label = data.to(device), label.to(device)
-        outputs = model(data)
-        if model.loss == 'center':
-            features = model.get_features()
-
-            loss_ct = criterion(features, label)
-            loss_func = nn.CrossEntropyLoss()
-            loss_ce = loss_func(outputs, label)
-
-            loss = loss_ce + loss_ct * trainer.center_weight
-        else:
-            loss = criterion(outputs, label)
-        
-        acc = accuracy(outputs, label)[0]
-
-        loss.backward()
-        return {"loss": loss.item(), "acc": acc.item()}
+        # use a dict to store hyperparameters
+        self.hyparameters = {"dim": dim, 'w': self.trainer.model.fc.weight.data.cpu().numpy(), 'b': self.trainer.model.fc.bias.data.cpu().numpy()}
 
     def val_step(self, trainer, data, label, *args, **kwargs):
         """Validation step for Decoupling MaxLogit.
@@ -118,6 +76,7 @@ class DML(BaseAlg):
 
         return {"loss": loss.item(), "acc": acc.item()}
 
+
     def test_step(self, trainer, data, label, *args, **kwargs):
         """Test step for Decoupling MaxLogit.
 
@@ -134,12 +93,12 @@ class DML(BaseAlg):
                 - "acc": Accuracy value.
         """
         return self.val_step(trainer, data, label, *args, **kwargs)
-    
+
     @staticmethod
     def eval(id_gt: torch.Tensor ,id_logits: torch.Tensor, id_feat: torch.Tensor, 
             ood_logits: torch.Tensor, ood_feat: torch.Tensor, 
             train_logits: torch.Tensor = None, train_feat: torch.Tensor = None, 
-            tpr_th: float = 0.95, prec_th: float = None,):
+            tpr_th: float = 0.95, prec_th: float = None, hyparameters: dict = None):
         """Decoupled MaxLogit+ (DML+) method for OOD detection.
 
         Decoupling MaxLogit for Out-of-Distribution Detection
@@ -165,26 +124,47 @@ class DML(BaseAlg):
             aupr_out (float): Area under the precision-recall curve
                 for out-of-distribution
         """
-        in_score1 = np.max(id_logits.data.cpu().numpy(), axis=1)
-        out_score1 = np.max(id_logits.data.cpu().numpy(), axis=1)
+        print("VIM inference..")
 
-        tmp1 = np.sum(in_score1)
-        in_score1_tmp = in_score1/tmp1
-        out_score1_tmp = out_score1/tmp1
+        w, b = hyparameters['w'], hyparameters['b']
+        dim = hyparameters['dim']
+        feature_id_train = train_feat.cpu().numpy()
+        logit_id_train = feature_id_train @ w.T + b
 
-        in_score2 = id_feat.norm(2, dim=1).data.cpu().numpy()
-        out_score2 = id_feat.norm(2, dim=1).data.cpu().numpy()
+        u = -np.matmul(pinv(w), b)
+        ec = EmpiricalCovariance(assume_centered=True)
+        ec.fit(feature_id_train - u)
+        eig_vals, eigen_vectors = np.linalg.eig(ec.covariance_)
+        NS = np.ascontiguousarray(
+            (eigen_vectors.T[np.argsort(eig_vals * -1)[dim:]]).T)
 
-        tmp1 = np.sum(in_score2)
-        in_score2_tmp = in_score2/tmp1
-        out_score2_tmp = out_score2/tmp1
+        vlogit_id_train = norm(np.matmul(feature_id_train - u,
+                                            NS),
+                                axis=-1)
+        alpha = logit_id_train.max(
+            axis=-1).mean() / vlogit_id_train.mean()
+        print(f'{alpha=:.4f}')
+        
+        id_feat = id_feat.cpu()
+        logit_ood = id_feat @ w.T + b
+        _, pred = torch.max(logit_ood, dim=1)
+        energy_ood = logsumexp(logit_ood.numpy(), axis=-1)
+        vlogit_ood = norm(np.matmul(id_feat.numpy() - u, NS),
+                          axis=-1) * alpha
+        id_score = -vlogit_ood + energy_ood
 
-        in_score = in_score1_tmp + in_score2_tmp  
-        out_score = out_score1_tmp + out_score2_tmp
+        ood_feat = ood_feat.cpu()
+        logit_ood = ood_feat @ w.T + b
+        _, pred = torch.max(logit_ood, dim=1)
+        energy_ood = logsumexp(logit_ood.numpy(), axis=-1)
+        vlogit_ood = norm(np.matmul(ood_feat.numpy() - u, NS),
+                          axis=-1) * alpha
+        ood_score = -vlogit_ood + energy_ood
 
-        conf = np.concatenate([in_score, out_score])
-        ood_gt = -1 * np.ones(ood_gt)
-        label = np.concatenate([id_gt.cpu(), ood_gt])
+        conf = np.concatenate([id_score, ood_score])
+        neg_ood_gt = -1 * np.ones(ood_logits.shape[0])
+        label = np.concatenate([id_gt.cpu(), neg_ood_gt])
+
         if prec_th is None:
             return ood_metrics(conf, label, tpr_th), None
         else:

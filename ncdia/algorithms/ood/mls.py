@@ -7,36 +7,14 @@ from ncdia.algorithms.base import BaseAlg
 from ncdia.utils import HOOKS
 from ncdia.trainers.hooks import AlgHook
 import numpy as np
+from numpy.linalg import norm
+from sklearn.covariance import EmpiricalCovariance
+from scipy.special import logsumexp
 from tqdm import tqdm
 from .metrics import ood_metrics, search_threshold
-@HOOKS.register
-class DMLHook(AlgHook):
-    def __init__(self) -> None:
-        super().__init__()
-
-    def before_train(self, trainer) -> None:
-        trainer.center_optimizer = torch.optim.SGD(trainer.criterion.parameters(), lr=0.5)
-
-    def before_train_iter(self, trainer, batch_idx, data_batch) -> None:
-        trainer.center_optimizer.zero_grad()
-        epoch = trainer.epoch
-        center_milestones = [0, 60, 80]
-        assigned_center_weights = [0.0, 0.001, 0.005]
-        center_weight = assigned_center_weights[0]
-        for i, ms in enumerate(center_milestones):
-            if epoch >= ms:
-                center_weight = assigned_center_weights[i]
-        trainer.center_weight = center_weight
-
-    def after_train_iter(self, trainer, batch_idx, data_batch, outputs) -> None:
-        center_weight = trainer.center_weight
-        for param in trainer.criterion.parameters():
-            param.grad.data *= (1./(center_weight + 1e-12))
-        trainer.center_optimizer.step()
-
 
 @ALGORITHMS.register
-class DML(BaseAlg):
+class MLS(BaseAlg):
     """Decoupling MaxLogit.
 
     Containing:
@@ -47,48 +25,6 @@ class DML(BaseAlg):
     """
     def __init__(self, trainer) -> None:
         super().__init__(trainer)
-        self.trainer = trainer
-
-        if trainer.model.loss == 'center':
-            hook = DMLHook()
-            trainer.register_hook(hook)
-
-    def train_step(self, trainer, data, label, *args, **kwargs):
-        """Training step for Decoupling MaxLogit.
-
-        Args:
-            trainer (object): Trainer object.
-            data (torch.Tensor): Input data.
-            label (torch.Tensor): Label data.
-            args (tuple): Additional arguments.
-            kwargs (dict): Additional keyword arguments.
-
-        Returns:
-            results (dict): Training results. Contains the following keys:
-                - "loss": Loss value.
-                - "acc": Accuracy value.
-        """
-        model = trainer.model
-        criterion = trainer.criterion
-        device = trainer.device
-
-        data, label = data.to(device), label.to(device)
-        outputs = model(data)
-        if model.loss == 'center':
-            features = model.get_features()
-
-            loss_ct = criterion(features, label)
-            loss_func = nn.CrossEntropyLoss()
-            loss_ce = loss_func(outputs, label)
-
-            loss = loss_ce + loss_ct * trainer.center_weight
-        else:
-            loss = criterion(outputs, label)
-        
-        acc = accuracy(outputs, label)[0]
-
-        loss.backward()
-        return {"loss": loss.item(), "acc": acc.item()}
 
     def val_step(self, trainer, data, label, *args, **kwargs):
         """Validation step for Decoupling MaxLogit.
@@ -118,6 +54,7 @@ class DML(BaseAlg):
 
         return {"loss": loss.item(), "acc": acc.item()}
 
+
     def test_step(self, trainer, data, label, *args, **kwargs):
         """Test step for Decoupling MaxLogit.
 
@@ -134,7 +71,7 @@ class DML(BaseAlg):
                 - "acc": Accuracy value.
         """
         return self.val_step(trainer, data, label, *args, **kwargs)
-    
+
     @staticmethod
     def eval(id_gt: torch.Tensor ,id_logits: torch.Tensor, id_feat: torch.Tensor, 
             ood_logits: torch.Tensor, ood_feat: torch.Tensor, 
@@ -165,26 +102,13 @@ class DML(BaseAlg):
             aupr_out (float): Area under the precision-recall curve
                 for out-of-distribution
         """
-        in_score1 = np.max(id_logits.data.cpu().numpy(), axis=1)
-        out_score1 = np.max(id_logits.data.cpu().numpy(), axis=1)
-
-        tmp1 = np.sum(in_score1)
-        in_score1_tmp = in_score1/tmp1
-        out_score1_tmp = out_score1/tmp1
-
-        in_score2 = id_feat.norm(2, dim=1).data.cpu().numpy()
-        out_score2 = id_feat.norm(2, dim=1).data.cpu().numpy()
-
-        tmp1 = np.sum(in_score2)
-        in_score2_tmp = in_score2/tmp1
-        out_score2_tmp = out_score2/tmp1
-
-        in_score = in_score1_tmp + in_score2_tmp  
-        out_score = out_score1_tmp + out_score2_tmp
-
-        conf = np.concatenate([in_score, out_score])
-        ood_gt = -1 * np.ones(ood_gt)
+        print("MLS inference..")
+        id_conf, id_pred = torch.max(id_logits, dim=1)
+        ood_conf, ood_pred = torch.max(ood_logits, dim=1)
+        conf = np.concatenate([id_conf.data.cpu().numpy(), ood_conf.data.cpu().numpy()])
+        ood_gt = -1 * np.ones(ood_logits.shape[0])
         label = np.concatenate([id_gt.cpu(), ood_gt])
+        
         if prec_th is None:
             return ood_metrics(conf, label, tpr_th), None
         else:

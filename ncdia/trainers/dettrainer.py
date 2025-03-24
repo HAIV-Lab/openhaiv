@@ -140,20 +140,17 @@ class DetTrainer(PreTrainer):
             verbose=self.verbose
         )
 
-        scores = AutoOOD().eval(
-            metrics=metrics,
-            prototype_cls=train_stats['prototypes'],
-            fc_weight=self.model.fc.weight.clone().detach().cpu(),
-            train_feats=train_stats['features'],
-            train_logits=train_stats['logits'],
-            id_feats=test_stats['features'],
+        scores = self.algorithm.eval(
+            id_gt=test_stats['labels'],
             id_logits=test_stats['logits'],
-            id_labels=test_stats['labels'],
-            ood_feats=eval_stats['features'],
+            id_feat=test_stats['features'],
             ood_logits=eval_stats['logits'],
-            ood_labels=eval_stats['labels'],
+            ood_feat=eval_stats['features'],
+            train_logits=train_stats['logits'],
+            train_feat=train_stats['features'],
             tpr_th=tpr_th,
-            prec_th=prec_th
+            prec_th=prec_th,
+            hyparameters=self.algorithm.hyparameters if hasattr(self.algorithm, 'hyparameters') else None
         )
 
         return scores
