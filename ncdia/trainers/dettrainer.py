@@ -48,13 +48,12 @@ class DetTrainer(PreTrainer):
             gather_test_stats=gather_test_stats,
             verbose=verbose
         )
-        
         super(DetTrainer, self).__init__(
             cfg=cfg,
             model=model,
             max_epochs=max_epochs,
             custom_hooks=[self.quantify_hook],
-            **self.kwargs
+            **kwargs
         )
 
         self._eval_loader = {}

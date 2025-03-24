@@ -1,3 +1,5 @@
+set -e
+
 # train loss focal
 python ncdia/train.py \
     --cfg configs/pipeline/ood/det_cifar10_rn18_dml_cosine.yaml \
