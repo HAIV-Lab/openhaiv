@@ -1,7 +1,10 @@
 import os
 import logging
-import numpy as np 
+import numpy as np
 from tqdm import tqdm
+import itertools
+from torch import optim
+import copy
 
 import torch
 from torch import nn
@@ -14,13 +17,15 @@ from ncdia.utils.losses import AngularPenaltySMLoss
 from ncdia.utils.metrics import accuracy, per_class_accuracy
 from ncdia.utils import HOOKS
 from ncdia.trainers.hooks import AlgHook
-from ncdia.trainers.hooks import QuantifyHook
+from ncdia.models.net.inc_net import IncrementalNet
+
+from torch.utils.data import DataLoader
 from ncdia.dataloader import MergedDataset
 from ncdia.dataloader import BaseDataset
 
 
 @HOOKS.register
-class BiCHook(QuantifyHook):
+class BiCHook(AlgHook):
     def __init__(self) -> None:
         super().__init__()
         self._fix_memory = True
@@ -49,13 +54,15 @@ class BiCHook(QuantifyHook):
         trainer._val_loader = DataLoader(_hist_valset, **trainer._val_loader_kwargs)
 
     def after_train(self, trainer) -> None:
-        trainer.update_hist_trainset(
+        trainer.update_hist_dataset(
+            'hist_trainset',
             trainer.train_loader.dataset,
             replace_transform=True,
             inplace=True
         )
 
-        trainer.update_hist_valset(
+        trainer.update_hist_dataset(
+            'hist_valset',
             trainer.val_loader.dataset,
             replace_transform=True,
             inplace=True
@@ -63,15 +70,15 @@ class BiCHook(QuantifyHook):
         algorithm = trainer.algorithm
         filename = 'task_' + str(trainer.session) + '.pth'
         trainer.save_ckpt(os.path.join(trainer.work_dir, filename))
-        trainer.old_model = AliceNET(
+        trainer.buffer["old_model"] = IncrementalNet(
             trainer.cfg.model.network,
             trainer.cfg.CIL.base_classes,
             trainer.cfg.CIL.num_classes,
             trainer.cfg.CIL.att_classes,
             trainer.cfg.model.net_alice
         )
-        trainer.old_model.load_state_dict(trainer.model.state_dict())
-        for param in trainer.old_model.parameters():
+        trainer.buffer["old_model"].load_state_dict(trainer.model.state_dict())
+        for param in trainer.buffer["old_model"].parameters():
             param.requires_grad = False
 
     def before_val(self, trainer) -> None:
@@ -87,7 +94,8 @@ class BiCHook(QuantifyHook):
         trainer._test_loader = DataLoader(_hist_testset, **trainer._test_loader_kwargs)
 
     def after_test(self, trainer) -> None:
-        trainer.update_hist_testset(
+        trainer.update_hist_dataset(
+            'hist_testset',
             trainer.test_loader.dataset,
             replace_transform=True,
             inplace=True
@@ -105,7 +113,7 @@ class BiCHook(QuantifyHook):
         known_class = max(args.CIL.base_classes + (session - 1) * args.CIL.way, 0)
         start_class = max(args.CIL.base_classes + (session - 2) * args.CIL.way, 0)
         _network = trainer.model
-        _feature_dim = _network.num_features
+        _feature_dim = 512
         class_means = np.zeros((total_class, _feature_dim))
 
         data_loader = DataLoader(trainset, **trainer._train_loader_kwargs)
@@ -117,7 +125,7 @@ class BiCHook(QuantifyHook):
             labels = batch['label']
             images = images.cuda()
             with torch.no_grad():
-                features = _network.get_features(images)
+                features = _network.extract_vector(images)
             features_np = features.cpu().numpy()
 
             for i in range(len(labels)):
@@ -148,7 +156,7 @@ class BiCHook(QuantifyHook):
 
             # 获取当前批次的特征
             with torch.no_grad():
-                features = _network.get_features(images).cpu().numpy()
+                features = _network.extract_vector(images).cpu().numpy()
 
             # 将当前批次的特征和标签添加到列表中
             all_features.append(features)
@@ -255,7 +263,7 @@ class BiC(BaseAlg):
         self._network = trainer.model
         self._network.train()
         if session > 0:
-            self._old_network = trainer.old_model
+            self._old_network = trainer.buffer["old_model"]
             self._old_network = self._old_network.cuda()
             self._old_network.eval()
             loss, acc, per_acc = self.loss_process(data, label, session, distill=True)
