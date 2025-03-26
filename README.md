@@ -44,6 +44,12 @@ python setup.py install
 
 #### Out of Distribution
 
+## 贡献者
+<a href="https://github.com/eryajf/learn-github/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=eryajf/learn-github" />
+</a>
+
+
 
 #### Few-shot class-incremental learning
 - `Alice`: Few-Shot Class-Incremental Learning from an Open-Set Perspective. ECCV2022 [[paper](https://arxiv.org/abs/2208.00147)]
