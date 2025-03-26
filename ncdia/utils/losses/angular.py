@@ -32,20 +32,20 @@ class AngularPenaltySMLoss(nn.Module):
 
         self.cross_entropy = nn.CrossEntropyLoss()
 
-    def forward(self, wf, labels):
+    def forward(self, input, labels):
         if self.loss_type == 'crossentropy':
-            return self.cross_entropy(wf, labels)
+            return self.cross_entropy(input, labels)
         else:
             if self.loss_type == 'cosface':
-                numerator = self.s * (torch.diagonal(wf.transpose(0, 1)[labels]) - self.m)
+                numerator = self.s * (torch.diagonal(input.transpose(0, 1)[labels]) - self.m)
             if self.loss_type == 'arcface':
                 numerator = self.s * torch.cos(torch.acos(
-                    torch.clamp(torch.diagonal(wf.transpose(0, 1)[labels]), -1. + self.eps, 1 - self.eps)) + self.m)
+                    torch.clamp(torch.diagonal(input.transpose(0, 1)[labels]), -1. + self.eps, 1 - self.eps)) + self.m)
             if self.loss_type == 'sphereface':
                 numerator = self.s * torch.cos(self.m * torch.acos(
-                    torch.clamp(torch.diagonal(wf.transpose(0, 1)[labels]), -1. + self.eps, 1 - self.eps)))
+                    torch.clamp(torch.diagonal(input.transpose(0, 1)[labels]), -1. + self.eps, 1 - self.eps)))
 
-            excl = torch.cat([torch.cat((wf[i, :y], wf[i, y + 1:])).unsqueeze(0) for i, y in enumerate(labels)], dim=0)
+            excl = torch.cat([torch.cat((input[i, :y], input[i, y + 1:])).unsqueeze(0) for i, y in enumerate(labels)], dim=0)
             denominator = torch.exp(numerator) + torch.sum(torch.exp(self.s * excl), dim=1)
             L = numerator - torch.log(denominator)
             return -torch.mean(L)
