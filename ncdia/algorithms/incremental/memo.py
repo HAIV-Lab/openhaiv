@@ -50,14 +50,16 @@ class MEMOHook(AlgHook):
         trainer._val_loader = DataLoader(_hist_valset, **trainer._val_loader_kwargs)
     
     def after_train(self, trainer) -> None:
-        trainer.update_hist_trainset(
-            trainer.train_loader.dataset,
+        trainer.update_hist_dataset(
+            key = 'hist_trainset',
+            new_dataset =  trainer.train_loader.dataset,
             replace_transform=True,
             inplace=True
         )
 
-        trainer.update_hist_valset(
-            trainer.val_loader.dataset,
+        trainer.update_hist_dataset(
+            key = 'hist_testset',
+            new_dataset = trainer.val_loader.dataset,
             replace_transform=True,
             inplace=True
         )

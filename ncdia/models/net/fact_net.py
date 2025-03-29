@@ -73,8 +73,10 @@ class FACTNET(nn.Module):
         x = x.squeeze(-1).squeeze(-1)
         return x
     
-    def get_features(self, x):
-        self.encoder(x)
+    def get_features(self, data=None):
+
+        if data is not None:
+            self.encoder(data)
         x = self.encoder.features
         x = F.adaptive_avg_pool2d(x, 1)
         x = x.squeeze(-1).squeeze(-1)

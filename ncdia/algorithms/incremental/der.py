@@ -51,14 +51,16 @@ class DERHook(AlgHook):
         # trainer.model.update_fc(trainer.cfg.CIL.way)
 
     def after_train(self, trainer) -> None:
-        trainer.update_hist_trainset(
-            trainer.train_loader.dataset,
+        trainer.update_hist_dataset(
+            key = 'hist_trainset',
+            new_dataset =  trainer.train_loader.dataset,
             replace_transform=True,
             inplace=True
         )
 
-        trainer.update_hist_valset(
-            trainer.val_loader.dataset,
+        trainer.update_hist_dataset(
+            key = 'hist_testset',
+            new_dataset = trainer.val_loader.dataset,
             replace_transform=True,
             inplace=True
         )
@@ -70,16 +72,17 @@ class DERHook(AlgHook):
         for i in range(trainer.session+1):
             att_classes.append(temp_class_num)
             temp_class_num += trainer.cfg.CIL.way
-        trainer.old_model = DERNET(
+        old_model = DERNET(
             trainer.cfg.model.network,
             trainer.cfg.CIL.base_classes,
             trainer.cfg.CIL.num_classes,
             att_classes,
             trainer.cfg.model.net_alice
         )
-        trainer.old_model.load_state_dict(trainer.model.state_dict())
-        for param in trainer.old_model.parameters():
+        old_model.load_state_dict(trainer.model.state_dict())
+        for param in old_model.parameters():
             param.requires_grad = False
+        trainer.buffer['old_model'] = old_model
 
         DERNET.cur_class.append(trainer.cfg.CIL.way)
         trainer.model.update_fc(trainer.cfg.CIL.way * (trainer.session + 1) + trainer.cfg.CIL.base_classes)
@@ -229,7 +232,7 @@ class DER(BaseAlg):
         self._network = trainer.model
 
         if session>=1:
-            self._old_network = trainer.old_model
+            self._old_network = trainer.buffer['old_model']
             self._old_network = self._old_network.cuda()
             self._old_network.eval()
         self._network.train()

@@ -1,8 +1,15 @@
 import os
 import logging
+<<<<<<< HEAD
 import itertools
 import numpy as np 
+=======
+import numpy as np
+>>>>>>> 266289a9334291351ac9ac88159866e6b72faf8d
 from tqdm import tqdm
+import itertools
+from torch import optim
+import copy
 
 import torch
 from torch import nn
@@ -16,14 +23,16 @@ from ncdia.utils.losses import AngularPenaltySMLoss
 from ncdia.utils.metrics import accuracy, per_class_accuracy
 from ncdia.utils import HOOKS
 from ncdia.trainers.hooks import AlgHook
-from ncdia.trainers.hooks import QuantifyHook
+from ncdia.models.net.inc_net import IncrementalNet
+
+from torch.utils.data import DataLoader
 from ncdia.dataloader import MergedDataset
 from ncdia.dataloader import BaseDataset
 
 from ncdia.models.net.inc_net import IncrementalNet
 
 @HOOKS.register
-class BiCHook(QuantifyHook):
+class BiCHook(AlgHook):
     def __init__(self) -> None:
         super().__init__()
         self._fix_memory = True
@@ -53,30 +62,49 @@ class BiCHook(QuantifyHook):
 
     def after_train(self, trainer) -> None:
         trainer.update_hist_dataset(
+<<<<<<< HEAD
             key = 'hist_trainset',
             new_dataset = trainer.train_loader.dataset,
+=======
+            'hist_trainset',
+            trainer.train_loader.dataset,
+>>>>>>> 266289a9334291351ac9ac88159866e6b72faf8d
             replace_transform=True,
             inplace=True
         )
 
         trainer.update_hist_dataset(
+<<<<<<< HEAD
             key = 'hist_valset',
             new_dataset = trainer.val_loader.dataset,
+=======
+            'hist_valset',
+            trainer.val_loader.dataset,
+>>>>>>> 266289a9334291351ac9ac88159866e6b72faf8d
             replace_transform=True,
             inplace=True
         )
         algorithm = trainer.algorithm
         filename = 'task_' + str(trainer.session) + '.pth'
         trainer.save_ckpt(os.path.join(trainer.work_dir, filename))
+<<<<<<< HEAD
         old_model = IncrementalNet(
+=======
+        trainer.buffer["old_model"] = IncrementalNet(
+>>>>>>> 266289a9334291351ac9ac88159866e6b72faf8d
             trainer.cfg.model.network,
             trainer.cfg.CIL.base_classes,
             trainer.cfg.CIL.num_classes,
             trainer.cfg.CIL.att_classes,
             trainer.cfg.model.net_alice
         )
+<<<<<<< HEAD
         old_model.load_state_dict(trainer.model.state_dict())
         for param in old_model.parameters():
+=======
+        trainer.buffer["old_model"].load_state_dict(trainer.model.state_dict())
+        for param in trainer.buffer["old_model"].parameters():
+>>>>>>> 266289a9334291351ac9ac88159866e6b72faf8d
             param.requires_grad = False
         trainer.buffer['old_model'] = old_model
 
@@ -95,8 +123,13 @@ class BiCHook(QuantifyHook):
 
     def after_test(self, trainer) -> None:
         trainer.update_hist_dataset(
+<<<<<<< HEAD
             key = 'hist_testset',
             new_dataset = trainer.test_loader.dataset,
+=======
+            'hist_testset',
+            trainer.test_loader.dataset,
+>>>>>>> 266289a9334291351ac9ac88159866e6b72faf8d
             replace_transform=True,
             inplace=True
         )
@@ -264,7 +297,11 @@ class BiC(BaseAlg):
         self._network = trainer.model
         self._network.train()
         if session > 0:
+<<<<<<< HEAD
             self._old_network = trainer.buffer['old_model']
+=======
+            self._old_network = trainer.buffer["old_model"]
+>>>>>>> 266289a9334291351ac9ac88159866e6b72faf8d
             self._old_network = self._old_network.cuda()
             self._old_network.eval()
             loss, acc, per_acc = self.loss_process(data, label, session, distill=True)
