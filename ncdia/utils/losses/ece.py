@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from ncdia.utils import LOSSES
 
 @LOSSES.register
-class ECELoss(nn.Module):
+class ECE(nn.Module):
     """
     Calculates the Expected Calibration Error of a model.
     (This isn't necessary for temperature scaling, just a cool metric).
