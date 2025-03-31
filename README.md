@@ -2,7 +2,11 @@
 
 This is a framework for open-world object recognition, supporting out-of-distribution detection, novel class discovery, and incremental learning algorithms to enable robust and flexible object recognition in unconstrained environments.
 
-### Install
+### 🎉News
+
+### 🌟Features
+
+### ⚙️Install
 #### install python3
 #### in linux 
 It is recommended to use anaconda3 to manage and maintain the python library environment.
@@ -27,13 +31,23 @@ python setup.py install
 * scipy>=1.14.0
 * scikit-learn>=1.5.1
 
-### Supported Models for OpenHAIV
+### 📂Datasets
+#### Class-incremental learning
+
+#### Domain-incremental learning
+
+#### Few-shot Class-incremental learning
+
+#### Out-of-distribution Detection
+
+
+### 🤖Supported Models for OpenHAIV
 - `ResNet`: .
 - `ViT`: .
 - `Swin-T`: .
 - `CLIP`: .
 
-### Supported Augmentations for OpenHAIV
+### 🎨Supported Augmentations for OpenHAIV
 
 - `Mixup`: .
 - `Cutmix`: .
@@ -44,7 +58,7 @@ python setup.py install
 - `Pixmix`: .
 - `Regmixup`: .
 
-### Supported Methods for OpenHAIV
+### 📚Supported Methods for OpenHAIV
 
 #### Class-incremental learning
 
@@ -131,9 +145,9 @@ python setup.py install
 - `FACT`: Forward Compatible Few-Shot Class-Incremental Learning. CVPR 2022 [[paper](https://arxiv.org/abs/2203.06953)]
 - `SAVC`: Learning with Fantasy: Semantic-Aware Virtual Contrastive Constraint for Few-Shot Class-Incremental Learning. CVPR 2023 [[paper](https://arxiv.org/abs/2304.00426)]
 
-### Contributors
+### 🤝Contributors
 
-### Citation
+### 📖Citation
 If you find our repository useful for your research, please consider citing these papers:
 ```bibtex
 @article{your_paper,
@@ -147,3 +161,8 @@ If you find our repository useful for your research, please consider citing thes
   doi={10.xxxx/your-doi},
   url={https://arxiv.org/abs/your-arxiv-id}
 }
+```
+### 🙏Acknowledgement
+- [OpenOOD](https://github.com/Jingkang50/OpenOOD), an extensible codebase for out-of-distribution detection with Vision Models only.
+- [OpenOOD-VLM](https://github.com/YBZh/OpenOOD-VLM), an extensible codebase for out-of-distribution detection with both Vision Models and Vision-Language Models.
+- [PyCIL](https://github.com/G-U-N/PyCIL), an extensible codebase for incremental learning.
