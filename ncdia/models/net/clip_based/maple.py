@@ -1,7 +1,7 @@
 import clip
 import torch.nn as nn
 from .customclip_maple import CustomCLIP_Maple
-from ncdia.utils import load_clip_to_cpu, load_clip_to_cpu_maple, get_class_names, get_text_features
+from .clip_utils import load_clip_to_cpu, load_clip_to_cpu_maple, get_class_names, get_text_features
 from ncdia.utils import MODELS, Configs
 
 @MODELS.register

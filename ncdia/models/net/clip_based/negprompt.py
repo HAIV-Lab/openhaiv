@@ -1,7 +1,7 @@
 import clip
 import torch.nn as nn
 from .customclip_negprompt import CustomCLIP_NegPrompt
-from ncdia.utils import get_class_names, load_clip_to_cpu, get_text_features_neg
+from .clip_utils import get_class_names, load_clip_to_cpu, get_text_features_neg
 from ncdia.utils import MODELS, Configs
 
 @MODELS.register

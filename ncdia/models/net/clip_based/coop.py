@@ -1,6 +1,8 @@
+import clip
 import torch.nn as nn
 from .customclip import CustomCLIP
 from .promptlearner import PromptLearner
+from .clip_utils import get_class_names, load_clip_to_cpu, get_text_features
 from ncdia.utils import MODELS, Configs
 
 @MODELS.register

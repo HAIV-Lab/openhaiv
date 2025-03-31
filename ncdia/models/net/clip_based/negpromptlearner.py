@@ -2,7 +2,7 @@ import clip
 import torch
 import torch.nn as nn
 from ncdia.utils import MODELS, Configs
-from .clip_maple import simple_tokenizer as _Tokenizer
+from .clip import simple_tokenizer as _Tokenizer
 
 _tokenizer = _Tokenizer()
 

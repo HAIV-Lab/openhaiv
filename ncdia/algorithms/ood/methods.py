@@ -115,6 +115,116 @@ def mcm(
         return ood_metrics(conf, label, tpr_th), None
     else:
         return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
+    
+@ALGORITHMS.register
+def glmcm(
+        id_gt, id_global_logits, id_local_logits,
+        ood_gt, ood_global_logits, ood_local_logits,
+        T: int = 2,
+        lambda_local: float = 1,
+        tpr_th: float = 0.95,
+        prec_th: float = None,
+        **kwargs
+) -> tuple:
+    """Global-Local Maximum Concept Matching (GL-MCM) method for OOD detection.
+
+    GL-MCM: Global and Local Maximum Concept Matching for Zero-Shot Out-of-Distribution Detection
+    https://arxiv.org/abs/2304.04521
+
+    Args:
+        id_gt (torch.Tensor): ID ground truth labels. Shape (N,).
+        id_global_logits (torch.Tensor): ID global logits. Shape (N, C).
+        id_local_logits (torch.Tensor): ID local logits. Shape (N, P, C).
+        ood_gt (torch.Tensor): OOD ground truth labels. Shape (M,).
+        ood_global_logits (torch.Tensor): OOD global logits. Shape (M, C).
+        ood_local_logits (torch.Tensor): OOD local logits. Shape (M, P, C).
+        lambda_local (float): Weight for local logits. Default is 1.
+        T (int): Temperature for softmax.
+        tpr_th (float): True positive rate threshold to compute
+            false positive rate. Default is 0.95.
+        prec_th (float | None): Precision threshold for searching threshold.
+            If None, not searching for threshold. Default is None.
+
+    Returns:
+        fpr (float): False positive rate.
+        auroc (float): Area under the ROC curve.
+        aupr_in (float): Area under the precision-recall curve 
+            for in-distribution samples.
+        aupr_out (float): Area under the precision-recall curve
+            for out-of-distribution
+    """
+    # set the ground truth labels for OOD samples to -1
+    # for computing ood metrics
+    ood_gt = -1 * np.ones_like(ood_gt)
+
+    id_global_conf, _ = torch.max(
+        torch.softmax(id_global_logits / T, dim=1), dim=1)
+    id_local_conf, _ = torch.max(
+        torch.softmax(id_local_logits / T, dim=1), dim=(1,2))
+    ood_global_conf, _ = torch.max(
+        torch.softmax(ood_global_logits / T, dim=1), dim=1)
+    ood_local_conf, _ = torch.max(
+        torch.softmax(ood_local_logits / T, dim=1), dim=(1,2))
+    id_conf = id_global_conf + id_local_conf
+    ood_conf = ood_global_conf + lambda_local * ood_local_conf
+
+    conf = np.concatenate([id_conf.cpu(), ood_conf.cpu()])
+    label = np.concatenate([id_gt.cpu(), ood_gt])
+    
+    if prec_th is None:
+        return ood_metrics(conf, label, tpr_th), None
+    else:
+        return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
+    
+@ALGORITHMS.register
+def mcm(
+        id_gt, id_logits,
+        ood_gt, ood_logits,
+        T: int = 2,
+        tpr_th: float = 0.95,
+        prec_th: float = None,
+        **kwargs
+) -> tuple:
+    """Maximum Concept Matching (MCM) method for OOD detection.
+
+    Delving into Out-of-Distribution Detection with Vision-Language Representations
+    https://openreview.net/forum?id=KnCS9390Va
+
+    Args:
+        id_gt (torch.Tensor): ID ground truth labels. Shape (N,).
+        id_logits (torch.Tensor): ID logits. Shape (N, C).
+        ood_gt (torch.Tensor): OOD ground truth labels. Shape (M,).
+        ood_logits (torch.Tensor): OOD logits. Shape (M, C).
+        T (int): Temperature for softmax.
+        tpr_th (float): True positive rate threshold to compute
+            false positive rate. Default is 0.95.
+        prec_th (float | None): Precision threshold for searching threshold.
+            If None, not searching for threshold. Default is None.
+
+    Returns:
+        fpr (float): False positive rate.
+        auroc (float): Area under the ROC curve.
+        aupr_in (float): Area under the precision-recall curve 
+            for in-distribution samples.
+        aupr_out (float): Area under the precision-recall curve
+            for out-of-distribution
+    """
+    # set the ground truth labels for OOD samples to -1
+    # for computing ood metrics
+    ood_gt = -1 * np.ones_like(ood_gt)
+
+    id_conf, _ = torch.max(
+        torch.softmax(id_logits / T, dim=1), dim=1)
+    ood_conf, _ = torch.max(
+        torch.softmax(ood_logits / T, dim=1), dim=1)
+
+    conf = np.concatenate([id_conf.cpu(), ood_conf.cpu()])
+    label = np.concatenate([id_gt.cpu(), ood_gt])
+    
+    if prec_th is None:
+        return ood_metrics(conf, label, tpr_th), None
+    else:
+        return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
 
 
 @ALGORITHMS.register

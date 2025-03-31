@@ -1,6 +1,6 @@
 import torch.nn as nn
 from .multimodalpromptlearner import MultiModalPromptLearner
-from ncdia.utils import TextEncoder
+from .clip_utils import TextEncoder
 from ncdia.utils import MODELS, Configs
 
 @MODELS.register

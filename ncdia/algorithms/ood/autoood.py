@@ -1,6 +1,7 @@
 from ncdia.utils import ALGORITHMS
 from .inference import (
-    msp_inf, mcm_inf, max_logit_inf, energy_inf, vim_inf, dml_inf, dmlp_inf, prot_inf
+    msp_inf, mcm_inf, glmcm_inf, neglabel_inf, max_logit_inf, energy_inf, vim_inf, dml_inf, dmlp_inf, prot_inf,
+    klm_inf, she_inf, relation_inf
 )
 
 
@@ -105,18 +106,26 @@ class AutoOOD(object):
             logits, feat,
             train_logits,
             train_feat,
+            labels,
             fc_weight,
             prototype,
             logits_att=None,
             prototype_att=None,
+            global_logits=None,
+            local_logits=None, 
+            positive_logits=None,
+            negative_logits=None,
     ) -> dict:
         conf = {}
-
         for metric in metrics:
             if metric == 'msp':
                 conf['msp'] = msp_inf(logits)
             elif metric == 'mcm':
                 conf['mcm'] = mcm_inf(logits)
+            elif metric == 'glmcm':
+                conf['glmcm'] = glmcm_inf(global_logits, local_logits)
+            # elif metric == 'neglabel':
+            #     conf['neglabel'] = neglabel_inf(positive_logits, negative_logits)
             elif metric == 'maxlogit':
                 conf['maxlogit'] = max_logit_inf(logits)
             elif metric == 'energy':
@@ -127,6 +136,14 @@ class AutoOOD(object):
                 conf['dml'] = dml_inf(feat, fc_weight)
             elif metric == 'dmlp':
                 conf['dmlp'] = dmlp_inf(logits, feat, fc_weight, prototype)
+            elif metric == 'klm':
+                conf['klm'] = klm_inf(logits, train_logits)
+            elif metric == 'she':
+                conf['she'] = she_inf(logits, feat, train_feat)
+            elif metric == 'relation':
+                conf['relation'] = relation_inf(logits, feat, train_logits, train_feat)
+
+
             elif metric == 'cls':
                 conf['cls'] = prot_inf([logits], [prototype])
             elif metric == 'att':
