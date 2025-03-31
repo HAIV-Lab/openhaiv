@@ -21,6 +21,6 @@ CIL:
   not_data_init: False
   base_class: 109
   num_classes: 189
-  way: 80
-  shot: 50
-  sessions: 2
+  way: 10
+  shot: 10
+  sessions: 9

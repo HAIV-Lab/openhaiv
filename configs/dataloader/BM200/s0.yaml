@@ -6,7 +6,7 @@ trainloader:
     type: BM200
     root: /data/datasets/CIL/BMF/
     split: train
-    subset_labels: 9
+    subset_labels: 109
     transform: train
 
 valloader:
@@ -15,7 +15,7 @@ valloader:
     type: BM200
     root: /data/datasets/CIL/BMF/
     split: test
-    subset_labels: 9
+    subset_labels: 109
     transform: test
 
 testloader:
@@ -24,5 +24,5 @@ testloader:
     type: BM200
     root: /data/datasets/CIL/BMF/
     split: test
-    subset_labels: 9
+    subset_labels: 109
     transform: test

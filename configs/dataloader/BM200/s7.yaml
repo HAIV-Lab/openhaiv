@@ -16,7 +16,7 @@ valloader:
     type: BM200
     root: /data/datasets/CIL/BMF/
     split: test
-    subset_labels: 149
+    subset_labels: 179
     transform: test
 
 testloader:
@@ -25,5 +25,5 @@ testloader:
     type: BM200
     root: /data/datasets/CIL/BMF/
     split: test
-    subset_labels: 149
+    subset_labels: 179
     transform: test

@@ -6,7 +6,7 @@ trainloader:
     type: BM200
     root: /data/datasets/CIL/BMF/
     split: train
-    subset_labels: [49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68]
+    subset_labels: [129, 130, 131, 132, 133, 134, 135, 136, 137, 138]
     # [129, 130, 131, 132, 133, 134, 135, 136, 137, 138]
     # [49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68]
     transform: train
@@ -17,7 +17,7 @@ valloader:
     type: BM200
     root: /data/datasets/CIL/BMF/
     split: test
-    subset_labels: 69
+    subset_labels: 139
     transform: test
 
 testloader:
@@ -26,5 +26,5 @@ testloader:
     type: BM200
     root: /data/datasets/CIL/BMF/
     split: test
-    subset_labels: 69
+    subset_labels: 139
     transform: test
