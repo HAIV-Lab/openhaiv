@@ -1,12 +1,19 @@
+import clip
+import torch
 import torch.nn as nn
+import copy
 from ncdia.utils import MODELS, Configs
+from .clip_maple import simple_tokenizer as _Tokenizer
+
+_tokenizer = _Tokenizer()
+def _get_clones(module, N):
+    return nn.ModuleList([copy.deepcopy(module) for i in range(N)])
 
 @MODELS.register
 class MultiModalPromptLearner(nn.Module):
     def __init__(self, cfg, classnames, clip_model):
         super().__init__()
         n_cls = len(classnames)
-        # pdb.set_trace()
         n_ctx = cfg.backbone.N_CTX # 16 or 4
         ctx_init = cfg.backbone.CTX_INIT  # ''
         dtype = clip_model.dtype
