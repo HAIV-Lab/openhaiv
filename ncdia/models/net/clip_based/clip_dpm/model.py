@@ -7,6 +7,7 @@ import torch.nn.functional as F
 from torch import nn
 
 
+
 class Bottleneck(nn.Module):
     expansion = 4
 
@@ -145,9 +146,11 @@ class ModifiedResNet(nn.Module):
         x = self.layer2(x)
         x = self.layer3(x)
         x = self.layer4(x)
+        Fs = x.permute(0, 2, 3, 1).view(x.shape[0], -1, x.shape[1])
+        Fs = F.adaptive_avg_pool1d(Fs, 1024) # we use avg pool here to match dimension and not changing model structure
         x = self.attnpool(x)
 
-        return x
+        return x, Fs
 
 
 class LayerNorm(nn.LayerNorm):
@@ -207,7 +210,7 @@ class VisionTransformer(nn.Module):
         self.conv1 = nn.Conv2d(in_channels=3, out_channels=width, kernel_size=patch_size, stride=patch_size, bias=False)
 
         scale = width ** -0.5
-        self.class_embedding = nn.Parameter(scale * torch.randn(width))
+        self.class_embedding = nn.Parameter(scale * torch.randn(width))  # shape = [width, ]
         self.positional_embedding = nn.Parameter(scale * torch.randn((input_resolution // patch_size) ** 2 + 1, width))
         self.ln_pre = LayerNorm(width)
 
@@ -221,19 +224,19 @@ class VisionTransformer(nn.Module):
         x = x.reshape(x.shape[0], x.shape[1], -1)  # shape = [*, width, grid ** 2]
         x = x.permute(0, 2, 1)  # shape = [*, grid ** 2, width]
         x = torch.cat([self.class_embedding.to(x.dtype) + torch.zeros(x.shape[0], 1, x.shape[-1], dtype=x.dtype, device=x.device), x], dim=1)  # shape = [*, grid ** 2 + 1, width]
-        x = x + self.positional_embedding.to(x.dtype)
+        x = x + self.positional_embedding.to(x.dtype)  # shape = [*, grid ** 2 + 1, width]
         x = self.ln_pre(x)
 
         x = x.permute(1, 0, 2)  # NLD -> LND
         x = self.transformer(x)
         x = x.permute(1, 0, 2)  # LND -> NLD
 
-        x = self.ln_post(x[:, 0, :])
-
+        x_g = self.ln_post(x[:, 0, :])
+        x_f = self.ln_post(x[:, 1:, :])
         if self.proj is not None:
-            x = x @ self.proj
-
-        return x
+            x_g = x_g @ self.proj
+            x_f = x_f @ self.proj
+        return x_g,x_f
 
 
 class CLIP(nn.Module):

@@ -166,3 +166,6 @@ If you find our repository useful for your research, please consider citing thes
 - [OpenOOD](https://github.com/Jingkang50/OpenOOD), an extensible codebase for out-of-distribution detection with Vision Models only.
 - [OpenOOD-VLM](https://github.com/YBZh/OpenOOD-VLM), an extensible codebase for out-of-distribution detection with both Vision Models and Vision-Language Models.
 - [PyCIL](https://github.com/G-U-N/PyCIL), an extensible codebase for incremental learning.
+
+### ✉️Contact
+If there are any questions, please feel free to propose new features by opening an issue or contact with the author: xxx. Enjoy the code.

@@ -1,0 +1,71 @@
+_base_: configs/dataloader/loader.yaml
+
+trainloader:
+  dataset:
+    type: BMF_OOD
+    root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/ID/train/
+    split: train
+    download: True
+    transform:
+      random_resized_crop:
+        size: 224
+      random_horizontal_flip:
+        p: 0.5
+      to_tensor: null
+      normalize:
+        mean: [0.485, 0.456, 0.406]
+        std: [0.229, 0.224, 0.225]
+
+valloader:
+  dataset:
+    type: BMF_OOD
+    root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/ID/test/
+    split: val
+    download: True
+    transform:
+      resize:
+        size: 256
+      center_crop:
+        size: 224
+      to_tensor: null
+      normalize:
+        mean: [0.485, 0.456, 0.406]
+        std: [0.229, 0.224, 0.225]
+testloader:
+  dataset:
+    type: BMF_OOD
+    root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/ID/test/
+    split: val
+    download: True
+    transform:
+      resize:
+        size: 256
+      center_crop:
+        size: 224
+      to_tensor: null
+      normalize:
+        mean: [0.485, 0.456, 0.406]
+        std: [0.229, 0.224, 0.225]
+evalloader:  
+  ood_easy:
+      type: BMF_OOD
+      root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/OOD_Easy/test/
+      split: val
+      download: True
+      transform:
+        resize: {size: 256}
+        center_crop: {size: 224}
+        normalize:
+          mean: [0.485, 0.456, 0.406]
+          std: [0.229, 0.224, 0.225]
+  
+  ood_hard:  
+      type: BMF_OOD 
+      root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/OOD_Hard/test/
+      split: val
+      transform:  
+        resize: {size: 512}
+        random_crop: {size: 224}
+        normalize:
+          mean: [0.5, 0.5, 0.5]
+          std: [0.5, 0.5, 0.5]
