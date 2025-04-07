@@ -2,25 +2,52 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from models.resnet.cifar_resnet import resnet32
+from ncdia.models.net.der_net import SimpleLinear
 
 from ncdia.utils import MODELS, Configs
 
+
+class BiasLayer(nn.Module):
+    def __init__(self):
+        super(BiasLayer, self).__init__()
+        self.alpha = nn.Parameter(torch.ones(1, requires_grad=True))
+        self.beta = nn.Parameter(torch.zeros(1, requires_grad=True))
+
+    def forward(self, x, low_range, high_range):
+        ret_x = x.clone()
+        ret_x[:, low_range:high_range] = (
+            self.alpha * x[:, low_range:high_range] + self.beta
+        )
+        return ret_x
+
+    def get_params(self):
+        return (self.alpha.item(), self.beta.item())
+        
 @MODELS.register
 class BEEFISONet(nn.Module):
-    def __init__(self, args, pretrained):
+    def __init__(
+            self,
+            network: Configs,
+            base_classes,
+            num_classes,
+            att_classes,
+    ) -> None:
         super(BEEFISONet, self).__init__()
-        self.convnet_type = args["convnet_type"]
         self.convnets = nn.ModuleList()
-        self.pretrained = pretrained
         self.out_dim = None
         self.old_fc = None
         self.new_fc = None
         self.task_sizes = []
         self.forward_prototypes = None
         self.backward_prototypes = None
-        self.args = args
         self.biases = nn.ModuleList()
 
+        self.args = network.cfg
+        self.args['pretrained'] = True
+        self.args['num_classes'] = 1000
+        if "type" not in network:
+            self.args['type'] = 'resnet18'
     @property
     def feature_dim(self):
         if self.out_dim is None:
@@ -66,9 +93,10 @@ class BEEFISONet(nn.Module):
         return out
 
     def update_fc_before(self, nb_classes):
+    
         new_task_size = nb_classes - sum(self.task_sizes)
         self.biases = nn.ModuleList([BiasLayer() for i in range(len(self.task_sizes))])
-        self.convnets.append(get_convnet(self.args))
+        self.convnets.append(resnet32())
         if self.out_dim is None:
             self.out_dim = self.convnets[-1].out_dim
         if self.new_fc is not None:

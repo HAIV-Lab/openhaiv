@@ -21,25 +21,37 @@ EPSILON = 1e-8
 
 @HOOKS.register
 class BeefIsoHook(AlgHook):
-    def __init__(self) -> None:
+    def __init__(self, trainer) -> None:
         super().__init__()
+        self.trainer = trainer  # Store trainer in the hook
+        # self._network = trainer.algorithm._network
         self._fix_memory = True
+        self.args = trainer.cfg  # Access the trainer's configuration
+
     def before_train(self, trainer) -> None:
+        session = self.trainer.session  # Access trainer's session
+        if session == 0:
+            known_class = self.args.CIL.base_classe
+        else:
+            known_class = self.args.CIL.base_classes + (session - 1) * self.args.CIL.way
+        total_class = self.args.CIL.base_classes + session * self.args.CIL.way
+        algorithm = trainer.algorithm
         trainer.train_loader
         _hist_trainset = trainer.hist_trainset
         now_dataset = trainer.train_loader.dataset
         _hist_trainset = MergedDataset([_hist_trainset], replace_transform=True)    
 
-        if self._fix_memory and trainer.session >=1:
-            _hist_trainset , new_dataset = self.construct_exemplar_unified(_hist_trainset, trainer.cfg.CIL.per_classes, trainer)
+        if self._fix_memory and trainer.session >= 1:
+            _hist_trainset, new_dataset = self.construct_exemplar_unified(
+                _hist_trainset, trainer.cfg.CIL.per_classes, trainer)
             _hist_trainset = MergedDataset([_hist_trainset], replace_transform=True)
             new_dataset = MergedDataset([new_dataset], replace_transform=True)
 
-        if trainer.session >=1:
+        if trainer.session >= 1:
             _hist_trainset.merge([new_dataset], replace_transform=True)
         else:
             _hist_trainset.merge([now_dataset], replace_transform=True)
-        # print(_hist_trainset.labels)
+
         trainer._train_loader = DataLoader(_hist_trainset, **trainer._train_loader_kwargs)
 
         # val_loader
@@ -47,28 +59,25 @@ class BeefIsoHook(AlgHook):
         _hist_valset = MergedDataset([trainer.hist_valset], replace_transform=True)
         _hist_valset.merge([trainer.val_loader.dataset], replace_transform=True)
         trainer._val_loader = DataLoader(_hist_valset, **trainer._val_loader_kwargs)
-        
-        self._network.update_fc_before(self._total_classes)
-        self._network_module_ptr = self._network
-        
+
+        self.trainer.model.update_fc_before(total_class)
+        self.trainer.model._network_module_ptr = self.trainer.model
+
         if self.trainer.session > 0:
             for id in range(self.trainer.session):
                 for p in self._network.convnets[id].parameters():
                     p.requires_grad = False
             for p in self._network.old_fc.parameters():
                 p.requires_grad = False
-    
+
     def after_train(self, trainer) -> None:
-        # self._network.update_fc_before(self._total_classes)
-        # self._network_module_ptr = self._network      
         self._network_module_ptr.update_fc_after()
         self._known_classes = self._total_classes
         if self.reduce_batch_size:
             if self._cur_task == 0:
                 self.args["batch_size"] = self.args["batch_size"]
             else:
-                self.args["batch_size"] = self.args["batch_size"] * (self._cur_task+1) // (self._cur_task+2) 
-
+                self.args["batch_size"] = self.args["batch_size"] * (self._cur_task + 1) // (self._cur_task + 2)
 
 
 @ALGORITHMS.register
@@ -81,7 +90,7 @@ class BEEFISO(BaseAlg):
         self._network = None
         self.transform = None
         self.loss = torch.nn.CrossEntropyLoss().cuda()
-        self.hook = BeefIsoHook()
+        self.hook = BeefIsoHook(trainer)  # Pass trainer to the hook
         trainer.register_hook(self.hook)
         session = trainer.session
         self.sinkhorn_reg = self.args.sinkhorn

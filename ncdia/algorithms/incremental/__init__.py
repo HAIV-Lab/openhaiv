@@ -15,3 +15,4 @@ from .memo import MEMO
 from .gem import GEM
 from .pa2s import PASS
 from .foster import Foster
+from .beef_iso import BEEFISO

@@ -4,7 +4,7 @@ trainloader:
   dataset:
     _replace_: True
     type: cub200
-    root: /data/datasets/CIL/cub/
+    root: /new_data/czp/openhaiv/data/datasets/CIL/cub
     split: train
     subset_labels: 180
     transform: train
@@ -13,7 +13,7 @@ valloader:
   dataset:
     _replace_: True
     type: cub200
-    root: /data/datasets/CIL/cub/
+    root: /new_data/czp/openhaiv/data/datasets/CIL/cub
     split: test
     subset_labels: 180
     transform: test
@@ -22,7 +22,7 @@ testloader:
   dataset:
     _replace_: True
     type: cub200
-    root: /data/datasets/CIL/cub/
+    root: /new_data/czp/openhaiv/data/datasets/CIL/cub
     split: test
     subset_labels: 180
     transform: test

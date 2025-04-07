@@ -26,7 +26,7 @@ class AliceHook(QuantifyHook):
         filename = 'task_' + str(trainer.session) + '.pth'
         trainer.save_ckpt(os.path.join(trainer.work_dir, filename))
         if trainer.session == 0:
-            self.gather_stats(trainer.model, trainer.train_loader, trainer.device)
+            self.gather_stawts(trainer.model, trainer.train_loader, trainer.device)
     
 
     def before_test(self, trainer) -> None:
