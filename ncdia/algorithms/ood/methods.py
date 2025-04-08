@@ -341,7 +341,7 @@ def dml(
 def dmlp(
         id_gt, id_logits, id_feat, 
         ood_gt, ood_logits, ood_feat, 
-        fc_weight, prototype,
+        train_logits, train_feat,
         tpr_th: float = 0.95,
         prec_th: float = None,
         **kwargs
@@ -375,36 +375,58 @@ def dmlp(
     """
     # set the ground truth labels for OOD samples to -1
     # for computing ood metrics
+
+    in_score1 = np.max(id_logits.data.cpu().numpy(), axis=1)
+    out_score1 = np.max(id_logits.data.cpu().numpy(), axis=1)
+
+    tmp1 = np.sum(in_score1)
+    in_score1_tmp = in_score1/tmp1
+    out_score1_tmp = out_score1/tmp1
+
+    in_score2 = id_feat.norm(2, dim=1).data.cpu().numpy()
+    out_score2 = id_feat.norm(2, dim=1).data.cpu().numpy()
+
+    tmp1 = np.sum(in_score2)
+    in_score2_tmp = in_score2/tmp1
+    out_score2_tmp = out_score2/tmp1
+
+    in_score = in_score1_tmp + in_score2_tmp  
+    out_score = out_score1_tmp + out_score2_tmp
+
+    conf = np.concatenate([in_score, out_score])
     ood_gt = -1 * np.ones_like(ood_gt)
-
-    w = fc_weight.clone().detach()
-    w = F.normalize(w, p=2, dim=1).cpu()
-    # TODO: check if this is correct
-    w = w[::2,]  # savc使用的是两倍类别数的fc层
-
-    id_cosine = F.normalize(id_feat, p=2, dim=1) @ w.T
-    id_mcos, _ = torch.max(id_cosine, dim=1, keepdim=True)
-    id_norm = torch.norm(id_feat, dim=1)
-    id_conf = id_mcos + 0.002 * id_norm.unsqueeze(1)
-
-    ood_cosine = F.normalize(ood_feat, p=2, dim=1) @ w.T
-    ood_mcos, _ = torch.max(ood_cosine, dim=1, keepdim=True)
-    ood_norm = torch.norm(ood_feat, dim=1)
-    ood_conf = ood_mcos + 0.002 * ood_norm.unsqueeze(1)
-
-    prototype = F.normalize(prototype, p=2, dim=1)
-
-    _id_conf = F.normalize(id_logits, p=2, dim=1) @ prototype.T
-    _id_conf, _ = torch.max(_id_conf, dim=1)
-
-    _ood_conf = F.normalize(ood_logits, p=2, dim=1) @ prototype.T
-    _ood_conf, _ = torch.max(_ood_conf, dim=1, keepdim=True)
-    
-    id_conf = id_conf.cpu() + 40 * _id_conf.cpu()
-    ood_conf = ood_conf.cpu() + 40 * _ood_conf.cpu()
-    
-    conf = np.concatenate([id_conf, ood_conf])
     label = np.concatenate([id_gt.cpu(), ood_gt])
+
+    # ood_gt = -1 * np.ones_like(ood_gt)
+
+    # w = fc_weight.clone().detach()
+    # w = F.normalize(w, p=2, dim=1).cpu()
+    # # TODO: check if this is correct
+    # w = w[::2,]  # savc使用的是两倍类别数的fc层
+
+    # id_cosine = F.normalize(id_feat, p=2, dim=1) @ w.T
+    # id_mcos, _ = torch.max(id_cosine, dim=1, keepdim=True)
+    # id_norm = torch.norm(id_feat, dim=1)
+    # id_conf = id_mcos + 0.002 * id_norm.unsqueeze(1)
+
+    # ood_cosine = F.normalize(ood_feat, p=2, dim=1) @ w.T
+    # ood_mcos, _ = torch.max(ood_cosine, dim=1, keepdim=True)
+    # ood_norm = torch.norm(ood_feat, dim=1)
+    # ood_conf = ood_mcos + 0.002 * ood_norm.unsqueeze(1)
+
+    # prototype = F.normalize(prototype, p=2, dim=1)
+
+    # _id_conf = F.normalize(id_logits, p=2, dim=1) @ prototype.T
+    # _id_conf, _ = torch.max(_id_conf, dim=1)
+
+    # _ood_conf = F.normalize(ood_logits, p=2, dim=1) @ prototype.T
+    # _ood_conf, _ = torch.max(_ood_conf, dim=1, keepdim=True)
+    
+    # id_conf = id_conf.cpu() + 40 * _id_conf.cpu()
+    # ood_conf = ood_conf.cpu() + 40 * _ood_conf.cpu()
+    
+    # conf = np.concatenate([id_conf, ood_conf])
+    # label = np.concatenate([id_gt.cpu(), ood_gt])
     
     if prec_th is None:
         return ood_metrics(conf, label, tpr_th), None

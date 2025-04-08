@@ -4,25 +4,25 @@ trainloader:
   dataset:
     _replace_: True
     type: BM200
-    root: /data/datasets/CIL/BMF/
+    root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/ID/
     split: train
-    subset_labels: 9
+    subset_labels: 94
     transform: train
 
 valloader:
   dataset:
     _replace_: True
     type: BM200
-    root: /data/datasets/CIL/BMF/
+    root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/ID/
     split: test
-    subset_labels: 9
+    subset_labels: 94
     transform: test
 
 testloader:
   dataset:
     _replace_: True
     type: BM200
-    root: /data/datasets/CIL/BMF/
+    root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/ID/
     split: test
-    subset_labels: 9
+    subset_labels: 94
     transform: test

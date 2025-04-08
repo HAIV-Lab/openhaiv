@@ -6,7 +6,7 @@ trainloader:
     type: BMF
     root: /data/datasets/BMF-1/BMF-1/
     split: train
-    subset_labels: 89
+    subset_labels: [89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103]
     transform: train
 
 valloader:
@@ -15,7 +15,7 @@ valloader:
     type: BMF
     root: /data/datasets/BMF-1/BMF-1/
     split: test
-    subset_labels: 89
+    subset_labels: 104
     transform: test
 
 testloader:
@@ -24,5 +24,5 @@ testloader:
     type: BMF
     root: /data/datasets/BMF-1/BMF-1/
     split: test
-    subset_labels: 89
+    subset_labels: 104
     transform: test

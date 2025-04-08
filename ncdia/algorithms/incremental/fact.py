@@ -2,6 +2,7 @@ import os
 import torch
 import torch.nn as nn
 import numpy as np
+from tqdm import tqdm
 
 from ncdia.algorithms.base import BaseAlg
 from ncdia.utils import ALGORITHMS
@@ -10,7 +11,9 @@ from ncdia.trainers import PreTrainer
 from ncdia.utils import HOOKS
 from ncdia.trainers.hooks import AlgHook
 from ncdia.trainers.hooks import QuantifyHook
-
+from ncdia.models.net.inc_net import IncrementalNet
+from ncdia.dataloader import MergedDataset
+from ncdia.dataloader import BaseDataset
 
 class FACTHook(QuantifyHook):
     def __init__(self) -> None:
@@ -19,8 +22,6 @@ class FACTHook(QuantifyHook):
     def after_train(self, trainer) -> None:
         algorithm = trainer.algorithm
         algorithm.replace_fc()
-        
-
         filename = 'task_' + str(trainer.session) + '.pth'
         trainer.save_ckpt(os.path.join(trainer.work_dir, filename))
         if trainer.session == 0:

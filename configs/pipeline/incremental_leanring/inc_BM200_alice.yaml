@@ -60,4 +60,4 @@ seed: 0
 device: cuda
 
 exp_name: exp
-work_dir: ./output/supervised/inc_BM200_alice_1
+work_dir: ./output/supervised/inc_BM200_alice_2

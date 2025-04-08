@@ -19,8 +19,10 @@ class DetTrainer(PreTrainer):
     Args:
         cfg (dict, optional): Configuration for trainer.
         model (nn.Module): Model to be trained.
-        eval_loader (DataLoader, optional): DataLoader for OOD evaluation.
         max_epochs (int, optional): Maximum number of training epochs.
+        gather_train_stats (bool): Whether to gather training statistics.
+        gather_test_stats (bool): Whether to gather testing statistics.
+        eval_loader (DataLoader, optional): DataLoader for OOD evaluation.
         verbose (bool, optional): Whether to print training information.
 
     Attributes:
@@ -34,17 +36,24 @@ class DetTrainer(PreTrainer):
             self,
             cfg: dict | None = None,
             model: nn.Module = None,
-            eval_loader: DataLoader | dict | None = None,
             max_epochs: int = 1,
+            gather_train_stats: bool = False,
+            gather_test_stats: bool = False,
+            eval_loader: DataLoader | dict | None = None,
             verbose: bool = False,
             **kwargs
     ) -> None:
-        self.kwargs = kwargs
-        self.verbose = verbose
         self.quantify_hook = QuantifyHook(
-            gather_train_stats=True,
-            gather_test_stats=True,
+            gather_train_stats=gather_train_stats,
+            gather_test_stats=gather_test_stats,
             verbose=verbose
+        )
+        super(DetTrainer, self).__init__(
+            cfg=cfg,
+            model=model,
+            max_epochs=max_epochs,
+            custom_hooks=[self.quantify_hook],
+            **kwargs
         )
 
         self._eval_loader = {}
@@ -54,14 +63,9 @@ class DetTrainer(PreTrainer):
             self._eval_loader.update(eval_loader)
         elif isinstance(eval_loader, DataLoader):
             self._eval_loader = eval_loader
-        
-        super(DetTrainer, self).__init__(
-            cfg=cfg,
-            model=model,
-            max_epochs=max_epochs,
-            custom_hooks=[self.quantify_hook],
-            **self.kwargs
-        )
+
+        self.kwargs = kwargs
+        self.verbose = verbose
 
     @property
     def eval_loader(self) -> DataLoader:

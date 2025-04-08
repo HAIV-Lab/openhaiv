@@ -6,4 +6,6 @@ from .der_net import SimpleLinear
 from .inc_net import BaseNet
 from .inc_net import IncrementalNet
 from .adaptive_net import AdaptiveNet
-
+from .dml_net import DMLNet
+from .beefiso_net import BEEFISONet
+from .foster_net import FOSTERNet
