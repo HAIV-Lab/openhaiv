@@ -2,10 +2,10 @@ _base_: configs/dataloader/cifar10.yaml
 
 trainer:
   type: PreTrainer
-  max_epochs: 10
+  max_epochs: 1
 
 algorithm:
-  type: DML_Cosine
+  type: StandardSL
 
 model:
   type: ResNet18

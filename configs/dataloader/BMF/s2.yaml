@@ -4,7 +4,7 @@ trainloader:
   dataset:
     _replace_: True
     type: BMF
-    root: /data/datasets/BMF-1/BMF-1/
+    root: /data/datasets/CIL/BMF/
     split: train
     subset_labels: [39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55]
     transform: train
@@ -13,7 +13,7 @@ valloader:
   dataset:
     _replace_: True
     type: BMF
-    root: /data/datasets/BMF-1/BMF-1/
+    root: /data/datasets/CIL/BMF/
     split: test
     subset_labels: 56
     transform: test
@@ -22,7 +22,7 @@ testloader:
   dataset:
     _replace_: True
     type: BMF
-    root: /data/datasets/BMF-1/BMF-1/
+    root: /data/datasets/CIL/BMF/
     split: test
     subset_labels: 56
     transform: test
