@@ -342,5 +342,5 @@ class FeatureDataset(Dataset):
     def __getitem__(self, idx):
         feature = self.features[idx]
         label = self.labels[idx]
-
-        return idx, feature, label
+        # return idx, feature, label
+        return {'idx': idx, 'data': feature, 'label': label, 'imgpath': [], 'attribute': []}

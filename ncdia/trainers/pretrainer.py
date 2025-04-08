@@ -70,18 +70,9 @@ class PreTrainer(BaseTrainer):
             attribute (torch.Tensor | list): Attribute data.
             imgpath (list of str): Image path.
         """
-        if isinstance(batch, dict):
-            data = batch['data']            # data: (B, C, H, W) | list of (B, C, H, W)
-            label = batch['label']          # label: (B,) | list of (B,)
-            attribute = batch['attribute']  # attribute: (B, A) | list of (B, A)
-            imgpath = batch['imgpath']      # imgpath: list(str) of length B
-        elif isinstance(batch, (tuple, list)):
-            # Assume the batch is a tuple or list of (data, label, attribute, imgpath)
-            data = batch[1]
-            label = batch[2]
-            attribute = []
-            imgpath = []
-        else:
-            raise ValueError(f"Unsupported batch type: {type(batch)}")
-        
+        data = batch['data']            # data: (B, C, H, W) | list of (B, C, H, W)
+        label = batch['label']          # label: (B,) | list of (B,)
+        attribute = batch['attribute']  # attribute: (B, A) | list of (B, A)
+        imgpath = batch['imgpath']      # imgpath: list(str) of length B
         return data, label, attribute, imgpath
+    
