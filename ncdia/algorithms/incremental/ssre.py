@@ -34,16 +34,18 @@ class SSREHook(AlgHook):
         print("after_train_epoch, build protos")
         trainer.algorithm._build_protos(trainer)
 
-        trainer.old_model = IncrementalNet(
+        old_model = IncrementalNet(
             trainer.cfg.model.network,
             trainer.cfg.CIL.base_classes,
             trainer.cfg.CIL.num_classes,
             trainer.cfg.CIL.att_classes,
             trainer.cfg.model.net_alice
         )
-        trainer.old_model.load_state_dict(trainer.model.state_dict())
-        for param in trainer.old_model.parameters():
+        old_model.load_state_dict(trainer.model.state_dict())
+        for param in old_model.parameters():
             param.requires_grad = False
+        
+        trainer.buffer['old_model'] = old_model
 
 
 def tensor2numpy(x):
@@ -104,7 +106,7 @@ class SSRE(BaseAlg):
 
     def _compute_ssre_loss(self,inputs, targets, session):
         if session == 0:
-            logits = self._network(inputs)['logits']
+            logits = self._network(inputs)
             logits_ = logits[:, :self._total_classes]
             # loss_clf = F.cross_entropy(logits/self.args["temp"], targets)
             loss_clf = F.cross_entropy(logits_, targets)
@@ -122,7 +124,7 @@ class SSRE(BaseAlg):
             weights = torch.max(weights,dim=1)[0]
             # mask = weights > self.args["threshold"]
             mask = weights
-        logits = self._network(inputs)['logits']
+        logits = self._network(inputs)
         # loss_clf = F.cross_entropy(logits/self.args["temp"],targets,reduction="none")
         logits_ = logits[:, :self._total_classes]
         loss_clf = F.cross_entropy(logits_,targets,reduction="none")
@@ -143,7 +145,7 @@ class SSRE(BaseAlg):
         proto_targets = torch.from_numpy(proto_targets).to(self._device,non_blocking=True)
         
         
-        proto_logits = self._network_module_ptr.fc(proto_features)['logits']
+        proto_logits = self._network_module_ptr.fc(proto_features)
         proto_logits = proto_logits[:, :self._total_classes]
         loss_proto = self.args.CIL.lambda_proto * F.cross_entropy(proto_logits, proto_targets)
         return logits, loss_clf, loss_fkd, loss_proto
@@ -161,7 +163,7 @@ class SSRE(BaseAlg):
         session = trainer.session
         self._network = trainer.model
         if session >= 1:
-            self._old_network = trainer.old_model
+            self._old_network = trainer.buffer['old_model']
             self._old_network = self._old_network.cuda()
             self._old_network.eval()
             if hasattr(self._old_network,"module"):
@@ -225,7 +227,7 @@ class SSRE(BaseAlg):
         self._network.eval()
         data = data.cuda()
         labels = label.cuda()
-        logits = self._network(data)['logits']
+        logits = self._network(data)
         logits_ = logits[:, :test_class]
         acc = accuracy(logits_, labels)[0]
         loss = self.loss(logits_, labels)
