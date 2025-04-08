@@ -120,12 +120,8 @@ class BaseTrainer(object):
         elif isinstance(model, nn.Module):
             self._model = model
         
-        # print("Model:", self.model)
-        # print("Model parameters:", list(self._model.parameters()))
-
 
         if 'optimizer' in self._cfg:
-            self.model.update_fc_before(20)
             self._optimizer = dict(self._cfg['optimizer'])
         else:
             raise KeyError('Optimizer is not found in `cfg`.')
@@ -263,7 +259,9 @@ class BaseTrainer(object):
     @property
     def optimizer(self) -> Optimizer:
         """Optimizer: Optimizer to optimize model parameters."""
-        
+        #判断model的参数是否为空
+        if not list(self.model.parameters()):
+            self.model.update_fc_before(20)
         if isinstance(self._optimizer, dict):
             self._optimizer = build_optimizer(
                 model=self.model, **self._optimizer)

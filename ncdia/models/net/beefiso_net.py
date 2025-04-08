@@ -46,8 +46,8 @@ class BEEFISONet(nn.Module):
         self.args = network.cfg
         self.args['pretrained'] = True
         self.args['num_classes'] = 1000
-        if "type" not in network:
-            self.args['type'] = 'resnet18'
+        self.args['type'] = 'resnet18'
+
     @property
     def feature_dim(self):
         if self.out_dim is None:
@@ -93,10 +93,14 @@ class BEEFISONet(nn.Module):
         return out
 
     def update_fc_before(self, nb_classes):
-    
         new_task_size = nb_classes - sum(self.task_sizes)
         self.biases = nn.ModuleList([BiasLayer() for i in range(len(self.task_sizes))])
-        self.convnets.append(resnet32())
+        self.args['type'] = 'resnet18'
+        model = MODELS.build(self.args)
+        if not hasattr(model, 'out_dim'):
+            # 添加 out_dim 属性（假设是 ResNet）
+            model.out_dim = model.fc.in_features
+        self.convnets.append(model)
         if self.out_dim is None:
             self.out_dim = self.convnets[-1].out_dim
         if self.new_fc is not None:
