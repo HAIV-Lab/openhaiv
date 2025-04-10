@@ -3,16 +3,75 @@ import torch.nn.functional as F
 import numpy as np
 import torch.nn as nn
 from timm.models.layers import trunc_normal_
+from .clip import clip
+from .clip_locoop import clip_locoop
+from .clip_maple import clip_maple
+from .clip_dpm import clip_dpm
 from .promptlearner import PromptLearner, NegPromptLearner, MultiModalPromptLearner, MLCPromptLearner
-from clip_utils import TextEncoder, load_clip_to_cpu, get_text_features
+from .clip_utils import load_clip_to_cpu, get_text_features
 from ncdia.utils import MODELS, Configs
+
+@MODELS.register
+class TextEncoder(nn.Module):
+    def __init__(self, clip_model):
+        super().__init__()
+        self.transformer = clip_model.transformer
+        self.positional_embedding = clip_model.positional_embedding 
+        self.ln_final = clip_model.ln_final
+        self.text_projection = clip_model.text_projection 
+        self.dtype = clip_model.dtype
+        
+    def forward(self, prompts, tokenized_prompts):
+        x = prompts + self.positional_embedding.type(self.dtype)
+        x = x.permute(1, 0, 2)  # NLD -> LND
+        x = self.transformer(x)
+        x = x.permute(1, 0, 2)  # LND -> NLD
+        x = self.ln_final(x).type(self.dtype) 
+
+        # x.shape = [batch_size, n_ctx, transformer.width]
+        # take features from the eot embedding (eot_token is the highest number in each sequence)
+        x = x[torch.arange(x.shape[0]), tokenized_prompts.argmax(dim=-1)] @ self.text_projection
+        
+        return x
+
+@MODELS.register
+class TextEncoder_Maple(nn.Module):
+    def __init__(self, clip_model):
+        super().__init__()
+        self.transformer = clip_model.transformer
+        self.positional_embedding = clip_model.positional_embedding
+        self.ln_final = clip_model.ln_final
+        self.text_projection = clip_model.text_projection
+        self.dtype = clip_model.dtype
+
+    def forward(self, prompts, tokenized_prompts, compound_prompts_deeper_text):
+        x = prompts + self.positional_embedding.type(self.dtype)
+        x = x.permute(1, 0, 2)  # NLD -> LND
+        # Pass as the list, as nn.sequential cannot process multiple arguments in the forward pass
+        combined = [x, compound_prompts_deeper_text, 0]  # third argument is the counter which denotes depth of prompt
+        outputs = self.transformer(combined)
+        x = outputs[0]  # extract the x back from here
+        x = x.permute(1, 0, 2)  # LND -> NLD
+        x = self.ln_final(x).type(self.dtype)
+
+        # x.shape = [batch_size, n_ctx, transformer.width]
+        # take features from the eot embedding (eot_token is the highest number in each sequence)
+        x = x[torch.arange(x.shape[0]), tokenized_prompts.argmax(dim=-1)] @ self.text_projection
+
+        return x
 
 # custom CLIP for zero-shot classification
 @MODELS.register
 class CustomCLIP_ZeroShot(nn.Module):
-    def __init__(self, cfg):
+    def __init__(
+        self, 
+        backbone,
+        dataset,
+        text_prompt,
+        **kwargs
+    ) -> None:
         super().__init__()
-        backbone = cfg.backbone.name # 'ViT-B/16'
+        backbone = backbone # 'ViT-B/16'
         assert backbone in clip.available_models()
         print(f"Loading CLIP (backbone: {backbone})")
         clip_model = load_clip_to_cpu(backbone)
@@ -22,15 +81,22 @@ class CustomCLIP_ZeroShot(nn.Module):
         print("Turning off gradients in both the image and the text encoder")
         for name, param in clip_model.named_parameters():
             param.requires_grad_(False) 
-        self.text_features = get_text_features(self.model, cfg.backbone.dataset, cfg.backbone.text_prompt)
+        self.text_features = get_text_features(self.model, dataset, text_prompt)
 
 
     def forward(self, x):
         image_features = self.model.encode_image(x)
         image_features /= image_features.norm(dim=-1, keepdim=True)
         logit_scale = self.logit_scale.exp()
-        logits = logit_scale * image_features @ self.text_features 
+        text_features = self.text_features.squeeze(1) 
+
+        logits = logit_scale * image_features @ text_features.T 
         return logits
+
+    def get_features(self, x):
+        image_features = self.model.encode_image(x)
+        image_features /= image_features.norm(dim=-1, keepdim=True)
+        return image_features
 '''
 custom CLIP for prepross NegLabel text features
 Negative Label Guided OOD Detection with Pretrained Vision-Language Models
@@ -73,9 +139,19 @@ class CLIP_scoring(nn.Module):
 # custom CLIP for vanilla prompt learning
 @MODELS.register
 class CustomCLIP(nn.Module):
-    def __init__(self, cfg, classnames, clip_model):
+    def __init__(
+        self, 
+        backbone, 
+        classnames, 
+        clip_model,
+        N_CTX,
+        CTX_INIT,
+        image_size,
+        CSC,
+        CLASS_TOKEN_POSITION
+    ) -> None:
         super().__init__()
-        self.prompt_learner = PromptLearner(cfg.backbone, classnames, clip_model)
+        self.prompt_learner = PromptLearner(classnames, clip_model, N_CTX, CTX_INIT, image_size, CSC, CLASS_TOKEN_POSITION)
         self.tokenized_prompts = self.prompt_learner.tokenized_prompts
         self.image_encoder = clip_model.visual
         self.text_encoder = TextEncoder(clip_model)
@@ -93,10 +169,58 @@ class CustomCLIP(nn.Module):
 
         logit_scale = self.logit_scale.exp()
         if return_feat:
-            return image_features, text_features, logit_scale
+            return image_features
         else:
             logits = logit_scale * image_features @ text_features.t()
             return logits
+        
+'''
+custom CLIP for CALIP
+CALIP: Zero-Shot Enhancement of CLIP with Parameter-free Attention
+AAAI 2023 https://arxiv.org/abs/2209.14169
+'''
+# 以下代码实现有问题
+@MODELS.register
+class CustomCLIP_CALIP(nn.Module):
+    def __init__(self, cfg):
+        super().__init__()
+        backbone = cfg.backbone.name # 'ViT-B/16'
+        assert backbone in clip.available_models()
+        print(f"Loading CLIP (backbone: {backbone})")
+        clip_model = load_clip_to_cpu(backbone)
+        clip_model = clip_model.cuda()
+        self.model = clip_model
+        self.logit_scale = clip_model.logit_scale.data
+        print("Turning off gradients in both the image and the text encoder")
+        for name, param in clip_model.named_parameters():
+            param.requires_grad_(False) 
+        self.text_features = get_text_features(self.model, cfg.backbone.dataset, cfg.backbone.text_prompt)
+
+
+    def forward(self, x):
+        '''
+        image_features: [B, D]
+        image_spatial_features: [B, P, D]
+        self.text_features: [N, D]
+        '''
+        image_global_features, image_spatial_features = self.model.encode_image(x)
+        image_global_features /= image_global_features.norm(dim=-1, keepdim=True)
+        image_spatial_features /= image_spatial_features.norm(dim=-1, keepdim=True)
+        
+        logit_scale = self.logit_scale.exp()
+        logits1 = logit_scale * image_global_features @ self.text_features 
+        
+        A_weight = torch.matmul(image_spatial_features, self.text_features.t())  # [B,P,D]x[D,N] -> [B,P,N]
+        A_weight1 = F.softmax(A_weight, dim=0) # softmax along the spatial dimension
+        A_weight2 = F.softmax(A_weight, dim=1) # softmax along the text dimension
+        
+        feat_t_a = torch.matmul(image_global_features, A_weight1) # [B,1,D][B,P,N]
+        feat_v_a = torch.matmul(A_weight2, self.text_features.permute(1, 0)) 
+        feat_v_a = feat_v_a.mean(0)+feat_v_a.max(0)[0]
+        logits2 = image_global_features @ feat_t_a
+        logits3 = feat_v_a @ self.text_features
+        logits = logits1 + logits2 + logits3
+        return logits
 '''
 custom CLIP for multi-modal prompt learning, eg. Maple
 MaPLe: Multi-modal Prompt Learning
@@ -109,7 +233,7 @@ class CustomCLIP_Maple(nn.Module):
         self.prompt_learner = MultiModalPromptLearner(cfg, classnames, clip_model)
         self.tokenized_prompts = self.prompt_learner.tokenized_prompts
         self.image_encoder = clip_model.visual
-        self.text_encoder = TextEncoder(clip_model)
+        self.text_encoder = TextEncoder_Maple(clip_model)
         self.logit_scale = clip_model.logit_scale
         self.dtype = clip_model.dtype
 
@@ -148,7 +272,7 @@ class CustomCLIP_LoCoOp(nn.Module):
         self.logit_scale = clip_model.logit_scale
         self.dtype = clip_model.dtype
 
-    def forward(self, image):
+    def forward(self, image, return_feat):
         image_features, local_image_features = self.image_encoder(image.type(self.dtype))
 
         prompts = self.prompt_learner()
@@ -164,7 +288,11 @@ class CustomCLIP_LoCoOp(nn.Module):
         logits = logit_scale * image_features @ text_features.t()
         logits_local = logit_scale * local_image_features @ text_features.T
 
-        return logits, logits_local
+        # return logits, logits_local
+        if return_feat:
+            return image_features, local_image_features, text_features, logit_scale
+        else:
+            return logits, logits_local
 
 '''
 custom CLIP for NegPrompt 
@@ -210,7 +338,7 @@ Vision-Language Dual-Pattern Matching for Out-of-Distribution Detection
 ECCV 2024 https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/11399.pdf
 '''
 @MODELS.register
-class Customclip_DPM(nn.Module):
+class CustomCLIP_DPM(nn.Module):
     def __init__(self, cfg, classnames, clip_model):
         super().__init__()
         self.image_encoder = clip_model.visual
@@ -222,7 +350,7 @@ class Customclip_DPM(nn.Module):
         for _, param in clip_model.named_parameters():
             param.requires_grad = False
         with torch.no_grad():
-            temp = CUSTOM_TEMPLATES['cifar100']
+            temp = "a photo of a {}."
             prompts = [temp.format(c.replace("_", " ")) for c in self.classnames]
             prompts = torch.cat([clip.tokenize(p) for p in prompts])
             text_features = clip_model.encode_text(prompts)
@@ -257,7 +385,7 @@ class Customclip_DPM(nn.Module):
 @MODELS.register
 class DPM_Block(nn.Module):
     def __init__(self, text_features,
-                 input_dim, num_classes):  # input_dim=512
+                 input_dim):  # input_dim=512
         super().__init__()
         self.softmax = nn.Softmax(-1)
         self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
@@ -349,9 +477,6 @@ class DPM_Proj1(nn.Module):
         self.apply(self._init_weights)
 
     def forward(self, x):
-        '''
-        x: (B, D) 512
-        '''
         x = self.prompt_proj(x.float())
         return x
 
@@ -384,9 +509,6 @@ class DPM_Proj2(nn.Module):
         self.apply(self._init_weights)
 
     def forward(self, x):
-        '''
-        x: (B, 49, D)
-        '''
         x = x.permute(0, 2, 1)  # Change the order of dimensions to (B, D, 49)
         x = self.prompt_proj(x.float())
         x = x.permute(0, 2, 1)  # Change the order of dimensions to (B, 49, D)

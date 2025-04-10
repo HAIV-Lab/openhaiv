@@ -58,7 +58,7 @@ class QuantifyHook(AlgHook):
             label = batch['label'].to(device)
             preds = model(data)
             preds = preds[:, :num_classes]
-            feats = model.get_features()
+            feats = model.get_features(data)
 
             features.append(feats.clone().detach().cpu())
             logits.append(preds.clone().detach().cpu())

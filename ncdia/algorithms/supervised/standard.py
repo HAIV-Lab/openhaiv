@@ -29,6 +29,7 @@ class StandardSL(BaseAlg):
                 - "acc": Accuracy value.
         """
         model = trainer.model
+
         criterion = trainer.criterion
         device = trainer.device
 
@@ -39,6 +40,7 @@ class StandardSL(BaseAlg):
         acc = accuracy(outputs, label)[0]
 
         loss.backward()
+        # print("ctx.grad:", model.model.prompt_learner.ctx.grad)
         return {"loss": loss.item(), "acc": acc.item()}
 
     def val_step(self, trainer, data, label, *args, **kwargs):

@@ -1,33 +1,108 @@
 import torch
 import torch.nn as nn
-import clip
-import tqdm
+from .clip import clip
+from .clip_maple import clip_maple
+from .clip_locoop import clip_locoop
+from .clip_dpm import clip_dpm
+from tqdm import tqdm
 from ncdia.utils import MODELS, Configs
 
-@MODELS.register
-class TextEncoder(nn.Module):
-    def __init__(self, clip_model):
-        super().__init__()
-        self.transformer = clip_model.transformer
-        self.positional_embedding = clip_model.positional_embedding ## 77*512
-        self.ln_final = clip_model.ln_final
-        self.text_projection = clip_model.text_projection ## 512*512
-        self.dtype = clip_model.dtype
-        
-    def forward(self, prompts, tokenized_prompts):
-        # prompts: 1000*77*512
-        # tokenized_prompts: 1000*77, it only used to decide the end token. 
-        x = prompts + self.positional_embedding.type(self.dtype)
-        x = x.permute(1, 0, 2)  # NLD -> LND
-        x = self.transformer(x)
-        x = x.permute(1, 0, 2)  # LND -> NLD
-        x = self.ln_final(x).type(self.dtype) # 1000*77*512
-
-        # x.shape = [batch_size, n_ctx, transformer.width]
-        # take features from the eot embedding (eot_token is the highest number in each sequence)
-        x = x[torch.arange(x.shape[0]), tokenized_prompts.argmax(dim=-1)] @ self.text_projection
-        
-        return x
+oes_rgb_id = [
+        'Abies alba',
+    'Airport',
+    'Airport hangar',
+    'Airport terminal',
+    'Apartment',
+    'Aquaculture',
+    'Archaeological site',
+    'Artificial dense forest land',
+    'Artificial grassland',
+    'Artificial sparse forest land',
+    'Avenue',
+    'BareLand',
+    'Barn',
+    'Basketball court',
+    'Blue structured factory building',
+    'Bridge',
+    'Burial site',
+    'Car dealership',
+    'Center',
+    'Chaparral',
+    'Church',
+    'Circular farmland',
+    'Cloud',
+    'Coast',
+    'Construction site',
+    'Container',
+    'Crop field',
+    'Crossroads',
+    'Desert',
+    'Detached house',
+    'Dock',
+    'Eroded farmland',
+    'Freeway',
+    'Golf course',
+    'Harbor',
+    'Hirst',
+    'Ice land',
+    'Impoverished settlement',
+    'Interchange',
+    'Lake',
+    'Lakeshore',
+    'Larix decidua',
+    'Lighthouse',
+    'Low scattered building',
+    'Mangrove',
+    'Meadow',
+    'Medium density scattered building',
+    'Medium residential',
+    'Mountain',
+    'Natural dense forest land',
+    'Natural sparse forest land',
+    'Nuclear powerplant',
+    'Palace',
+    'Picea abies',
+    'Pier',
+    'Pinus nigra',
+    'Pinus strobus',
+    'Pinus sylvestris',
+    'Prison',
+    'Pseudotsuga menziesii',
+    'Race track',
+    'Rectangular farmland',
+    'Red structured factory building',
+    'River',
+    'Road',
+    'Rock land',
+    'Roundabout',
+    'Runway',
+    'Runway close',
+    'Salt marshes',
+    'Sandbeach',
+    'Scattered blue roof factory building',
+    'School',
+    'Shrubwood',
+    'Single transmission tower',
+    'Smokestack',
+    'Snowberg',
+    'Solar farm',
+    'Sparse residential',
+    'Sparse shrub land',
+    'Square',
+    'Stadium',
+    'Storage tank',
+    'Storage tank area',
+    'Stream',
+    'Surface mine',
+    'Swimming pool',
+    'Toll booth',
+    'Tunnel opening',
+    'Vegetable plot',
+    'Water treatment facility',
+    'Wind farm',
+    'Wind turbine',
+    'Zoo'
+]
 
 imagenet_classes = [
     'tench', 'goldfish', 'great white shark', 'tiger shark',
@@ -263,6 +338,8 @@ def get_class_names(dataset):
         return imagenet_classes
     elif dataset == 'imagenet200':
         return imagenet200_classes
+    elif dataset == 'oes_rgb_id':
+        return oes_rgb_id
     else:
         raise NotImplementedError 
     
@@ -384,9 +461,35 @@ def load_clip_to_cpu(backbone_name):
     
     return model
 
+def load_clip_to_cpu_locoop(backbone_name):
+    url = clip_locoop._MODELS[backbone_name]
+    model_path = clip_locoop._download(url)
+    try:
+        # loading JIT archive
+        model = torch.jit.load(model_path, map_location="cpu").eval()
+        state_dict = None
+    except RuntimeError:
+        state_dict = torch.load(model_path, map_location="cpu")
+    model = clip_locoop.build_model(state_dict or model.state_dict())
+    
+    return model
+
+def load_clip_to_cpu_dpm(backbone_name):
+    url = clip_dpm._MODELS[backbone_name]
+    model_path = clip_dpm._download(url)
+    try:
+        # loading JIT archive
+        model = torch.jit.load(model_path, map_location="cpu").eval()
+        state_dict = None
+    except RuntimeError:
+        state_dict = torch.load(model_path, map_location="cpu")
+    model = clip_dpm.build_model(state_dict or model.state_dict())
+    
+    return model
+
 def load_clip_to_cpu_maple(backbone_name, cfg):
-    url = clip._MODELS[backbone_name]
-    model_path = clip._download(url)
+    url = clip_maple._MODELS[backbone_name]
+    model_path = clip_maple._download(url)
     try:
         # loading JIT archive
         model = torch.jit.load(model_path, map_location="cpu").eval()
@@ -398,11 +501,10 @@ def load_clip_to_cpu_maple(backbone_name, cfg):
                     "language_depth": 0, "vision_ctx": 0,
                     "language_ctx": 0,
                     "maple_length": cfg.backbone.N_CTX}
-    model = clip.build_model(state_dict or model.state_dict(), design_details)
+    model = clip_maple.build_model(state_dict or model.state_dict(), design_details)
     
     return model
 
-# https://github.com/openai/CLIP/blob/main/notebooks/Prompt_Engineering_for_ImageNet.ipynb
 def get_text_features(model, dataset, text_prompt):
     classnames = get_class_names(dataset) # imagenet --> imagenet class names
     templates = get_templates(text_prompt) # simple --> text prompt for each classes. 
@@ -541,3 +643,67 @@ def generate_cossim_idname_wordnet_dedup(classnames, save_path):
     save_dict['cos_sim_id'] = cos_sim_id.cpu()
 
     torch.save(save_dict, save_path)
+
+def get_selected_ood_text_list(total_ood_num=1000):
+    dataset='imagenet'   ## we fix it as imagenet for now; it will be defined in the function input in the revision.
+    print('the ID dataset is:', dataset)
+    print('total_ood_num is:', total_ood_num)
+    #######################################
+    foot_path = '/home/notebook/code/personal/S9052995/syn_pro/OpenOOD/data/txtfiles_output/'
+
+    wordnet_processed_path = foot_path + 'wordnet_' + dataset + '_cossim_dedup.pth'
+    if os.path.exists(wordnet_processed_path):
+        wordnet_dict = torch.load(wordnet_processed_path)
+    else:
+        classnames = get_class_names(dataset)
+        generate_cossim_idname_wordnet_dedup(classnames, wordnet_processed_path)
+        wordnet_dict = torch.load(wordnet_processed_path)
+
+    can_list_adj = wordnet_dict['text_list_adj'] 
+    can_cos_adj = wordnet_dict['cos_sim_adj']
+    can_list_noun = wordnet_dict['text_list_noun'] 
+    can_cos_noun = wordnet_dict['cos_sim_noun'] 
+    
+
+    adj_num = int(total_ood_num * (len(can_list_adj) / (len(can_list_adj) + len(can_list_noun))))
+    noun_num  = total_ood_num - adj_num
+
+    cate_num = can_cos_adj.size(1)
+    cos_sim_indice_selected = int(cate_num * 0.95)
+
+    value_cos_adj, _ = can_cos_adj.sort(1) ## small cos sim to large cos sim.
+    value_cos_noun, _ = can_cos_noun.sort(1)
+
+    selected_value_cos_adj = value_cos_adj[:, cos_sim_indice_selected] ## larger means closer to ID
+    selected_value_cos_noun = value_cos_noun[:, cos_sim_indice_selected] 
+    ## selected the ood can with smaller cos dis to ID.
+    value_sim_adj, indice_sim_adj= selected_value_cos_adj.sort(0) ## smaller to larger, 13101
+    value_sim_noun, indice_sim_noun = selected_value_cos_noun.sort(0) ## 58723.
+
+    ## selected the ood can with smaller cos sim to ID, far from ID
+    selected_adj_text = [can_list_adj[i] for i in indice_sim_adj[:adj_num]]
+    selected_noun_text = [can_list_noun[i] for i in indice_sim_noun[:noun_num]]
+
+    ## also make use of the ood can with large cos sim to ID, near ID; but these data are not used as ood prompt, but use as test points.
+    unselected_adj_text = [can_list_adj[i] for i in indice_sim_adj[adj_num:]]
+    unselected_noun_text = [can_list_noun[i] for i in indice_sim_noun[noun_num:]]
+
+    ####################### you may want to save the selected words for visualization. 
+    # selected_adj_noun_path = foot_path + dataset + '_selected_adj_noun_0.95_'+ str(total_ood_num) + '_dedup.pth'
+    # unselected_adj_noun_path = foot_path + dataset + '_unselected_adj_noun_0.95_' + str(total_ood_num) + '_dedup.pth'
+    # selected_ood_text = selected_adj_text + selected_noun_text
+    # unselected_ood_text = unselected_adj_text + unselected_noun_text
+
+    # save_dict = {
+    #     'adj': selected_adj_text,
+    #     'noun': selected_noun_text
+    # }
+    # torch.save(save_dict, selected_adj_noun_path)
+    
+    # save_dict_unsel = {
+    #     'adj': unselected_adj_text,
+    #     'noun': unselected_noun_text
+    # }
+    # torch.save(save_dict_unsel, unselected_adj_noun_path)
+
+    return selected_adj_text, selected_noun_text, unselected_adj_text, unselected_noun_text

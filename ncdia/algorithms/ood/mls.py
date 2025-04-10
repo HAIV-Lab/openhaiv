@@ -76,7 +76,7 @@ class MLS(BaseAlg):
     def eval(id_gt: torch.Tensor ,id_logits: torch.Tensor, id_feat: torch.Tensor, 
             ood_logits: torch.Tensor, ood_feat: torch.Tensor, 
             train_logits: torch.Tensor = None, train_feat: torch.Tensor = None, 
-            tpr_th: float = 0.95, prec_th: float = None,):
+            tpr_th: float = 0.95, prec_th: float = None, hyparameters = None):
         """Decoupled MaxLogit+ (DML+) method for OOD detection.
 
         Decoupling MaxLogit for Out-of-Distribution Detection

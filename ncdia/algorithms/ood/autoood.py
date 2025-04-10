@@ -1,6 +1,6 @@
 from ncdia.utils import ALGORITHMS
 from .inference import (
-    msp_inf, mcm_inf, glmcm_inf, neglabel_inf, max_logit_inf, energy_inf, vim_inf, dml_inf, dmlp_inf, prot_inf,
+    msp_inf, mcm_inf, glmcm_inf, max_logit_inf, energy_inf, vim_inf, dml_inf, dmlp_inf, prot_inf,
     klm_inf, she_inf, relation_inf
 )
 

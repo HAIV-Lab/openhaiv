@@ -1,24 +1,38 @@
 import clip
 import torch
 import torch.nn as nn
-from copy import deepcopy, _get_clones
+import copy
+from copy import deepcopy
 from ncdia.utils import MODELS, Configs
-from .clip import simple_tokenizer as _Tokenizer
+from clip.simple_tokenizer import SimpleTokenizer as _Tokenizer
 
 _tokenizer = _Tokenizer()
 
 # Textual Prompt Learner
 @MODELS.register
 class PromptLearner(nn.Module):
-    def __init__(self, cfg, classnames, clip_model):
+    def __init__(
+        self, 
+        # cfg, 
+        classnames, 
+        clip_model,
+        N_CTX,
+        CTX_INIT,
+        image_size,
+        CSC,
+        CLASS_TOKEN_POSITION
+    ):
         super().__init__()
         n_cls = len(classnames)
-        n_ctx = cfg.N_CTX 
-        ctx_init = cfg.CTX_INIT  # ''
+        # n_ctx = cfg.N_CTX 
+        # ctx_init = cfg.CTX_INIT  
+        n_ctx = N_CTX
+        ctx_init = CTX_INIT
         dtype = clip_model.dtype
         ctx_dim = clip_model.ln_final.weight.shape[0]
         clip_imsize = clip_model.visual.input_resolution
-        cfg_imsize = cfg.image_size # 224
+        # cfg_imsize = cfg.image_size # 224
+        cfg_imsize = image_size
         assert cfg_imsize == clip_imsize, f"cfg_imsize ({cfg_imsize}) must equal to clip_imsize ({clip_imsize})"
         
     
@@ -34,19 +48,23 @@ class PromptLearner(nn.Module):
 
         else:
             # random initialization
-            if cfg.CSC:
+            # if cfg.CSC:
+            print("Random Initialization")
+            if CSC:
                 print("Initializing class-specific contexts")
                 ctx_vectors = torch.empty(n_cls, n_ctx, ctx_dim, dtype=dtype)
             else:
                 print("Initializing a generic context")
                 ctx_vectors = torch.empty(n_ctx, ctx_dim, dtype=dtype)
             nn.init.normal_(ctx_vectors, std=0.02)
+            # print(f"init ctx_vectors: {ctx_vectors}")
             prompt_prefix = " ".join(["X"] * n_ctx)
 
-        print(f'Initial context: "{prompt_prefix}"')
+        # print(f'Initial context: "{prompt_prefix}"')
         print(f"Number of context words (tokens): {n_ctx}")
 
         self.ctx = nn.Parameter(ctx_vectors)  # to be optimized
+        # print('ctx:', self.ctx)
 
         classnames = [name.replace("_", " ") for name in classnames]
         name_lens = [len(_tokenizer.encode(name)) for name in classnames]
@@ -66,7 +84,8 @@ class PromptLearner(nn.Module):
         self.n_ctx = n_ctx
         self.tokenized_prompts = tokenized_prompts  # torch.Tensor
         self.name_lens = name_lens
-        self.class_token_position = cfg.CLASS_TOKEN_POSITION
+        # self.class_token_position = cfg.CLASS_TOKEN_POSITION
+        self.class_token_position = CLASS_TOKEN_POSITION
 
     def forward(self):
         ctx = self.ctx
@@ -85,7 +104,7 @@ class PromptLearner(nn.Module):
                 ],
                 dim=1,
             )
-
+            # print(f"ctx:{ctx}")
         elif self.class_token_position == "middle":
             half_n_ctx = self.n_ctx // 2
             prompts = []
@@ -135,13 +154,15 @@ class PromptLearner(nn.Module):
         return prompts
     
 # Textual and Visual Prompt Learner
+def _get_clones(module, N):
+    return nn.ModuleList([copy.deepcopy(module) for i in range(N)])
 @MODELS.register
 class MultiModalPromptLearner(nn.Module):
     def __init__(self, cfg, classnames, clip_model):
         super().__init__()
         n_cls = len(classnames)
-        n_ctx = cfg.backbone.N_CTX # 16 or 4
-        ctx_init = cfg.backbone.CTX_INIT  # ''
+        n_ctx = cfg.backbone.N_CTX 
+        ctx_init = cfg.backbone.CTX_INIT
         dtype = clip_model.dtype
         ctx_dim = clip_model.ln_final.weight.shape[0]
         clip_imsize = clip_model.visual.input_resolution
@@ -260,7 +281,7 @@ class NegPromptLearner(nn.Module):
     def __init__(self, cfg, classnames, clip_model):
         super().__init__()
         n_cls = len(classnames)
-        n_ctx = cfg.N_CTX # 16 or 4
+        n_ctx = cfg.N_CTX 
         OOD_NUM = cfg.OOD_NUM # number of ood prompts
         self.OOD_NUM = OOD_NUM
         ctx_init = cfg.CTX_INIT  # ''
@@ -386,7 +407,6 @@ class NegPromptLearner(nn.Module):
                 ],
                 dim=1,
             )
-            # pdb.set_trace()
             ood_prompts = torch.cat(
                 [
                     ood_prefix,  # (n_cls, 1, dim)
@@ -503,13 +523,13 @@ class MLCPromptLearner(nn.Module):
         self.register_buffer("token_prefix_pos", embedding_pos[:, :1, :])
         self.register_buffer("token_suffix_pos", embedding_pos[:, 1 + n_ctx_pos:, :])
 
-        self.n_cls = n_cls  # 总类别数量
+        self.n_cls = n_cls  
         self.n_ctx_pos = n_ctx_pos
         tokenized_prompts = tokenized_prompts_pos
         self.register_buffer("tokenized_prompts", tokenized_prompts)
         self.name_lens = name_lens
 
-    def forward(self, cls_id=None):  # prompt_gen=None,
+    def forward(self, cls_id=None):  
         ctx_pos = self.ctx_pos
         if ctx_pos.dim() == 2:
             if cls_id is None:

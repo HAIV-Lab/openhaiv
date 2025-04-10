@@ -74,7 +74,7 @@ class MSP(BaseAlg):
     def eval(id_gt: torch.Tensor ,id_logits: torch.Tensor, id_feat: torch.Tensor, 
             ood_logits: torch.Tensor, ood_feat: torch.Tensor, 
             train_logits: torch.Tensor = None, train_feat: torch.Tensor = None, 
-            tpr_th: float = 0.95, prec_th: float = None,):
+            tpr_th: float = 0.95, prec_th: float = None, hyparameters = None):
         """Decoupled MaxLogit+ (DML+) method for OOD detection.
 
         Decoupling MaxLogit for Out-of-Distribution Detection
@@ -107,11 +107,17 @@ class MSP(BaseAlg):
             torch.softmax(id_logits, dim=1), dim=1)
         ood_conf, _ = torch.max(
             torch.softmax(ood_logits, dim=1), dim=1)
+        # print(f"ID logits: {id_logits}")
+        # print(f"OOD logits: {ood_logits}")
+        # print(f"ID conf: {id_conf}")
+        # print(f"OOD conf: {ood_conf}")
         
         conf = np.concatenate([id_conf.cpu(), ood_conf.cpu()])
         label = np.concatenate([id_gt.cpu(), neg_ood_gt])
 
         if prec_th is None:
-            return conf, label, *ood_metrics(conf, label, tpr_th), None, None, None
+            # return conf, label, *ood_metrics(conf, label, tpr_th), None, None, None
+            return ood_metrics(conf, label, tpr_th), None
         else:
-            return conf, label, *ood_metrics(conf, label, tpr_th), *search_threshold(conf, label, prec_th)
+            # return conf, label, *ood_metrics(conf, label, tpr_th), *search_threshold(conf, label, prec_th)
+            return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)

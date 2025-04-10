@@ -39,15 +39,15 @@ def glmcm_inf(
     return conf.cpu()
 
 
-# def neglabel_inf(
-#         positive_logits,
-#         negative_logits,
-#         T: int = 2,
-# ) -> tuple:
-#     total_logits = torch.cat((positive_logits, negative_logits), dim=1)
-#     total_conf, _ = torch.max(torch.softmax(total_logits / T, dim=1), dim=1)
-#     conf = total_conf[:, :positive_logits.shape[1]]
-#     return conf.cpu()
+def neglabel_inf(
+        positive_logits,
+        negative_logits,
+        T: int = 2,
+) -> tuple:
+    total_logits = torch.cat((positive_logits, negative_logits), dim=1)
+    total_conf, _ = torch.max(torch.softmax(total_logits / T, dim=1), dim=1)
+    conf = total_conf[:, :positive_logits.shape[1]]
+    return conf.cpu()
 
 
 def max_logit_inf(
