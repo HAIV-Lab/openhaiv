@@ -5,14 +5,14 @@ trainer:
   gather_train_stats: False
   gather_test_stats: False
   max_epochs: 0
-  load_from: './output/supervised/sl_oes_coop_b16/exp/latest.pth'
+  load_from: './output/supervised/sl_oes_sct_b16/exp/latest.pth'
 
 
 algorithm:
-  type: MLS
+  type: MSP
 
 model:
-  type: CoOp
+  type: LoCoOp
   backbone: 'ViT-B/16'
   dataset: 'oes_rgb_id'
   N_CTX: 16
@@ -38,4 +38,4 @@ seed: 0
 device: cuda
 
 exp_name: exp
-work_dir: ./output/ood/ood_oes_coop_b16_mls
+work_dir: ./output/ood/ood_oes_coop_b16_msp

@@ -4,32 +4,35 @@ currently **zero-shot CLIP** and **CoOp** can be reproduced, but results are dif
 
 # clip
 main differences are in model.py
-- [ ] `clip-origin`
-- [ ] `clip-dpm`: return global and local image features
-- [ ] `clip-locoop`: return global and local image features(with MaskCLIP style)
-- [ ] `clip-maple`: with learnable prompts in ViT
+- [x] `clip-origin`
+- [x] `clip-dpm`: return global and local image features
+- [x] `clip-locoop`: return global and local image features(with MaskCLIP style)
+- [x] `clip-maple`: with learnable prompts in ViT
 
 # customclip.py
 - [x] `TextEncoder`
-- [ ] `TextEncoder_Maple`
+- [x] `TextEncoder-LoCoOp`
+- [ ] `TextEncoder-Maple`
 - [x] `CustomCLIP_ZeroShot`
 - [ ] `CLIP_scoring` 
 - [x] `CustomCLIP` = `TextEncoder` + `PromptLearner`
 - [ ] `CustomCLIP-CALIP` 
 - [ ] `CustomCLIP-Maple` = `TextEncoder` + `MultiModalPromptLearner`
-- [ ] `CustomCLIP-LoCoOp` = `TextEncoder` + `PromptLearner`
+- [ ] `CustomCLIP-VPT` 
+- [ ] `CustomCLIP-LP`
+- [x] `CustomCLIP-LoCoOp` = `TextEncoder` + `PromptLearner`
 - [ ] `CustomCLIP-NegPrompt` = `TextEncoder` + `NegPromptLearner`(later, cannot be reproduced)
-- [ ] `CustomCLIP-DPM` = `TextEncoder` + `MLCPromptLearner` + `DPM_Block` + `DPM_Proj1` + `DPM_Proj2`
+- [x] `CustomCLIP-DPM` = `TextEncoder` + `MLCPromptLearner` + `DPM_Block` + `DPM_Proj1` + `DPM_Proj2`
 
 # promptlearner.py
 - [x] `PromptLearner`
 - [ ] `MultiModalPromptLearner`
 - [ ] `NegPromptLearner` (later, cannot be reproduced)
-- [ ] `MLCPromptLearner` (the same as PromptLearner which only allows cls_token at the end, can be merged to PromptLearner later)
+- [x] `MLCPromptLearner` 
 
 # coop.py
 - [x] `CoOp` = `CustomCLIP` + `get_class_names` + `load_clip_to_cpu` + `get_text_features`
-- [ ] `LoCoOp` -- `CustomCLIP_LoCoOp`
+- [x] `LoCoOp` -- `CustomCLIP_LoCoOp`
 - [ ] `Maple` -- `CustomCLIP_Maple`
 - [ ] `NegPrompt` -- `Custom_NegPrompt`(later, cannot be reproduced)
 
@@ -37,4 +40,16 @@ main differences are in model.py
 - [x] `classes and templates`
 - [x] `load_clip_to_cpu`
 - [ ] `load_clip_to_cpu_maple`
+- [x] `load_clip_to_cpu_locoop`
 - [x] `get_text_features`
+  
+# Loss
+- [x] `LoCoOpLoss`
+- [x] `SCTLoss`
+- [x] `DPMLoss`
+  
+# OOD Scores
+- [ ] `MCM`
+- [ ] `GLMCM`
+- [ ] `DPM`
+- [ ] `NegLabel`

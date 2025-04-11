@@ -38,6 +38,18 @@ def glmcm_inf(
     conf, _ = global_conf + lambda_local * local_conf
     return conf.cpu()
 
+def dpm_inf(
+        logits, 
+        train_logits,
+        T: int = 2,
+        beta: float = 0.5,
+) -> tuple:
+    conf, _ = torch.max(torch.softmax(logits / T, dim=1), dim=1)
+    kl = klm_inf(logits, train_logits)
+    conf = conf - beta * kl
+    return conf.cpu()
+
+
 
 def neglabel_inf(
         positive_logits,

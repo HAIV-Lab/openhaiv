@@ -3,7 +3,7 @@ from .clip_dpm import clip_dpm
 from .clip_locoop import clip_locoop
 from .clip_maple import clip_maple
 import torch.nn as nn
-from .customclip import CustomCLIP, CustomCLIP_Maple, CustomCLIP_NegPrompt, CustomCLIP_LoCoOp
+from .customclip import CustomCLIP, CustomCLIP_Maple, CustomCLIP_NegPrompt, CustomCLIP_LoCoOp, CustomCLIP_DPM
 from .clip_utils import *
 from ncdia.utils import MODELS, Configs
 
@@ -24,30 +24,21 @@ class CoOp(nn.Module):
         classnames = get_class_names(dataset) # imagenet 
         self.n_cls = len(classnames)
         self.n_output = self.n_cls
-        # templates = get_templates(cfg.backbone.text_prompt) # simple
-        # backbone = cfg.backbone.name # 'ViT-B/16'
         assert backbone in clip.available_models()
         # clip_model, self.preprocess = clip.load(backbone, device='cuda')
         print(f"Loading CLIP (backbone: {backbone})")
         clip_model = load_clip_to_cpu(backbone)
-        # if checkpoint is not None:
-        #     print(f"Loading checkpoint: {checkpoint}")
-        #     clip_model.load_state_dict(torch.load(checkpoint), strict=False)
         
         self.logit_scale = clip_model.logit_scale.data
         # self.zeroshot_weights = zeroshot_classifier(clip_model, classnames,
         #                                             templates)
-        print("Building custom CLIP")
-        self.model = CustomCLIP(backbone, classnames, clip_model, N_CTX, CTX_INIT, image_size, CSC, CLASS_TOKEN_POSITION)
+        print("Building custom CLIP for CoOp")
+        self.model = CustomCLIP(classnames, clip_model, N_CTX, CTX_INIT, image_size, CSC, CLASS_TOKEN_POSITION)
 
         print("Turning off gradients in both the image and the text encoder")
         for name, param in self.model.named_parameters():
             if "prompt_learner" not in name:
-                param.requires_grad_(False)
-        
-        # self.text_features = get_text_features(clip_model.cuda(), cfg.backbone.dataset, cfg.backbone.text_prompt) 
-        # print('shape of pre-computed text features:', self.text_features.shape)
-                
+                param.requires_grad_(False)       
 
     def forward(self, x, return_feat=False):
         return self.model(x, return_feat)
@@ -63,13 +54,20 @@ NeurIPS 2024 https://arxiv.org/abs/2411.03359
 '''
 @MODELS.register
 class LoCoOp(nn.Module):
-    def __init__(self, cfg):
+    def __init__(
+        self, 
+        backbone,
+        dataset,
+        N_CTX,
+        CTX_INIT,
+        image_size,
+        CSC,
+        CLASS_TOKEN_POSITION,
+        ):
         super().__init__()
-        classnames = get_class_names(cfg.backbone.dataset) # imagenet 
+        classnames = get_class_names(dataset) # imagenet 
         self.n_cls = len(classnames)
         self.n_output = self.n_cls
-        # templates = get_templates(cfg.backbone.text_prompt) # simple
-        backbone = cfg.backbone.name # 'ViT-B/16'
         assert backbone in clip_locoop.available_models()
         # clip_model, self.preprocess = clip.load(backbone, device='cuda')
         print(f"Loading CLIP (backbone: {backbone})")
@@ -79,21 +77,62 @@ class LoCoOp(nn.Module):
         # self.zeroshot_weights = zeroshot_classifier(clip_model, classnames,
         #                                             templates)
         print("Building custom CLIP for LoCoOp")
-        self.model = CustomCLIP_LoCoOp(cfg, classnames, clip_model)
+        self.model = CustomCLIP_LoCoOp(classnames, clip_model, N_CTX, CTX_INIT, image_size, CSC, CLASS_TOKEN_POSITION)
 
         print("Turning off gradients in both the image and the text encoder")
         for name, param in self.model.named_parameters():
             if "prompt_learner" not in name:
-                param.requires_grad_(False)
-        
-        
-        self.text_features = get_text_features(clip_model.cuda(), cfg.backbone.dataset, cfg.backbone.text_prompt) 
-        print('shape of pre-computed text features:', self.text_features.shape)
-                
+                param.requires_grad_(False)               
 
     def forward(self, x, return_feat=False):
         return self.model(x, return_feat)
+
+    def get_features(self, x, return_feat=True):
+        return self.model(x, return_feat)
     
+
+@MODELS.register
+class DPM(nn.Module):
+    def __init__(
+        self, 
+        backbone,
+        dataset,
+        N_CTX,
+        CTX_INIT,
+        image_size,
+        CSC,
+        CLASS_TOKEN_POSITION,
+        # checkpoint=None,
+    ):
+        super().__init__()
+        classnames = get_class_names(dataset) # imagenet 
+        self.n_cls = len(classnames)
+        self.n_output = self.n_cls
+        assert backbone in clip.available_models()
+        print(f"Loading CLIP (backbone: {backbone})")
+        clip_model = load_clip_to_cpu_dpm(backbone)
+        
+        self.logit_scale = clip_model.logit_scale.data
+        # self.zeroshot_weights = zeroshot_classifier(clip_model, classnames,
+        #                                             templates)
+        print("Building custom CLIP for DPM")
+        self.model = CustomCLIP_DPM(classnames, clip_model, N_CTX, CTX_INIT, image_size, CSC, CLASS_TOKEN_POSITION)
+
+        print("Turning off gradients in both the image and the text encoder")
+        for name, param in self.model.named_parameters():
+            if "dpmt" not in name:
+                if "prompt_learner" not in name:
+                    param.requires_grad_(False)
+                
+    def forward(self, x, label, return_feat=False):
+        return self.model(x, label, return_feat)
+    
+    def evaluate(self, x, return_feat=False):
+        return self.model.evaluate(x, return_feat)
+
+    def get_features(self, x, return_feat=True):
+        return self.model(x, return_feat)
+
 '''
 MaPLe: Multi-modal Prompt Learning
 CVPR 2023 https://arxiv.org/abs/2210.03117
@@ -172,4 +211,3 @@ class NegPrompt(nn.Module):
 
     def forward(self, x, return_feat=False):
         return self.model(x, return_feat)
-

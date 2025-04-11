@@ -61,24 +61,24 @@ evalloader:
       normalize:
         mean: [0.485, 0.456, 0.406]
         std: [0.229, 0.224, 0.225]
-  # ood_easy:
-  #   type: BMF_OOD
-  #   root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/OOD_Easy/test/
-  #   split: val
-  #   transform:
-  #     resize: {size: 256}
-  #     center_crop: {size: 224}
-  #     normalize:
-  #       mean: [0.485, 0.456, 0.406]
-  #       std: [0.229, 0.224, 0.225]
-  
-  ood_hard: 
-    type: BMF_OOD 
-    root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/OOD_Hard/test/
+  ood_easy:
+    type: BMF_OOD
+    root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/OOD_Easy/test/
     split: val
-    transform:  
+    transform:
       resize: {size: 256}
-      random_crop: {size: 224}
+      center_crop: {size: 224}
       normalize:
         mean: [0.485, 0.456, 0.406]
         std: [0.229, 0.224, 0.225]
+  
+  # ood_hard: 
+  #   type: BMF_OOD 
+  #   root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/OOD_Hard/test/
+  #   split: val
+  #   transform:  
+  #     resize: {size: 256}
+  #     random_crop: {size: 224}
+  #     normalize:
+  #       mean: [0.485, 0.456, 0.406]
+  #       std: [0.229, 0.224, 0.225]

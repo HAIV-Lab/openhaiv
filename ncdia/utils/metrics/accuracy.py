@@ -11,6 +11,11 @@ def accuracy(output, target, topk=(1,)):
     Returns:
         acc (list): accuracy values for each k in topk
     """
+    if isinstance(output, tuple):
+        if len(output) == 2:
+            output = output[0]
+        elif len(output) == 3:
+            output = output[1]
     maxk = min(max(topk), output.size()[1])
     batch_size = target.size(0)
     _, pred = output.topk(maxk, 1, True, True)
@@ -61,6 +66,8 @@ def per_class_accuracy(output, target, topk=(1, )):
     Returns:
         per_class_acc (list): accuracy values for each k in topk
     """
+    if isinstance(output, tuple):
+        output = output[0]
     maxk = max(topk)
     batch_size = target.size(0)
     unique_class = torch.unique(target)

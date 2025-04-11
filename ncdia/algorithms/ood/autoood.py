@@ -1,7 +1,19 @@
 from ncdia.utils import ALGORITHMS
 from .inference import (
-    msp_inf, mcm_inf, glmcm_inf, max_logit_inf, energy_inf, vim_inf, dml_inf, dmlp_inf, prot_inf,
-    klm_inf, she_inf, relation_inf
+    msp_inf, 
+    mcm_inf, 
+    glmcm_inf, 
+    dpm_inf, 
+    neglabel_inf, 
+    max_logit_inf, 
+    energy_inf, 
+    vim_inf, 
+    dml_inf, 
+    dmlp_inf, 
+    prot_inf,
+    klm_inf, 
+    she_inf, 
+    relation_inf
 )
 
 
@@ -124,8 +136,10 @@ class AutoOOD(object):
                 conf['mcm'] = mcm_inf(logits)
             elif metric == 'glmcm':
                 conf['glmcm'] = glmcm_inf(global_logits, local_logits)
-            # elif metric == 'neglabel':
-            #     conf['neglabel'] = neglabel_inf(positive_logits, negative_logits)
+            elif metric == 'dpm':
+                conf['dpm'] = dpm_inf(logits, train_logits)
+            elif metric == 'neglabel':
+                conf['neglabel'] = neglabel_inf(positive_logits, negative_logits)
             elif metric == 'maxlogit':
                 conf['maxlogit'] = max_logit_inf(logits)
             elif metric == 'energy':

@@ -7,3 +7,8 @@ from .mls import MLS
 from .vim import VIM
 from .fdbd import fDBD
 from .odin import ODIN
+from .mcm import MCM
+from .glmcm import GLMCM
+from .klm import KLM
+from .dpm import DPM
+from .neglabel import NegLabel

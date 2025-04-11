@@ -1,3 +1,4 @@
+import torch
 from ncdia.utils import ALGORITHMS
 from ncdia.utils.metrics import accuracy
 from ncdia.algorithms.base import BaseAlg
@@ -34,13 +35,13 @@ class StandardSL(BaseAlg):
         device = trainer.device
 
         data, label = data.to(device), label.to(device)
-        outputs = model(data)
+        # outputs = model(data)
+        outputs = model(data, label)
 
         loss = criterion(outputs, label)
         acc = accuracy(outputs, label)[0]
 
         loss.backward()
-        # print("ctx.grad:", model.model.prompt_learner.ctx.grad)
         return {"loss": loss.item(), "acc": acc.item()}
 
     def val_step(self, trainer, data, label, *args, **kwargs):
@@ -62,8 +63,12 @@ class StandardSL(BaseAlg):
         criterion = trainer.criterion
         device = trainer.device
 
-        data, label = data.to(device), label.to(device)
-        outputs = model(data)
+        with torch.no_grad():
+            data, label = data.to(device), label.to(device)
+            if hasattr(model, "evaluate") and callable(getattr(model, 'evaluate')):
+                outputs = model.evaluate(data)
+            else:
+                outputs = model(data)
 
         loss = criterion(outputs, label)
         acc = accuracy(outputs, label)[0]
