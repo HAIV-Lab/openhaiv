@@ -261,7 +261,7 @@ class BaseTrainer(object):
         """Optimizer: Optimizer to optimize model parameters."""
         #判断model的参数是否为空
         if not list(self.model.parameters()):
-            self.model.update_fc_before(20)
+            self.model.update_fc_before(self.cfg['model']['base_classes'])
         if isinstance(self._optimizer, dict):
             self._optimizer = build_optimizer(
                 model=self.model, **self._optimizer)

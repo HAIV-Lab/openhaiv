@@ -106,7 +106,7 @@ class CifarResNet(nn.Module):
         self.stage_1 = self._make_layer(block, 16, layer_blocks, 1)
         self.stage_2 = self._make_layer(block, 32, layer_blocks, 2)
         self.stage_3 = self._make_layer(block, 64, layer_blocks, 2)
-        self.avgpool = nn.AvgPool2d(8)
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.out_dim = 64 * block.expansion
         self.fc = nn.Linear(64*block.expansion, 10)
 
@@ -136,16 +136,16 @@ class CifarResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, x):
-        x = self.conv_1_3x3(x)  # [bs, 16, 32, 32]
-        x = F.relu(self.bn_1(x), inplace=True)
+        x = self.conv_1_3x3(x)  # [64, 16, 224, 224]
+        x = F.relu(self.bn_1(x), inplace=True) # [64, 16, 224, 224]
 
-        x_1 = self.stage_1(x)  # [bs, 16, 32, 32]
-        x_2 = self.stage_2(x_1)  # [bs, 32, 16, 16]
-        x_3 = self.stage_3(x_2)  # [bs, 64, 8, 8]
+        x_1 = self.stage_1(x)  # [64, 16, 224, 224]
+        x_2 = self.stage_2(x_1)  # [64, 32, 112, 112]
+        x_3 = self.stage_3(x_2)  # [64, 64, 56, 56]
+
 
         pooled = self.avgpool(x_3)  # [bs, 64, 1, 1]
         features = pooled.view(pooled.size(0), -1)  # [bs, 64]
-
         return {
             'fmaps': [x_1, x_2, x_3],
             'features': features

@@ -8,3 +8,16 @@ model:
   att_classes: 86
   # pretrained: True
   # checkpoint: /new_data/dx450/Project/zzh_ood/NCD_Attr/results/remote_resnet18_savc_att_q_savc_att_e15_lr0.002_default/s0/best_epoch15_acc0.9920.ckpt   # ignore if pretrained is false
+  # energy_weight: 0.01
+  # is_compress: false
+  # reduce_batch_size: false
+  # init_epochs: 200
+  # init_lr : 0.1
+  # init_weight_decay : 5e-4
+  # expansion_epochs : 170
+  # fusion_epochs : 60
+  # lr : 0.1
+  # batch_size : 128
+  # weight_decay : 5e-4
+  # num_workers : 8
+  # T : 2

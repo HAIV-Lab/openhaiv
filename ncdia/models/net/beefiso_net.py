@@ -3,11 +3,34 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from models.resnet.cifar_resnet import resnet32
-from ncdia.models.net.der_net import SimpleLinear
+import copy
 
 from ncdia.utils import MODELS, Configs
 
 
+class SimpleLinear(nn.Module):
+    '''
+    Reference:
+    https://github.com/pytorch/pytorch/blob/master/torch/nn/modules/linear.py
+    '''
+    def __init__(self, in_features, out_features, bias=True):
+        super(SimpleLinear, self).__init__()
+        self.in_features = in_features
+        self.out_features = out_features
+        self.weight = nn.Parameter(torch.Tensor(out_features, in_features))
+        if bias:
+            self.bias = nn.Parameter(torch.Tensor(out_features))
+        else:
+            self.register_parameter('bias', None)
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        nn.init.kaiming_uniform_(self.weight, nonlinearity='linear')
+        nn.init.constant_(self.bias, 0)
+
+    def forward(self, input):
+        return {'logits': F.linear(input, self.weight, self.bias)}
+    
 class BiasLayer(nn.Module):
     def __init__(self):
         super(BiasLayer, self).__init__()
@@ -45,7 +68,7 @@ class BEEFISONet(nn.Module):
 
         self.args = network.cfg
         self.args['pretrained'] = True
-        self.args['num_classes'] = 1000
+        self.args['num_classes'] = 256
         self.args['type'] = 'resnet18'
 
     @property
@@ -55,14 +78,17 @@ class BEEFISONet(nn.Module):
         return self.out_dim * len(self.convnets)
 
     def extract_vector(self, x):
-        features = [convnet(x)["features"] for convnet in self.convnets]
+        features = [convnet(x) for convnet in self.convnets]
         features = torch.cat(features, 1)
         return features
 
     def forward(self, x):
-        features = [convnet(x)["features"] for convnet in self.convnets]
+        # print(x.shape)  [bs, 16, 224, 224]
+        features = [convnet(x)['features'] for convnet in self.convnets]
+        # print(features[0].shape)
         features = torch.cat(features, 1)
         
+        print(self.old_fc)
         if self.old_fc is None:
             fc = self.new_fc
             out = fc(features)
@@ -70,7 +96,9 @@ class BEEFISONet(nn.Module):
             '''
             merge the weights
             '''
+            # print(self.task_sizes)
             new_task_size = self.task_sizes[-1]
+            print(self.feature_dim,self.out_dim,new_task_size)
             fc_weight = torch.cat([self.old_fc.weight,torch.zeros((new_task_size,self.feature_dim-self.out_dim)).cuda()],dim=0)             
             new_fc_weight = self.new_fc.weight
             new_fc_bias = self.new_fc.bias
@@ -93,13 +121,17 @@ class BEEFISONet(nn.Module):
         return out
 
     def update_fc_before(self, nb_classes):
+        # print(self.task_sizes)
         new_task_size = nb_classes - sum(self.task_sizes)
         self.biases = nn.ModuleList([BiasLayer() for i in range(len(self.task_sizes))])
-        self.args['type'] = 'resnet18'
-        model = MODELS.build(self.args)
+        # self.args['type'] = 'resnet18'
+        # model = MODELS.build(self.args)
+        model = resnet32()
+        # print(model)
         if not hasattr(model, 'out_dim'):
             # 添加 out_dim 属性（假设是 ResNet）
             model.out_dim = model.fc.in_features
+        # print(model.out_dim)
         self.convnets.append(model)
         if self.out_dim is None:
             self.out_dim = self.convnets[-1].out_dim
@@ -108,6 +140,7 @@ class BEEFISONet(nn.Module):
             self.backward_prototypes = self.generate_fc(self.out_dim,len(self.task_sizes))
             self.convnets[-1].load_state_dict(self.convnets[0].state_dict())
         self.forward_prototypes = self.generate_fc(self.out_dim, nb_classes)
+        # print(self.out_dim,new_task_size) 64*20
         self.new_fc = self.generate_fc(self.out_dim,new_task_size)
         self.task_sizes.append(new_task_size)
     def generate_fc(self, in_dim, out_dim):
