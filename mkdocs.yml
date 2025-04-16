@@ -1,0 +1,8 @@
+site_name: NCDIA
+
+theme:  
+  name: "material"  
+
+plugins:  
+  - search  
+  - mkdocstrings

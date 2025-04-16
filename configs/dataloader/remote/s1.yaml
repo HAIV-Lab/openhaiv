@@ -1,0 +1,28 @@
+_base_: configs/dataloader/loader.yaml
+
+trainloader:
+  dataset:
+    _replace_: True
+    type: remote
+    root: /data/datasets/remote/0718_dy/
+    split: train
+    subset_file: /data/datasets/remote/0718_dy/session_2.txt
+    transform: train
+
+valloader:
+  dataset:
+    _replace_: True
+    type: remote
+    root: /data/datasets/remote/0718_dy/
+    split: test
+    subset_labels: 14
+    transform: test
+
+testloader:
+  dataset:
+    _replace_: True
+    type: remote
+    root: /data/datasets/remote/0718_dy/
+    split: test
+    subset_labels: 14
+    transform: test

@@ -1,0 +1,3 @@
+trainer:
+  gather_train_stats: False
+  gather_test_stats: False

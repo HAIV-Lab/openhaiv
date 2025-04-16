@@ -1,0 +1,1 @@
+::: ncdia.algorithms.ncd.autoncd

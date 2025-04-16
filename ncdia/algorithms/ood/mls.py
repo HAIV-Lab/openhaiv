@@ -1,0 +1,128 @@
+import torch
+import torch.nn as nn
+
+from ncdia.utils import ALGORITHMS
+from ncdia.utils.metrics import accuracy
+from ncdia.algorithms.base import BaseAlg
+from ncdia.utils import HOOKS
+from ncdia.trainers.hooks import AlgHook
+import numpy as np
+from numpy.linalg import norm
+from sklearn.covariance import EmpiricalCovariance
+from scipy.special import logsumexp
+from tqdm import tqdm
+from .metrics import ood_metrics, search_threshold
+from ncdia.trainers.hooks import AlgHook,QuantifyHook
+from ncdia.utils import HOOKS
+from ncdia.trainers.hooks import AlgHook
+@HOOKS.register
+class MLSHook(QuantifyHook):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def after_test(self, trainer) -> None:
+        pass
+        
+@ALGORITHMS.register
+class MLS(BaseAlg):
+    """Decoupling MaxLogit.
+
+    Containing:
+        - train_step(trainer, data, label, *args, **kwargs)
+        - val_step(trainer, data, label, *args, **kwargs)
+        - test_step(trainer, data, label, *args, **kwargs)
+
+    """
+    def __init__(self, trainer) -> None:
+        super().__init__(trainer)
+        hook = MLSHook()
+        trainer.register_hook(hook)
+        self.hyparameters = None
+        
+    def val_step(self, trainer, data, label, *args, **kwargs):
+        """Validation step for Decoupling MaxLogit.
+
+        Args:
+            trainer (object): Trainer object.
+            data (torch.Tensor): Input data.
+            label (torch.Tensor): Label data.
+            args (tuple): Additional arguments.
+            kwargs (dict): Additional keyword arguments.
+
+        Returns:
+            results (dict): Validation results. Contains the following:
+                - "loss": Loss value.
+                - "acc": Accuracy value.
+        """
+        model = trainer.model
+        device = trainer.device
+
+        data, label = data.to(device), label.to(device)
+        outputs = model(data)
+
+        criterion = nn.CrossEntropyLoss()
+
+        loss = criterion(outputs, label)
+        acc = accuracy(outputs, label)[0]
+
+        return {"loss": loss.item(), "acc": acc.item()}
+
+
+    def test_step(self, trainer, data, label, *args, **kwargs):
+        """Test step for Decoupling MaxLogit.
+
+        Args:
+            trainer (object): Trainer object.
+            data (torch.Tensor): Input data.
+            label (torch.Tensor): Label data.
+            args (tuple): Additional arguments.
+            kwargs (dict): Additional keyword arguments.
+
+        Returns:
+            results (dict): Test results. Contains the following:
+                - "loss": Loss value.
+                - "acc": Accuracy value.
+        """
+        return self.val_step(trainer, data, label, *args, **kwargs)
+
+    @staticmethod
+    def eval(id_gt: torch.Tensor ,id_logits: torch.Tensor, id_feat: torch.Tensor, 
+            ood_logits: torch.Tensor, ood_feat: torch.Tensor, 
+            train_logits: torch.Tensor = None, train_feat: torch.Tensor = None,  train_gt: torch.Tensor = None, 
+            tpr_th: float = 0.95, prec_th: float = None, hyparameters: dict = None):
+        """Decoupled MaxLogit+ (DML+) method for OOD detection.
+
+        Decoupling MaxLogit for Out-of-Distribution Detection
+        https://openaccess.thecvf.com/content/CVPR2023/html/Zhang_Decoupling_MaxLogit_for_Out-of-Distribution_Detection_CVPR_2023_paper
+
+        Args:
+            id_logits (torch.Tensor): ID logits. Shape (N, C).
+            id_feat (torch.Tensor): ID features. Shape (N, D).
+            ood_logits (torch.Tensor): OOD logits. Shape (M, C).
+            ood_feat (torch.Tensor): OOD features. Shape (M, D).
+            train_logits (torch.Tensor): Training logits. Shape (K, C).
+            train_feat (torch.Tensor): Training features. Shape (K, D).
+            tpr_th (float): True positive rate threshold to compute
+                false positive rate. Default is 0.95.
+            prec_th (float | None): Precision threshold for searching threshold.
+                If None, not searching for threshold. Default is None.
+
+        Returns:
+            fpr (float): False positive rate.
+            auroc (float): Area under the ROC curve.
+            aupr_in (float): Area under the precision-recall curve 
+                for in-distribution samples.
+            aupr_out (float): Area under the precision-recall curve
+                for out-of-distribution
+        """
+        print("MLS inference..")
+        id_conf, id_pred = torch.max(id_logits, dim=1)
+        ood_conf, ood_pred = torch.max(ood_logits, dim=1)
+        conf = np.concatenate([id_conf.data.cpu().numpy(), ood_conf.data.cpu().numpy()])
+        ood_gt = -1 * np.ones(ood_logits.shape[0])
+        label = np.concatenate([id_gt.cpu(), ood_gt])
+        
+        if prec_th is None:
+            return conf, label, *ood_metrics(conf, label, tpr_th), None, None, None
+        else:
+            return conf, label, *ood_metrics(conf, label, tpr_th), *search_threshold(conf, label, prec_th)
