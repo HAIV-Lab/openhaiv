@@ -1,3 +1,4 @@
+# import sys
 import numpy as np
 import sklearn.metrics as skm
 
@@ -40,7 +41,7 @@ def ood_metrics(conf: np.ndarray, label: np.ndarray, tpr_th: float = 0.95):
     auroc = skm.auc(fpr_list, tpr_list)
     aupr_in = skm.auc(recall_in, precision_in)
     aupr_out = skm.auc(recall_out, precision_out)
-    print("fpr, auroc, aupr_in, aupr_out: ", fpr, auroc, aupr_in, aupr_out)
+    
     return fpr, auroc, aupr_in, aupr_out
 
 

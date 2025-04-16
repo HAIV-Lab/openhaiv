@@ -43,6 +43,7 @@ class DML(BaseAlg):
         - train_step(trainer, data, label, *args, **kwargs)
         - val_step(trainer, data, label, *args, **kwargs)
         - test_step(trainer, data, label, *args, **kwargs)
+        - eval
 
     """
     def __init__(self, trainer) -> None:
@@ -91,20 +92,7 @@ class DML(BaseAlg):
         return {"loss": loss.item(), "acc": acc.item()}
 
     def val_step(self, trainer, data, label, *args, **kwargs):
-        """Validation step for Decoupling MaxLogit.
-
-        Args:
-            trainer (object): Trainer object.
-            data (torch.Tensor): Input data.
-            label (torch.Tensor): Label data.
-            args (tuple): Additional arguments.
-            kwargs (dict): Additional keyword arguments.
-
-        Returns:
-            results (dict): Validation results. Contains the following:
-                - "loss": Loss value.
-                - "acc": Accuracy value.
-        """
+    
         model = trainer.model
         device = trainer.device
 
@@ -119,26 +107,13 @@ class DML(BaseAlg):
         return {"loss": loss.item(), "acc": acc.item()}
 
     def test_step(self, trainer, data, label, *args, **kwargs):
-        """Test step for Decoupling MaxLogit.
-
-        Args:
-            trainer (object): Trainer object.
-            data (torch.Tensor): Input data.
-            label (torch.Tensor): Label data.
-            args (tuple): Additional arguments.
-            kwargs (dict): Additional keyword arguments.
-
-        Returns:
-            results (dict): Test results. Contains the following:
-                - "loss": Loss value.
-                - "acc": Accuracy value.
-        """
+        
         return self.val_step(trainer, data, label, *args, **kwargs)
     
     @staticmethod
-    def eval(id_gt: torch.Tensor ,id_logits: torch.Tensor, id_feat: torch.Tensor, 
+    def eval(id_gt: torch.Tensor, id_logits: torch.Tensor, id_feat: torch.Tensor, 
             ood_logits: torch.Tensor, ood_feat: torch.Tensor, 
-            train_logits: torch.Tensor = None, train_feat: torch.Tensor = None, 
+            train_gt: torch.Tensor = None, train_logits: torch.Tensor = None, train_feat: torch.Tensor = None, 
             tpr_th: float = 0.95, prec_th: float = None,):
         """Decoupled MaxLogit+ (DML+) method for OOD detection.
 

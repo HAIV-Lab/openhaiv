@@ -12,6 +12,7 @@ class CoOp(nn.Module):
     def __init__(
         self, 
         backbone,
+        local_path,
         dataset,
         N_CTX,
         CTX_INIT,
@@ -26,8 +27,12 @@ class CoOp(nn.Module):
         self.n_output = self.n_cls
         assert backbone in clip.available_models()
         # clip_model, self.preprocess = clip.load(backbone, device='cuda')
-        print(f"Loading CLIP (backbone: {backbone})")
-        clip_model = load_clip_to_cpu(backbone)
+        if local_path == "":
+            local_path = None
+            print(f"Loading CLIP (backbone: {backbone})")
+        else:
+            print(f"Loading CLIP (backbone from {local_path})")
+        clip_model = load_clip_to_cpu(backbone, local_path)
         
         self.logit_scale = clip_model.logit_scale.data
         # self.zeroshot_weights = zeroshot_classifier(clip_model, classnames,
@@ -57,6 +62,7 @@ class LoCoOp(nn.Module):
     def __init__(
         self, 
         backbone,
+        local_path,
         dataset,
         N_CTX,
         CTX_INIT,
@@ -70,8 +76,12 @@ class LoCoOp(nn.Module):
         self.n_output = self.n_cls
         assert backbone in clip_locoop.available_models()
         # clip_model, self.preprocess = clip.load(backbone, device='cuda')
-        print(f"Loading CLIP (backbone: {backbone})")
-        clip_model = load_clip_to_cpu_locoop(backbone)
+        if local_path == "":
+            local_path = None
+            print(f"Loading CLIP (backbone: {backbone})")
+        else:
+            print(f"Loading CLIP (backbone from {local_path})")
+        clip_model = load_clip_to_cpu_locoop(backbone, local_path)
         
         self.logit_scale = clip_model.logit_scale.data
         # self.zeroshot_weights = zeroshot_classifier(clip_model, classnames,
@@ -96,6 +106,7 @@ class DPM(nn.Module):
     def __init__(
         self, 
         backbone,
+        local_path,
         dataset,
         N_CTX,
         CTX_INIT,
@@ -109,8 +120,13 @@ class DPM(nn.Module):
         self.n_cls = len(classnames)
         self.n_output = self.n_cls
         assert backbone in clip.available_models()
-        print(f"Loading CLIP (backbone: {backbone})")
-        clip_model = load_clip_to_cpu_dpm(backbone)
+        
+        if local_path == "":
+            local_path = None
+            print(f"Loading CLIP (backbone: {backbone})")
+        else:
+            print(f"Loading CLIP (backbone from {local_path})")
+        clip_model = load_clip_to_cpu_dpm(backbone, local_path)
         
         self.logit_scale = clip_model.logit_scale.data
         # self.zeroshot_weights = zeroshot_classifier(clip_model, classnames,
@@ -131,7 +147,7 @@ class DPM(nn.Module):
         return self.model.evaluate(x, return_feat)
 
     def get_features(self, x, return_feat=True):
-        return self.model(x, return_feat)
+        return self.model.evaluate(x, return_feat)
 
 '''
 MaPLe: Multi-modal Prompt Learning

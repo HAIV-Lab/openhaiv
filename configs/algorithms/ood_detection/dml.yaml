@@ -1,3 +1,4 @@
 trainer:
   gather_train_stats: True
-  gather_test_stats: True
+  # gather_test_stats: True
+  gather_test_stats: False

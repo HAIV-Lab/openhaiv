@@ -9,7 +9,7 @@ from ncdia.utils import TRAINERS
 from ncdia.dataloader import build_dataloader
 from ncdia.algorithms.ood import AutoOOD
 from .pretrainer import PreTrainer
-from .hooks import QuantifyHook
+from .hooks import QuantifyHook, QuantifyHook_OOD
 from ncdia.dataloader import BMF_OOD
 import PIL
 
@@ -43,10 +43,10 @@ class DetTrainer(PreTrainer):
             gather_train_stats: bool = False,
             gather_test_stats: bool = False,
             eval_loader: DataLoader | dict | None = None,
-            verbose: bool = False,
+            verbose: bool = True,
             **kwargs
     ) -> None:
-        self.quantify_hook = QuantifyHook(
+        self.quantify_hook = QuantifyHook_OOD(
             gather_train_stats=gather_train_stats,
             gather_test_stats=gather_test_stats,
             verbose=verbose
@@ -70,21 +70,6 @@ class DetTrainer(PreTrainer):
 
         self.kwargs = kwargs
         self.verbose = verbose
-        # image = PIL.Image.open("/new_data/datasets/OES/sub-dataset1-RGB-domain1/ID/test/Abies alba/Abies_alba_2_370_WEFL_NLF.jpg")
-        # # 定义预处理
-        # preprocess = transforms.Compose([
-        #     transforms.Resize((224, 224)),  # 调整图像大小
-        #     transforms.ToTensor(),          # 转换为张量
-        #     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # 归一化
-        # ])
-
-        # # 对 PIL 图像进行预处理
-        # image_tensor = preprocess(image).unsqueeze(0)  # 添加 batch 维度
-        # # 将图像张量移动到设备上
-        # image_tensor = image_tensor.to(self.device)
-        # # 调用模型
-        # logits = self.model(image_tensor)
-        # print(f"Logits: {logits}")
 
     # @property
     # def eval_loader(self) -> DataLoader:
@@ -106,7 +91,6 @@ class DetTrainer(PreTrainer):
             self._eval_loader.update(self.eval_loader_tmp)
         elif isinstance(self.eval_loader_tmp, DataLoader):
             self._eval_loader = self.eval_loader_tmp
-        print(f"Eval loader: {self._eval_loader}")
         return self._eval_loader
     
     @property
@@ -161,9 +145,13 @@ class DetTrainer(PreTrainer):
             dict: OOD scores, keys are the names of the OOD detection methods,
                 values are the OOD scores and search threshold.
         """
-        # train_stats = self.train_stats
-        # test_stats = self.test_stats
 
+        train_stats = self.quantify_hook.gather_stats(
+            model=self.model,
+            dataloader=self.train_loader,
+            device=self.device,
+            verbose=self.verbose
+        )
         # eval_stats = self.quantify_hook.gather_stats(
         #     model=self.model,
         #     dataloader=evalloader if evalloader else self.eval_loader,
@@ -187,16 +175,12 @@ class DetTrainer(PreTrainer):
         # return scores
         self.model.eval()
         for setting_name, id_setting in self._eval_loader.items():
-            print('*************evaluate {} setting*************'.format(setting_name))
+            self.logger.info('*************evaluate {} setting*************'.format(setting_name))
 
-            # for dataset_name, data_cfg in id_setting.items():
-            if True:
-                dataset_name = setting_name
+            for dataset_name, data_cfg in id_setting.items():
                 evalset = BMF_OOD(
-                    # root = data_cfg['root'],
-                    # split = data_cfg['split'],
-                    root = id_setting['root'],
-                    split = id_setting['split'],
+                    root = data_cfg['root'],
+                    split = data_cfg['split'],
                     subset_labels = None,
                     subset_file = None,
                     transform = None)
@@ -207,41 +191,50 @@ class DetTrainer(PreTrainer):
                     num_workers=8,
                 )
                 if dataset_name == 'dataset':
+                    self.logger.info('*************evaluate {} test set*************'.format(setting_name))
                     test_stats = self.quantify_hook.gather_stats(
                         model=self.model,
                         dataloader=evalloader,
                         device=self.device,
-                        # id_acc = True,
+                        id_acc = True,
                         verbose=self.verbose
                     )
+                    top1_acc = test_stats['top1_acc']
+                    top5_acc = test_stats['top5_acc']
+                    self.logger.info(f'Top-1 Accuracy: {top1_acc:.2f}%')
+                    self.logger.info(f'Top-5 Accuracy: {top5_acc:.2f}%')
                 else:
-                    print('*************evaluate {} Datasets*************'.format(dataset_name))
+                    self.logger.info('*************evaluate {} Datasets*************'.format(dataset_name))
                     eval_stats = self.quantify_hook.gather_stats(
                         model=self.model,
                         dataloader=evalloader,
                         device=self.device,
-                        # id_acc=False,
+                        id_acc=False,
                         verbose=self.verbose
                     )
-        scores = self.algorithm.eval(
-            id_gt=test_stats['labels'],
-            id_logits=test_stats['logits'],
-            id_feat=test_stats['features'],
-            ood_logits=eval_stats['logits'],
-            ood_feat=eval_stats['features'],
-            # train_logits=train_logits,
-            # train_feat=train_feat,
-            # train_gt=train_gt,
-            # tpr_th=tpr_th,
-            # prec_th=prec_th,
-            hyparameters=self.algorithm.hyparameters if hasattr(self.algorithm, 'hyparameters') else None
-        )
-        # print(f"scores: {scores}")
-        # print('FPR95:',scores[0][0]*100)
-        # print('AUROC:',scores[0][1]*100)
-
-        exit(0)
-    
+                    scores = self.algorithm.eval(
+                        id_gt=test_stats['labels'],
+                        id_logits=test_stats['logits'],
+                        id_local_logits=test_stats['local_logits'],
+                        id_feat=test_stats['features'],
+                        id_local_feat=test_stats['local_features'],
+                        ood_logits=eval_stats['logits'],
+                        ood_local_logits=eval_stats['local_logits'],
+                        ood_feat=eval_stats['features'],
+                        ood_local_feat=eval_stats['local_features'],
+                        train_gt=train_stats['labels'] if train_stats else None, 
+                        train_logits=train_stats['logits'] if train_stats else None,
+                        train_local_logits=train_stats['local_logits'] if train_stats else None,
+                        train_feat=train_stats['features'] if train_stats else None,
+                        train_local_feat=train_stats['local_features'] if train_stats else None,
+                        prototypes=train_stats['prototypes'] if train_stats else None,
+                        tpr_th=tpr_th,
+                        prec_th=prec_th,
+                        hyperparameters=self.algorithm.hyperparameters if hasattr(self.algorithm, 'hyperparameters') else None
+                    )
+                    fpr, aur, aupr_in, aupr_out = scores[0]
+                    self.logger.info(f"aur, fpr, aupr_in, aupr_out: {aur:.4f}, {fpr:.4f}, {aupr_in:.4f}, {aupr_out:.4f}")
+        return scores
         
     def detect(
             self,

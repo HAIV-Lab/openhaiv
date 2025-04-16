@@ -5,130 +5,156 @@ trainloader:
     type: BMF_OOD
     root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/ID/train/
     split: train
-    download: True
+    num_classes: 94
     transform:
-      random_resized_crop:
-        size: 224
-      random_horizontal_flip:
-        p: 0.5
-      to_tensor: null
-      normalize:
-        mean: [0.485, 0.456, 0.406]
-        std: [0.229, 0.224, 0.225]
+      resize: {size: 224}
 
 valloader:
   dataset:
     type: BMF_OOD
     root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/ID/test/
     split: val
-    download: True
+    num_classes: 94
     transform:
-      resize:
-        size: 256
-      center_crop:
-        size: 224
-      to_tensor: null
-      normalize:
-        mean: [0.485, 0.456, 0.406]
-        std: [0.229, 0.224, 0.225]
+      resize: {size: 224}
 testloader:
   dataset:
     type: BMF_OOD
     root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/ID/test/
-    split: val
-    download: True
+    split: test
+    num_classes: 94
     transform:
-      resize:
-        size: 256
-      center_crop:
-        size: 224
-      to_tensor: null
-      normalize:
-        mean: [0.485, 0.456, 0.406]
-        std: [0.229, 0.224, 0.225]
+      resize: {size: 224}
 
 evalloader:  
   Standard_ID:
     dataset:
       type: BMF_OOD
       root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/ID/test/
-      split: val
-      download: True
+      split: test
       transform:
-        resize:
-          size: 256
-        center_crop:
-          size: 224
-        to_tensor: null
-        normalize:
-          mean: [0.485, 0.456, 0.406]
-          std: [0.229, 0.224, 0.225]
+        resize: {size: 224}
+
     ood_easy:        
       type: BMF_OOD
       root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/OOD_Easy/test/
-      split: val
-      download: True
+      split: ood
       transform:
-        resize: {size: 256}
-        center_crop: {size: 224}
-        normalize:
-          mean: [0.485, 0.456, 0.406]
-          std: [0.229, 0.224, 0.225]
+        resize: {size: 224}
+
     ood_hard:  
         type: BMF_OOD 
         root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/OOD_Hard/test/
-        split: val
+        split: ood
         transform:  
-          resize: {size: 512}
-          random_crop: {size: 224}
-          normalize:
-            mean: [0.5, 0.5, 0.5]
-            std: [0.5, 0.5, 0.5]
+          resize: {size: 224}
+    sun:  
+        type: BMF_OOD 
+        root: /new_data/datasets/OOD_dataset/SUN
+        split: ood
+        transform:  
+          resize: {size: 224}
             
   CS_ID_Resampling_bias:
     dataset:
       type: BMF_OOD
       root: /new_data/datasets/OES/sub-dataset2-RGB-domain2/ID/test/
-      split: val
-      download: True
+      split: test
       transform:
-        resize:
-          size: 256
-        center_crop:
-          size: 224
-        to_tensor: null
-        normalize:
-          mean: [0.485, 0.456, 0.406]
-          std: [0.229, 0.224, 0.225]
+        resize: {size: 224}
+
     bias_ood:        
       type: BMF_OOD
       root: /new_data/datasets/OES/sub-dataset2-RGB-domain2/OOD/test/
-      split: val
-      download: True
+      split: ood
       transform:
-        resize: {size: 256}
-        center_crop: {size: 224}
-        normalize:
-          mean: [0.485, 0.456, 0.406]
-          std: [0.229, 0.224, 0.225]
+        resize: {size: 224}
+
     ood_easy:        
       type: BMF_OOD
       root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/OOD_Easy/test/
-      split: val
-      download: True
+      split: ood
       transform:
-        resize: {size: 256}
-        center_crop: {size: 224}
-        normalize:
-          mean: [0.485, 0.456, 0.406]
-          std: [0.229, 0.224, 0.225]
+        resize: {size: 224}
+
     ood_hard:  
         type: BMF_OOD 
         root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/OOD_Hard/test/
-        split: val
+        split: ood
         transform:  
-          resize: {size: 512}
-          random_crop: {size: 224}
-          normalize:
-            mean: [0.5, 0.5, 0.5]
-            std: [0.5, 0.5, 0.5]
+          resize: {size: 224}
+
+    sun:  
+        type: BMF_OOD 
+        root: /new_data/datasets/OOD_dataset/SUN
+        split: ood
+        transform:  
+          resize: {size: 224}
+
+  CS_ID_Aerial:
+    dataset:
+      type: BMF_OOD
+      root: /new_data/datasets/OES/sub-dataset3-Aerial-domain3/ID/test/
+      split: test
+      transform:
+        resize: {size: 224}
+
+    bias_ood:        
+      type: BMF_OOD
+      root: /new_data/datasets/OES/sub-dataset3-Aerial-domain3/OOD/test/
+      split: ood
+      transform:
+        resize: {size: 224}
+
+    sun:  
+        type: BMF_OOD 
+        root: /new_data/datasets/OOD_dataset/SUN
+        split: ood
+        transform:  
+          resize: {size: 224}
+  
+
+  CS_ID_MSRGB:
+    dataset:
+      type: BMF_OOD
+      root: /new_data/datasets/OES/sub-dataset4-MSRGB-domain4/ID/test/
+      split: test
+      transform:
+        resize: {size: 224}
+        
+    bias_ood:        
+      type: BMF_OOD
+      root: /new_data/datasets/OES/sub-dataset4-MSRGB-domain4/OOD/test/
+      split: ood
+      transform:
+        resize: {size: 224}
+
+    sun:  
+        type: BMF_OOD 
+        root: /new_data/datasets/OOD_dataset/SUN
+        split: ood
+        transform:  
+          resize: {size: 256}
+
+  CS_ID_IR:
+    dataset:
+      type: BMF_OOD
+      root: /new_data/datasets/OES/sub-dataset5-IR-domain5/ID/test/
+      split: test
+      transform:
+        resize: {size: 256}
+  
+    bias_ood:        
+      type: BMF_OOD
+      root: /new_data/datasets/OES/sub-dataset5-IR-domain5/OOD/test/
+      split: ood
+      transform:
+        resize: {size: 224}
+
+    sun:  
+        type: BMF_OOD 
+        root: /new_data/datasets/OOD_dataset/SUN
+        split: ood
+        transform:  
+          resize: {size: 224}
+          

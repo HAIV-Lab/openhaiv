@@ -1,11 +1,11 @@
 from ncdia.utils import ALGORITHMS
 from .inference import (
+    mls_inf, 
     msp_inf, 
     mcm_inf, 
     glmcm_inf, 
     dpm_inf, 
     neglabel_inf, 
-    max_logit_inf, 
     energy_inf, 
     vim_inf, 
     dml_inf, 
@@ -130,7 +130,9 @@ class AutoOOD(object):
     ) -> dict:
         conf = {}
         for metric in metrics:
-            if metric == 'msp':
+            if metric == 'mls':
+                conf['mls'] = mls_inf(logits)
+            elif metric == 'msp':
                 conf['msp'] = msp_inf(logits)
             elif metric == 'mcm':
                 conf['mcm'] = mcm_inf(logits)
@@ -140,8 +142,6 @@ class AutoOOD(object):
                 conf['dpm'] = dpm_inf(logits, train_logits)
             elif metric == 'neglabel':
                 conf['neglabel'] = neglabel_inf(positive_logits, negative_logits)
-            elif metric == 'maxlogit':
-                conf['maxlogit'] = max_logit_inf(logits)
             elif metric == 'energy':
                 conf['energy'] = energy_inf(logits)
             elif metric == 'vim':

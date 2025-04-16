@@ -436,6 +436,7 @@ class BaseTrainer(object):
 
     def val(self):
         """Validation process."""
+        self.model.eval()
         print(f"Validation")
         print(f"Model is in training mode:{self.model.training}")
         self.call_hook('before_val')
@@ -456,6 +457,7 @@ class BaseTrainer(object):
 
     def test(self):
         """Test process."""
+        self.model.eval()
         print(f"Test")
         print(f"Model is in training mode:{self.model.training}")
         self.call_hook('before_test')

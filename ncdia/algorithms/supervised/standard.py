@@ -35,8 +35,10 @@ class StandardSL(BaseAlg):
         device = trainer.device
 
         data, label = data.to(device), label.to(device)
-        # outputs = model(data)
-        outputs = model(data, label)
+        if hasattr(model, 'forward') and 'label' in model.forward.__code__.co_varnames:
+            outputs = model(data, label)
+        else:
+            outputs = model(data)
 
         loss = criterion(outputs, label)
         acc = accuracy(outputs, label)[0]

@@ -6,4 +6,4 @@ from .schedulerhook import SchedulerHook
 from .metrichook import MetricHook
 from .alghook import AlgHook
 from .ncdhook import NCDHook
-from .quantifyhook import QuantifyHook
+from .quantifyhook import QuantifyHook, QuantifyHook_OOD

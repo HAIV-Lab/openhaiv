@@ -8,7 +8,7 @@ from .clip_locoop import clip_locoop
 from .clip_maple import clip_maple
 from .clip_dpm import clip_dpm
 from .promptlearner import PromptLearner, NegPromptLearner, MultiModalPromptLearner, MLCPromptLearner
-from .clip_utils import load_clip_to_cpu, get_text_features
+from .clip_utils import load_clip_to_cpu, load_clip_to_cpu_locoop, get_text_features
 from ncdia.utils import MODELS, Configs
 
 @MODELS.register
@@ -89,6 +89,7 @@ class CustomCLIP_ZeroShot(nn.Module):
     def __init__(
         self, 
         backbone,
+        local_path,
         dataset,
         text_prompt,
         **kwargs
@@ -96,8 +97,12 @@ class CustomCLIP_ZeroShot(nn.Module):
         super().__init__()
         backbone = backbone # 'ViT-B/16'
         assert backbone in clip.available_models()
-        print(f"Loading CLIP (backbone: {backbone})")
-        clip_model = load_clip_to_cpu(backbone)
+        if local_path == "":
+            local_path = None
+            print(f"Loading CLIP (backbone: {backbone})")
+        else:
+            print(f"Loading CLIP (backbone from {local_path})")
+        clip_model = load_clip_to_cpu(backbone, local_path)
         clip_model = clip_model.cuda()
         self.model = clip_model
         self.logit_scale = clip_model.logit_scale.data
@@ -120,6 +125,53 @@ class CustomCLIP_ZeroShot(nn.Module):
         image_features = self.model.encode_image(x)
         image_features /= image_features.norm(dim=-1, keepdim=True)
         return image_features
+
+@MODELS.register
+class CustomCLIP_ZeroShot_w_local(nn.Module):
+    def __init__(
+        self, 
+        backbone,
+        local_path,
+        dataset,
+        text_prompt,
+        **kwargs
+    ) -> None:
+        super().__init__()
+        backbone = backbone # 'ViT-B/16'
+        assert backbone in clip.available_models()
+        if local_path == "":
+            local_path = None
+            print(f"Loading CLIP (backbone: {backbone})")
+        else:
+            print(f"Loading CLIP (backbone from {local_path})")
+        clip_model = load_clip_to_cpu_locoop(backbone, local_path)
+        clip_model = clip_model.cuda()
+        self.model = clip_model
+        self.logit_scale = clip_model.logit_scale.data
+        print("Turning off gradients in both the image and the text encoder")
+        for name, param in clip_model.named_parameters():
+            param.requires_grad_(False) 
+        self.text_features = get_text_features(self.model, dataset, text_prompt)
+
+
+    def forward(self, x):
+        image_features, local_image_features = self.model.encode_image(x)
+        image_features /= image_features.norm(dim=-1, keepdim=True)
+        local_image_features /= local_image_features.norm(dim=-1, keepdim=True)
+        logit_scale = self.logit_scale.exp()
+        text_features = self.text_features.squeeze(1) 
+
+        logits = logit_scale * image_features @ text_features.T 
+        local_logits = logit_scale * local_image_features @ text_features.T
+        return logits, local_logits
+
+    def get_features(self, x):
+        image_features, local_image_features = self.model.encode_image(x)
+        image_features /= image_features.norm(dim=-1, keepdim=True)
+        local_image_features /= local_image_features.norm(dim=-1, keepdim=True)
+
+        return image_features, local_image_features
+        
 '''
 custom CLIP for prepross NegLabel text features
 Negative Label Guided OOD Detection with Pretrained Vision-Language Models
@@ -300,7 +352,7 @@ class CustomCLIP_DPM(nn.Module):
                                               label=label)  # .squeeze()
         return logits1, logits2, logits3
 
-    def evaluate(self, image, cls_id=None):
+    def evaluate(self, image, cls_id=None, return_feature=False):
         image_features, local_features = self.image_encoder(
             image.type(self.dtype))  # image_features, [B, C], local [B, 49, C]
         # prompts, tokenized_prompts = self.prompt_learner(
@@ -313,6 +365,9 @@ class CustomCLIP_DPM(nn.Module):
         local_features = local_features / local_features.norm(dim=-1, keepdim=True)  # local [B, 49, C]
         logits1, logits2, logits3 = self.dpmt.evaluate(Fs=local_features, Ft=text_features,
                                                        Fv=image_features)  # .squeeze()
+        if return_feature:
+            return image_features
+
         return logits1, logits2, logits3
     
 @MODELS.register
