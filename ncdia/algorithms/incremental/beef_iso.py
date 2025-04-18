@@ -331,6 +331,28 @@ class BEEFISO(BaseAlg):
         loss = F.cross_entropy(logits_, labels)
         loss = loss + loss_en
         
+        print(f"logits_.shape: {logits_.shape}")         # 应该是 [batch_size, num_classes]
+        print(f"labels.shape: {labels.shape}")           # 应该是 [batch_size]
+
+        # 打印前几个样本的值
+        print("logits_[0]:OK", logits_[0, :])                 # 第一个样本的logits
+        print("labels[:10]:", labels[:10])               # 前10个label值
+
+        # 检查 label 的最小值、最大值、unique 值
+        print(f"labels.min(): {labels.min().item()}")    # 最小值
+        print(f"labels.max(): {labels.max().item()}")    # 最大值
+        print(f"labels.unique(): {labels.unique()}")     # 全部出现的类别
+
+        # 检查 num_classes 和 batch size
+        num_classes = logits_.shape[1]
+        print(f"Expected label range: [0, {num_classes - 1}]")
+
+        # 安全检查
+        if labels.max() >= num_classes or labels.min() < 0:
+            print("❌ Label 越界！请检查上游 label 的来源！")
+            raise ValueError("Label values out of bounds for number of classes.")
+        else:
+            print("✅ Labels 在合法范围内。")
         acc = accuracy(logits_, labels)[0]
         per_acc = str(per_class_accuracy(logits_, labels))
 
@@ -344,7 +366,7 @@ class BEEFISO(BaseAlg):
             targets = targets + self._total_classes
             train_logits, energy_logits = out["logits"], out["energy_logits"]
         else:
-            targets = targets + (self._total_classes - self._known_classes) + self._cur_task
+            targets = targets + (self._total_classes - self._known_classes) + self.trainer.session
             train_logits, energy_logits = out["train_logits"], out["energy_logits"]
         
         logits = torch.cat([train_logits,energy_logits],dim=1)
