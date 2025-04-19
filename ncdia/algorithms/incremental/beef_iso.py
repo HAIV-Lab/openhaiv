@@ -149,9 +149,11 @@ class BeefIsoHook(AlgHook):
         #     self.net.known_class = 0
         # else:
         #     self.net.known_class = self.args.CIL.base_classes + (session - 1) * self.args.CIL.way
-        # self.net.total_class = self.args.CIL.base_classes + session * self.args.CIL.way
+        self.alg._total_classes = self.args.CIL.base_classes + session * self.args.CIL.way
+        self.alg._known_classes = self.alg._total_classes - self.args.CIL.way
         # print("way", self.args.CIL.way)
-        self.alg._total_classes = self.alg._known_classes + self.args.CIL.way
+        print("before_train")
+        print(self.alg._known_classes, self.alg._total_classes)
         
         # print("session: ", session)
         # print("self.known_class: ", self.alg._known_classes)
@@ -184,7 +186,6 @@ class BeefIsoHook(AlgHook):
         # # trainer.model.update_fc(trainer.cfg.CIL.way)
         
         # self.trainer.model.task_sizes.append(self.alg._total_classes - self.alg._known_classes)
-        print(session)
         if session > 0:
             self.trainer.model.update_fc_before(self.alg._total_classes)
         # print("here")
@@ -221,7 +222,9 @@ class BeefIsoHook(AlgHook):
     def after_test(self, trainer) -> None:
         print("----------after_test----------")
         self.trainer._network_module_ptr.update_fc_after()
-        self.alg._known_classes = self.alg._total_classes
+        # self.alg._known_classes = self.alg._total_classes
+        # self.alg._total_classes += 20
+        # print(self.alg._known_classes, self.alg._total_classes)
 
 
 @ALGORITHMS.register
@@ -254,6 +257,8 @@ class BEEFISO(BaseAlg):
         """
         session = self.trainer.session
         self._network = trainer.model
+        for i in range(session):
+            self._network.task_sizes.append(20)
         self._network.train()
 
         data = data.cuda()
@@ -318,41 +323,19 @@ class BEEFISO(BaseAlg):
             known_class = self.args.CIL.base_classe
         else:
             known_class = self.args.CIL.base_classes + (session - 1) * self.args.CIL.way
-        total_class = self.args.CIL.base_classes + session * self.args.CIL.way
+        total_class = self.args.CIL.base_classes + session * self.args.CIL.way  # 40
         
         logits = self._network(data)["logits"]
-        logits_ = logits[:, :total_class]
+        print(logits.shape)
+        print(self._total_classes)
+        logits_ = logits[:, :self._total_classes]
+        
         # print(self.args)
         self.energy_weight = 0.01
         loss_en = self.energy_weight * self.get_energy_loss(data,labels,labels)
-        # print("here")
-        # print(logits_.shape)
-        # print(labels.shape)
         loss = F.cross_entropy(logits_, labels)
         loss = loss + loss_en
         
-        print(f"logits_.shape: {logits_.shape}")         # 应该是 [batch_size, num_classes]
-        print(f"labels.shape: {labels.shape}")           # 应该是 [batch_size]
-
-        # 打印前几个样本的值
-        print("logits_[0]:OK", logits_[0, :])                 # 第一个样本的logits
-        print("labels[:10]:", labels[:10])               # 前10个label值
-
-        # 检查 label 的最小值、最大值、unique 值
-        print(f"labels.min(): {labels.min().item()}")    # 最小值
-        print(f"labels.max(): {labels.max().item()}")    # 最大值
-        print(f"labels.unique(): {labels.unique()}")     # 全部出现的类别
-
-        # 检查 num_classes 和 batch size
-        num_classes = logits_.shape[1]
-        print(f"Expected label range: [0, {num_classes - 1}]")
-
-        # 安全检查
-        if labels.max() >= num_classes or labels.min() < 0:
-            print("❌ Label 越界！请检查上游 label 的来源！")
-            raise ValueError("Label values out of bounds for number of classes.")
-        else:
-            print("✅ Labels 在合法范围内。")
         acc = accuracy(logits_, labels)[0]
         per_acc = str(per_class_accuracy(logits_, labels))
 

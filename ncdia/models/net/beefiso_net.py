@@ -122,7 +122,8 @@ class BEEFISONet(nn.Module):
         return out
 
     def update_fc_before(self, nb_classes):
-        # print(self.task_sizes)
+        print(nb_classes)
+        print(self.task_sizes)
         new_task_size = nb_classes - sum(self.task_sizes)
         self.biases = nn.ModuleList([BiasLayer() for i in range(len(self.task_sizes))])
         # self.args['type'] = 'resnet18'
