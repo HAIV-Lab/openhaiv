@@ -103,7 +103,6 @@ class BEEFISONet(nn.Module):
             new_fc_weight = self.new_fc.weight
             new_fc_bias = self.new_fc.bias
             for i in range(len(self.task_sizes)-2,-1,-1):
-                print(self.biases[i])
                 new_fc_weight = torch.cat([*[self.biases[i](self.backward_prototypes.weight[i].unsqueeze(0),bias=False) for _ in range(self.task_sizes[i])],new_fc_weight],dim=0)
                 new_fc_bias = torch.cat([*[self.biases[i](self.backward_prototypes.bias[i].unsqueeze(0),bias=True) for _ in range(self.task_sizes[i])], new_fc_bias])
             fc_weight = torch.cat([fc_weight,new_fc_weight],dim=1)

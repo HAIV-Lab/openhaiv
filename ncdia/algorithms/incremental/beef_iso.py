@@ -143,6 +143,7 @@ class BeefIsoHook(AlgHook):
         return retained_datasets, all_remaining_datasets
             
     def before_train(self, trainer) -> None:
+
         session = self.trainer.session  # Access trainer's session
         self.alg = trainer.algorithm
         # if session == 0:
@@ -153,7 +154,10 @@ class BeefIsoHook(AlgHook):
         self.alg._known_classes = self.alg._total_classes - self.args.CIL.way
         # print("way", self.args.CIL.way)
         print("before_train")
+        self.trainer.model.task_sizes = [20 * session]
+        print(session)
         print(self.alg._known_classes, self.alg._total_classes)
+        print(self.trainer.model.biases)
         
         # print("session: ", session)
         # print("self.known_class: ", self.alg._known_classes)
@@ -188,6 +192,7 @@ class BeefIsoHook(AlgHook):
         # self.trainer.model.task_sizes.append(self.alg._total_classes - self.alg._known_classes)
         if session > 0:
             self.trainer.model.update_fc_before(self.alg._total_classes)
+            # self.trainer.model.task_sizes.append(self.alg._total_classes - self.alg._known_classes)
         # print("here")
         # print(self.trainer.model)
         self.trainer._network_module_ptr = self.trainer.model
@@ -257,8 +262,6 @@ class BEEFISO(BaseAlg):
         """
         session = self.trainer.session
         self._network = trainer.model
-        for i in range(session):
-            self._network.task_sizes.append(20)
         self._network.train()
 
         data = data.cuda()
