@@ -19,6 +19,7 @@ from ncdia.utils.metrics import accuracy, per_class_accuracy
 
 EPSILON = 1e-8
 
+
 @HOOKS.register
 class BeefIsoHook(AlgHook):
     def __init__(self, trainer) -> None:
@@ -154,7 +155,7 @@ class BeefIsoHook(AlgHook):
         self.alg._known_classes = self.alg._total_classes - self.args.CIL.way
         # print("way", self.args.CIL.way)
         print("before_train")
-        self.trainer.model.task_sizes = [20 * session]
+        self.trainer.model.task_sizes = [20 ]*session
         print(session)
         print(self.alg._known_classes, self.alg._total_classes)
         print(self.trainer.model.biases)
@@ -329,8 +330,10 @@ class BEEFISO(BaseAlg):
         total_class = self.args.CIL.base_classes + session * self.args.CIL.way  # 40
         
         logits = self._network(data)["logits"]
-        print(logits.shape)
-        print(self._total_classes)
+        # print(self._network)
+        # print(logits)
+        # print(logits.shape)
+        # print(self._total_classes)
         logits_ = logits[:, :self._total_classes]
         
         # print(self.args)
@@ -339,6 +342,12 @@ class BEEFISO(BaseAlg):
         loss = F.cross_entropy(logits_, labels)
         loss = loss + loss_en
         
+        # if session == 2:
+            # print(logits_.shape, labels.shape)
+            # print(labels)
+            # print("1")
+            # print(logits_)
+            # print("2")
         acc = accuracy(logits_, labels)[0]
         per_acc = str(per_class_accuracy(logits_, labels))
 

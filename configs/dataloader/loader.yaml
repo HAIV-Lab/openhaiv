@@ -1,17 +1,17 @@
 trainloader:
-  batch_size: 64
+  batch_size: 16
   num_workers: 8
   shuffle: True
   pin_memory: True
 
 valloader:
-  batch_size: 64
+  batch_size: 16
   num_workers: 8
   shuffle: False
   pin_memory: True
 
 testloader:
-  batch_size: 64
+  batch_size: 16
   num_workers: 8
   shuffle: False
   pin_memory: True

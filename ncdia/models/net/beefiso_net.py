@@ -98,7 +98,7 @@ class BEEFISONet(nn.Module):
             '''
             # print(self.task_sizes)
             new_task_size = self.task_sizes[-1]
-            print(self.feature_dim,self.out_dim,new_task_size)
+            # print(self.feature_dim,self.out_dim,new_task_size)
             fc_weight = torch.cat([self.old_fc.weight,torch.zeros((new_task_size,self.feature_dim-self.out_dim)).cuda()],dim=0)             
             new_fc_weight = self.new_fc.weight
             new_fc_bias = self.new_fc.bias
