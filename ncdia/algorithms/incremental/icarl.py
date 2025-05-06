@@ -95,7 +95,7 @@ class iCaRLHook(QuantifyHook):
         known_class =  max(args.CIL.base_classes + (session - 1) * args.CIL.way, 0)
         start_class = max(args.CIL.base_classes + (session - 2) * args.CIL.way, 0)
         _network = trainer.model
-        _feature_dim = 512
+        _feature_dim = 2048
         class_means = np.zeros((total_class, _feature_dim))
 
         

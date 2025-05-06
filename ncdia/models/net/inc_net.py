@@ -31,7 +31,7 @@ class BaseNet(nn.Module):
         self.args['pretrained'] = True
         self.args['num_classes'] = 1000
         if "type" not in network:
-            self.args['type'] = 'resnet18'
+            self.args['type'] = 'resnet50'
         self.convnet = MODELS.build(self.args)
         self.fc = None
 
@@ -96,7 +96,7 @@ class IncrementalNet(BaseNet):
         self.update_fc(num_classes)
 
     def update_fc(self, nb_classes):
-        fc = self.generate_fc(512, nb_classes)
+        fc = self.generate_fc(2048, nb_classes)
         if self.fc is not None:
             nb_output = self.fc.out_features
             weight = copy.deepcopy(self.fc.weight.data)

@@ -80,7 +80,7 @@ class LwF(BaseAlg):
         per_acc = str(per_class_accuracy(logits_, labels))
         loss = self.loss(logits_, labels)
         if session >=1:
-            kd_loss = self._KD_loss(logits_, old_logits[:, :known_class], 1.0)
+            kd_loss = self._KD_loss(logits_, old_logits[:, :known_class], 2.0)
             loss = loss + 3.0 * kd_loss
         loss.backward()
 

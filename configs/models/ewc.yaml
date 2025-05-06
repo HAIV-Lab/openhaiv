@@ -1,9 +1,9 @@
 model:
   type: IncrementalNet
   network:
-    type: resnet18
+    type: resnet50
     pretrained: True
-  base_classes: 9
+  base_classes: 94
   num_classes: 189
   att_classes: 86
   # pretrained: True

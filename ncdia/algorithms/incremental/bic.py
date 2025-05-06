@@ -147,36 +147,36 @@ class BiCHook(AlgHook):
         selected_indices = {i: [] for i in range(known_class, total_class)}
         selected_features = {i: [] for i in range(known_class, total_class)}
 
-        # 遍历 DataLoader 再次获取所有样本的特征和标签
-        all_features = []  # 存储所有特征
-        all_labels = []  # 存储所有标签
-        all_imgpaths = []  # 存储所有图像路径
+        
+        all_features = []  
+        all_labels = []  
+        all_imgpaths = []  
 
         for batch in tqdm(data_loader, desc="Gathering all samples"):
-            images = batch['data'].cuda()  # 移动到 GPU
-            labels = batch['label'].cpu().numpy()  # 确保标签在 CPU 上
-            imgpaths = batch['imgpath']  # 获取图像路径
+            images = batch['data'].cuda()  
+            labels = batch['label'].cpu().numpy()  
+            imgpaths = batch['imgpath']  
 
-            # 确保输入是连续的并转换为浮点型
+            
             images = images.contiguous().float()
 
-            # 获取当前批次的特征
+            
             with torch.no_grad():
                 features = _network.extract_vector(images).cpu().numpy()
 
-            # 将当前批次的特征和标签添加到列表中
+            
             all_features.append(features)
             all_labels.append(labels)
             all_imgpaths.append(imgpaths)
 
-        # 最后合并所有特征和标签
+        
         all_features = np.concatenate(all_features, axis=0)
         all_labels = np.concatenate(all_labels, axis=0)
         all_imgpaths = list(itertools.chain.from_iterable(all_imgpaths))
-        # all_imgpaths = np.concatenate(all_imgpaths, axis=0)  # 如果需要合并图像路径
+        # all_imgpaths = np.concatenate(all_imgpaths, axis=0)  
         # print(all_imgpaths)
 
-        # 计算每个类的最近 m 个样本
+
         for class_id in tqdm(range(start_class, known_class), desc="Selecting nearest samples"):
             class_indices = np.where(all_labels == class_id)[0]
             if len(class_indices) == 0:
@@ -184,10 +184,10 @@ class BiCHook(AlgHook):
 
             class_center = class_means[class_id]
 
-            # 计算到类中心的距离
+
             distances = np.linalg.norm(all_features[class_indices] - class_center, axis=1)
 
-            # 获取距离最小的 m 个样本的索引
+
             nearest_indices = np.argsort(distances)[:m]
             selected_indices[class_id] = class_indices[nearest_indices].tolist()
             selected_features[class_id] = all_features[class_indices][nearest_indices]
@@ -205,7 +205,6 @@ class BiCHook(AlgHook):
         retained_datasets.images = retained_images
         retained_datasets.labels = retained_labels
 
-        # 新类
         all_remaining_images = []
         all_remaining_labels = []
         for class_id in range(known_class, total_class):

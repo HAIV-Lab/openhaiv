@@ -4,7 +4,6 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from anaconda_project.internal.conda_api import result
 
 from ncdia.models.net.der_net import SimpleLinear
 

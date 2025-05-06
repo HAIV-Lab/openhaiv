@@ -9,43 +9,43 @@ trainer:
     s0:
       _base_: configs/dataloader/BM200/s0.yaml
       trainer:
-        max_epochs: 60
+        max_epochs: 100
     s1:
       _base_: configs/dataloader/BM200/s1.yaml
       trainer:
         max_epochs: 60
-    s2:
-      _base_: configs/dataloader/BM200/s2.yaml
-      trainer:
-        max_epochs: 60
-    s3:
-      _base_: configs/dataloader/BM200/s3.yaml
-      trainer:
-        max_epochs: 60
-    s4:
-      _base_: configs/dataloader/BM200/s4.yaml
-      trainer:
-        max_epochs: 60
-    s5:
-      _base_: configs/dataloader/BM200/s5.yaml
-      trainer:
-        max_epochs: 60
-    s6:
-      _base_: configs/dataloader/BM200/s6.yaml
-      trainer:
-        max_epochs: 60
-    s7:
-      _base_: configs/dataloader/BM200/s7.yaml
-      trainer:
-        max_epochs: 60
-    s8:
-      _base_: configs/dataloader/BM200/s8.yaml
-      trainer:
-        max_epochs: 60
-    s9:
-      _base_: configs/dataloader/BM200/s9.yaml
-      trainer:
-        max_epochs: 60
+    # s2:
+    #   _base_: configs/dataloader/BM200/s2.yaml
+    #   trainer:
+    #     max_epochs: 60
+    # s3:
+    #   _base_: configs/dataloader/BM200/s3.yaml
+    #   trainer:
+    #     max_epochs: 60
+    # s4:
+    #   _base_: configs/dataloader/BM200/s4.yaml
+    #   trainer:
+    #     max_epochs: 60
+    # s5:
+    #   _base_: configs/dataloader/BM200/s5.yaml
+    #   trainer:
+    #     max_epochs: 60
+    # s6:
+    #   _base_: configs/dataloader/BM200/s6.yaml
+    #   trainer:
+    #     max_epochs: 60
+    # s7:
+    #   _base_: configs/dataloader/BM200/s7.yaml
+    #   trainer:
+    #     max_epochs: 60
+    # s8:
+    #   _base_: configs/dataloader/BM200/s8.yaml
+    #   trainer:
+    #     max_epochs: 60
+    # s9:
+    #   _base_: configs/dataloader/BM200/s9.yaml
+    #   trainer:
+    #     max_epochs: 60
 algorithm:
   type: ewc
 
@@ -58,7 +58,8 @@ optimizer:
   weight_decay: 0.0001
 
 scheduler:
-  type: Constant
+  type: cosine
+  T_max: 100 
 
 seed: 0
 device: cuda

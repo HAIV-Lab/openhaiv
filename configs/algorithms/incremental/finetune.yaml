@@ -20,7 +20,7 @@ CIL:
   incft: True
   not_data_init: False
   base_classes: 94
-  num_classes: 94
-  way: 20
+  num_classes: 189
+  way: 95
   shot: 100
-  sessions: 1
+  sessions: 2
