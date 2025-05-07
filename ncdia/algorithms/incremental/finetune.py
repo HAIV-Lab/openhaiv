@@ -1,3 +1,4 @@
+import os
 import torch
 import numpy as np
 
@@ -5,7 +6,22 @@ from ncdia.utils import ALGORITHMS
 from ncdia.algorithms.base import BaseAlg
 from ncdia.utils.losses import AngularPenaltySMLoss
 from ncdia.utils.metrics import accuracy, per_class_accuracy
-from .hooks import FinetuneHook
+from ncdia.utils import HOOKS
+from ncdia.trainers.hooks import AlgHook
+from ncdia.trainers.hooks import QuantifyHook
+
+
+
+@HOOKS.register
+class FinetuneHook(QuantifyHook):
+    def __init__(self) -> None:
+        super().__init__()
+    
+    def after_train(self, trainer) -> None:
+        algorithm = trainer.algorithm
+        filename = 'task_' + str(trainer.session) + '.pth'
+        trainer.save_ckpt(os.path.join(trainer.work_dir, filename))
+
 
 
 @ALGORITHMS.register
@@ -20,7 +36,7 @@ class Finetune(BaseAlg):
         self.transform = None
         self.loss = torch.nn.CrossEntropyLoss().cuda()
         # self.loss = AngularPenaltySMLoss(loss_type='cosface').cuda()
-        self.hook = LwFHook()
+        self.hook = FinetuneHook()
         trainer.register_hook(self.hook)
         session = trainer.session
 
@@ -94,8 +110,8 @@ class Finetune(BaseAlg):
         
         return ret
 
-        def test_step(self, trainer, data, label, *args, **kwargs):
-            return self.val_step(trainer, data, label, *args, **kwargs)
-        
-        def get_net(self):
-            return self._network
+    def test_step(self, trainer, data, label, *args, **kwargs):
+        return self.val_step(trainer, data, label, *args, **kwargs)
+    
+    def get_net(self):
+        return self._network

@@ -18,16 +18,31 @@ class BM200(BaseDataset):
         transform (list | str): transform to apply on the dataset.
             If str, it should be one of 'train', 'test' for predefined transforms.
     """
+    # train_transform = transforms.Compose([
+    #     transforms.Resize(256, interpolation=transforms.InterpolationMode.BILINEAR),
+    #     transforms.RandomResizedCrop(224),
+    #     transforms.RandomHorizontalFlip(),
+    #     transforms.ToTensor(),
+    #     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    # ])
+
+    # test_transform = transforms.Compose([
+    #     transforms.Resize(256, interpolation=transforms.InterpolationMode.BILINEAR),
+    #     transforms.CenterCrop(224),
+    #     transforms.ToTensor(),
+    #     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    # ])
     train_transform = transforms.Compose([
-        transforms.Resize(256, interpolation=transforms.InterpolationMode.BILINEAR),
-        transforms.RandomResizedCrop(224),
-        transforms.RandomHorizontalFlip(),
+        transforms.Resize((256, 256), interpolation=transforms.InterpolationMode.BILINEAR),
+        transforms.CenterCrop(224),
+        transforms.RandomHorizontalFlip(0.5),
+        transforms.RandomCrop(224, padding=4),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
     test_transform = transforms.Compose([
-        transforms.Resize(256, interpolation=transforms.InterpolationMode.BILINEAR),
+        transforms.Resize((256,256), interpolation=transforms.InterpolationMode.BILINEAR),
         transforms.CenterCrop(224),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),

@@ -256,12 +256,25 @@ class ResNet(nn.Module):
         self.features = x[:]
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
+        self.out_features = x[:]
         x = self.fc(x)
 
         return x
 
     def forward(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)
+    
+    def get_features(self, data=None):
+        """Get the features extracted from data.
+        Args:
+            data (torch.Tensor, optional): Input data.
+                If None, return the features from the last forward pass.
+        Returns:
+            torch.Tensor: the features
+        """
+        if data is not None:
+            self._forward_impl(data)
+        return self.out_features
 
 
 # 定义根据参数加载对应的resnet模型方法

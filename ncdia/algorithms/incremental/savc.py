@@ -1,3 +1,5 @@
+import os
+from tqdm import tqdm
 import torch
 import torch.nn.functional as F
 
@@ -6,7 +8,77 @@ from ncdia.algorithms.base import BaseAlg
 from ncdia.utils.losses import AngularPenaltySMLoss
 from ncdia.dataloader.augmentations import fantasy
 from ncdia.utils.metrics import accuracy, per_class_accuracy
-from .hooks import SAVCHook
+from ncdia.utils import HOOKS
+from ncdia.trainers.hooks import AlgHook
+from ncdia.models.net.alice_net import AliceNET
+from ncdia.models.net.inc_net import IncrementalNet
+
+@HOOKS.register
+class SAVCHook(AlgHook):
+    def __init__(self) -> None:
+        super().__init__()
+    
+    def after_train(self, trainer) -> None:
+        algorithm = trainer.algorithm
+        algorithm.replace_fc()
+
+        filename = 'task_' + str(trainer.session) + '.pth'
+        trainer.save_ckpt(os.path.join(trainer.work_dir, filename))
+        if trainer.session == 0:
+            self.save_train_static(trainer)
+    
+    def save_train_static(self, trainer):
+        all_class = trainer.train_loader.dataset.num_classes
+        features, logits, labels, att_logits = [], [], [], []
+        tbar = tqdm(trainer.train_loader, dynamic_ncols=True, disable=True)
+        for batch in tbar:
+            data = batch['data'].to(trainer.device)
+            label = batch['label'].to(trainer.device)
+            joint_preds, joint_preds_att = trainer.model(data)
+            joint_preds = joint_preds[:, :all_class]
+            feats = trainer.model.get_features(data)
+
+            att_logits.append(joint_preds_att.clone().detach().cpu())
+            features.append(feats.clone().detach().cpu())
+            logits.append(joint_preds.clone().detach().cpu())
+            labels.append(label.clone().detach().cpu())
+
+        features = torch.cat(features, dim=0)
+        logits = torch.cat(logits, dim=0)
+        labels = torch.cat(labels, dim=0).to(torch.int)
+        att_logits = torch.cat(att_logits, dim=0)
+
+        classes = torch.unique(labels)
+        prototype_att = []
+        prototype_cls = []
+        for cls in classes:
+            cls_indices = torch.where(labels == cls)
+            cls_preds = logits[cls_indices]
+            att_predictions = att_logits[cls_indices]
+            prototype_cls.append(torch.mean(cls_preds, dim=0))
+            prototype_att.append(torch.mean(att_predictions, dim=0))
+
+        att_logits = self.get_test_logits(trainer)
+        filename = 'train_static.pt'
+        torch.save({'train_features': features, 'train_logits': logits, 'att_logits': att_logits, 'prototype': torch.stack(prototype_cls), 'prototype_att': torch.stack(prototype_att)}, os.path.join(trainer.work_dir, filename))
+    
+    def before_train(self, trainer) -> None:
+        trainer.train_loader.dataset.multi_train = True\
+    
+    def get_test_logits(self, trainer) -> None:
+        all_class = trainer.train_loader.dataset.num_classes
+        att_logits = []
+        tbar = tqdm(trainer.test_loader, dynamic_ncols=True, disable=True)
+        for batch in tbar:
+            data = batch['data'].to(trainer.device)
+            label = batch['label'].to(trainer.device)
+            joint_preds, joint_preds_att = trainer.model(data)
+            joint_preds = joint_preds[:, :all_class]
+
+            att_logits.append(joint_preds_att.clone().detach().cpu())
+        
+        att_logits = torch.cat(att_logits, dim=0)
+        return att_logits
 
 
 @ALGORITHMS.register
@@ -62,8 +134,8 @@ class SAVC(BaseAlg):
             data_1 = data.to(device)
             data_2 = data.to(device)
             label = label.to(device)
-            attribute = attribute
-            attribute = attribute.cuda(non_blocking=True)
+            # attribute = attribute
+            # attribute = attribute.cuda(non_blocking=True)
 
             # if len(self.config.CIL.num_crops) > 1:
             #         data_small = data[self.config.CIL.num_crops[0]+1].unsqueeze(1)
@@ -81,9 +153,9 @@ class SAVC(BaseAlg):
 
             m = data_query.size()[0] // b
             joint_labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
-            att_b, att_c = attribute.shape
-            joint_attribute = attribute.unsqueeze(1).repeat(1, 2, 1)
-            joint_attribute = joint_attribute.reshape(2 * att_b, att_c)
+            # att_b, att_c = attribute.shape
+            # joint_attribute = attribute.unsqueeze(1).repeat(1, 2, 1)
+            # joint_attribute = joint_attribute.reshape(2 * att_b, att_c)
 
             # ------  forward  ------- #
             joint_preds, joint_preds_att = self._network(im_cla=data_classify)  
@@ -91,9 +163,11 @@ class SAVC(BaseAlg):
             
             tmp_preds_att = joint_preds_att.sigmoid()
             bceloss = torch.nn.BCELoss()
-            att_loss = bceloss(tmp_preds_att, joint_attribute.float())
+            # att_loss = bceloss(tmp_preds_att, joint_attribute.float())
             cls_loss = F.cross_entropy(joint_preds, joint_labels)
-            joint_loss = 5.0 * att_loss + cls_loss
+            # joint_loss = 5.0 * att_loss + cls_loss
+
+            joint_loss = cls_loss
 
             agg_preds = 0
             for i in range(m):
@@ -162,8 +236,9 @@ class SAVC(BaseAlg):
             agg_preds = 0
             agg_feat = feat.view(-1, m, feat.size(1)).mean(dim=1)
             for j in range(m):
-                agg_preds = agg_preds + joint_preds[j::m, j::m] / m
-            
+                agg_preds = agg_preds + joint_preds[j::m, j::m] / m  
+            # print(agg_preds)
+            # print(label)
             # loss = F.cross_entropy(joint_preds, label)
             
             feature_list.append(agg_feat)

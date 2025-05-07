@@ -230,7 +230,8 @@ class BaseTrainer(object):
         if not self._train_loader:
             raise KeyError("Trainloader is not defined.")
         if isinstance(self._train_loader, dict):
-            self._train_loader = build_dataloader(self._train_loader)
+            self._train_loader, self._train_dataset_kwargs, \
+                    self._train_loader_kwargs = build_dataloader(self._train_loader)
         return self._train_loader
     
     @property
@@ -239,7 +240,8 @@ class BaseTrainer(object):
         if not self._val_loader:
             raise KeyError("Valloader is not defined.")
         if isinstance(self._val_loader, dict):
-            self._val_loader = build_dataloader(self._val_loader)
+            self._val_loader, self._val_dataset_kwargs, \
+                self._val_loader_kwargs = build_dataloader(self._val_loader)
         return self._val_loader
     
     @property
@@ -248,7 +250,8 @@ class BaseTrainer(object):
         if not self._test_loader:
             raise KeyError("Testloader is not defined.")
         if isinstance(self._test_loader, dict):
-            self._test_loader = build_dataloader(self._test_loader)
+            self._test_loader, self._test_dataset_kwargs, \
+                self._test_loader_kwargs = build_dataloader(self._test_loader)
         return self._test_loader
     
     @property
@@ -322,6 +325,16 @@ class BaseTrainer(object):
             self._device = auto_device(_device)
         
         return self._device
+    
+    def modify_attr(self, key: str, value) -> None:
+        """Modify hidden attribute (f'_{key}') for trainer.
+
+        Args:
+            key (str): Attribute name.
+            value: New value for the attribute.
+        """
+        assert ("_" + key) in self.__dict__, f"Attribute _{key} not found."
+        setattr(self, "_" + key, value)
     
     def train_step(self, batch, **kwargs):
         """Training step. This method should be implemented in subclasses.
@@ -581,30 +594,30 @@ class BaseTrainer(object):
         +----------------------+-------------------------+
         | Hooks                | Priority                |
         +======================+=========================+
-        | RuntimeInfoHook      | VERY_HIGH (10)          |
-        +----------------------+-------------------------+
-        | IterTimerHook        | NORMAL (50)             |
-        +----------------------+-------------------------+
-        | DistSamplerSeedHook  | NORMAL (50)             |
-        +----------------------+-------------------------+
         | LoggerHook           | BELOW_NORMAL (60)       |
         +----------------------+-------------------------+
-        | ParamSchedulerHook   | LOW (70)                |
+        | ModelHook            | HIGHEST (0)             |
         +----------------------+-------------------------+
-        | CheckpointHook       | VERY_LOW (90)           |
+        | AlgHook              | NORMAL (50)             |
+        +----------------------+-------------------------+
+        | OptimizerHook        | NORMAL (50)             |
+        +----------------------+-------------------------+
+        | SchedulerHook        | NORMAL (50)             |
+        +----------------------+-------------------------+
+        | MetricHook           | NORMAL (50)             |
         +----------------------+-------------------------+
         ```
 
         If ``hooks`` is None, above hooks will be registered by
         default::
 
-            default_hooks = dict(
-                runtime_info=dict(type='RuntimeInfoHook'),
-                timer=dict(type='IterTimerHook'),
-                sampler_seed=dict(type='DistSamplerSeedHook'),
-                logger=dict(type='LoggerHook'),
-                param_scheduler=dict(type='ParamSchedulerHook'),
-                checkpoint=dict(type='CheckpointHook', interval=1),
+            default_hooks: dict = dict(
+                logger=dict(type='LoggerHook', interval=self.cfg.trainer.interval or 25),
+                model=dict(type='ModelHook'),
+                alg=dict(type='AlgHook'),
+                optimizer = dict(type='OptimizerHook'),
+                scheduler = dict(type='SchedulerHook'),
+                metric = dict(type='MetricHook'),
             )
 
         If not None, ``hooks`` will be merged into ``default_hooks``.
@@ -613,22 +626,16 @@ class BaseTrainer(object):
 
             hooks = dict(timer=None)
 
-        The final registered default hooks will be :obj:`RuntimeInfoHook`,
-        :obj:`DistSamplerSeedHook`, :obj:`LoggerHook`,
-        :obj:`ParamSchedulerHook` and :obj:`CheckpointHook`.
+        The final registered default hooks will be :obj:`LoggerHook`,
+        :obj:`ModelHook`, :obj:`AlgHook`,
+        :obj:`OptimizerHook`, :obj:`SchedulerHook` and :obj:`MetricHook`.
 
         Args:
             hooks (dict[str, Hook or dict], optional): Default hooks or configs
                 to be registered.
         """
         default_hooks: dict = dict(
-            # runtime_info=dict(type='RuntimeInfoHook'),
-            # timer=dict(type='IterTimerHook'),
-            # sampler_seed=dict(type='DistSamplerSeedHook'),
-            # param_scheduler=dict(type='ParamSchedulerHook'),
-            # checkpoint=dict(type='CheckpointHook', interval=1),
-
-            logger=dict(type='LoggerHook'),
+            logger=dict(type='LoggerHook', interval=self.cfg.trainer.interval or 25),
             model=dict(type='ModelHook'),
             alg=dict(type='AlgHook'),
             optimizer = dict(type='OptimizerHook'),

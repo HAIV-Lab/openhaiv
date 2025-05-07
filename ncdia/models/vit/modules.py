@@ -284,10 +284,23 @@ class VisionTransformer(nn.Module):
 
         # Classifier "token" as used by standard language architectures
         x = x[:, 0]
+        self.out_features = x[:]
 
         x = self.heads(x)
 
         return x
+
+    def get_features(self, data=None):
+        """Get the features extracted from data.
+        Args:
+            data (torch.Tensor, optional): Input data.
+                If None, return the features from the last forward pass.
+        Returns:
+            torch.Tensor: the features
+        """
+        if data is not None:
+            self.forward(data)
+        return self.out_features
 
 
 def _vision_transformer(

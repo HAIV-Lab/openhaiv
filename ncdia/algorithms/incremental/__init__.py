@@ -7,3 +7,13 @@ from .ewc import EWC
 from .wa import WA
 from .finetune import Finetune
 from .icarl import iCaRL
+from .bic import BiC
+from .joint import Joint
+from .coil import COIL
+from .ssre import SSRE
+from .fetril import FeTrIL
+from .der import DER
+from .memo import MEMO
+from .gem import GEM
+from .pa2s import PASS
+from .foster import Foster

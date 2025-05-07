@@ -8,7 +8,8 @@ from ncdia.utils import MODELS, Configs
 
 @MODELS.register
 class AliceNET(nn.Module):
-    """AliceNET for incremental learning.
+    """
+    AliceNET for incremental learning.
 
     Args:
         network (Configs): Network configuration.
@@ -84,8 +85,9 @@ class AliceNET(nn.Module):
         x = x.squeeze(-1).squeeze(-1)
         return x
     
-    def get_features(self, x):
-        self.encoder(x)[0]
+    def get_features(self, data=None):
+        if data is not None:
+            self.encoder(data)[0]
         x = self.encoder.features
         x = F.adaptive_avg_pool2d(x, 1)
         x = x.squeeze(-1).squeeze(-1)

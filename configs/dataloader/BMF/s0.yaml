@@ -1,0 +1,28 @@
+_base_: configs/dataloader/loader.yaml
+
+trainloader:
+  dataset:
+    _replace_: True
+    type: BMF
+    root: /data/datasets/CIL/BMF/
+    split: train
+    subset_labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]
+    transform: train
+
+valloader:
+  dataset:
+    _replace_: True
+    type: BMF
+    root: /data/datasets/CIL/BMF/
+    split: test
+    subset_labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]
+    transform: test
+
+testloader:
+  dataset:
+    _replace_: True
+    type: BMF
+    root: /data/datasets/CIL/BMF/
+    split: test
+    subset_labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]
+    transform: test
