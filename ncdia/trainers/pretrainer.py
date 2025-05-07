@@ -30,6 +30,7 @@ class PreTrainer(BaseTrainer):
         Returns:
             results (dict): Training result.
         """
+
         data, label, attribute, imgpath = self.batch_parser(batch)
         return self.algorithm.train_step(self, data, label, attribute, imgpath)
 

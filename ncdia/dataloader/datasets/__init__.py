@@ -8,5 +8,5 @@ from .caltech101 import Caltech101
 from .cub200 import CUB200
 from .BM200 import BM200
 from .BMF import BMF
-
+from .BMF_OOD import BMF_OOD
 

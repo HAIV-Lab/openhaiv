@@ -10,6 +10,7 @@ from torch.nn.parameter import Parameter
 from ncdia.utils import MODELS, Configs
 
 
+@MODELS.register
 class NormedLinear(nn.Module):
     def __init__(self, in_features, out_features):
         super(NormedLinear, self).__init__()

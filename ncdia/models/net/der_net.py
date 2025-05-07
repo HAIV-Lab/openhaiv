@@ -103,10 +103,16 @@ class DERNET(nn.Module):
         # features = [convnet(x)["features"] for convnet in self.convnets]
         features = torch.cat(features, 1)
 
+<<<<<<< HEAD
         logits = self.fc(features)  # {logics: self.fc(features)}
         out = {"logits": logits}
 
         aux_logits = self.aux_fc(features[:, -self.out_dim :])
+=======
+        out = self.fc(features)  # {logics: self.fc(features)}
+
+        aux_logits = self.aux_fc(features[:, -self.out_dim :])["logits"]
+>>>>>>> origin/ood_xz
 
         out.update({"aux_logits": aux_logits, "features": features})
         return out

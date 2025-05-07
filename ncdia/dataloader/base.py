@@ -28,7 +28,9 @@ def build_dataloader(kwargs):
     dataset_cfg = dict(kwargs.pop('dataset'))
     _dataset_kwargs = deepcopy(dataset_cfg)
 
-    dataset_cfg['transform'] = build_transform(dataset_cfg['transform'])
+    if dataset_cfg['transform']:
+        dataset_cfg['transform'] = build_transform(dataset_cfg['transform'])
+
     dataset = DATASETS.build(dataset_cfg)
 
     loader = DataLoader(dataset, **kwargs)

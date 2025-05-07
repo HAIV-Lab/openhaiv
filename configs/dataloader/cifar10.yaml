@@ -3,7 +3,7 @@ _base_: configs/dataloader/loader.yaml
 trainloader:
   dataset:
     type: CIFAR10
-    root: /data/datasets/cifar10/
+    root: /data/zqh/xz/data/cifar10/
     train: True
     download: True
     transform:
@@ -20,7 +20,7 @@ trainloader:
 valloader:
   dataset:
     type: CIFAR10
-    root: /data/datasets/cifar10/
+    root: /data/zqh/xz/data/cifar10/
     train: False
     download: True
     transform:
@@ -32,7 +32,7 @@ valloader:
 testloader:
   dataset:
     type: CIFAR10
-    root: /data/datasets/cifar10/
+    root: /data/zqh/xz/data/cifar10/
     train: False
     download: True
     transform:
@@ -44,7 +44,7 @@ testloader:
 evalloader:
   dataset:
     type: CIFAR10
-    root: /data/datasets/cifar10/
+    root: /data/zqh/xz/data/cifar100/
     train: False
     download: True
     transform:

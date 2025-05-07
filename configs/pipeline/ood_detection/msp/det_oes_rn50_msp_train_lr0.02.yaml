@@ -1,0 +1,37 @@
+_base_: [
+  configs/dataloader/OES/oesfull.yaml,
+  configs/algorithms/ood_detection/ood.yaml,
+]
+
+trainer:
+  type: DetTrainer
+  max_epochs: 100
+
+algorithm:
+  type: MSP
+
+model:
+  type: ResNet_Base
+  network:
+    type: ResNet50
+    num_classes: 94
+  checkpoint: 
+  loss: CrossEntropyLoss
+  
+criterion:
+  type: CrossEntropyLoss
+
+optimizer:
+  type: SGD
+  lr: 0.02
+  weight_decay: 0.0001
+
+scheduler:
+  type: cosine
+  T_max: 100  
+
+seed: 0
+device: cuda
+CIL: False
+exp_name: exp
+work_dir: ./output/ood/det_oes_rn50_msp_lr0.02

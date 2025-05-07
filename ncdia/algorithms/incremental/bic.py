@@ -91,7 +91,6 @@ class BiCHook(AlgHook):
     def after_val(self, trainer) -> None:
         pass
 
-
     def before_test(self, trainer) -> None:
         _ = trainer.test_loader
         _hist_testset = MergedDataset([trainer.hist_testset], replace_transform=True)
@@ -124,7 +123,6 @@ class BiCHook(AlgHook):
         data_loader = DataLoader(trainset, **trainer._train_loader_kwargs)
         class_sums = np.zeros((total_class, _feature_dim))
         class_counts = np.zeros(total_class)
-
 
         for i, batch in enumerate(tqdm(data_loader, desc="Calculating class means")):
             images = batch['data']

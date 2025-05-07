@@ -9,3 +9,6 @@ from .adaptive_net import AdaptiveNet
 from .dml_net import DMLNet
 from .beefiso_net import BEEFISONet
 from .foster_net import FOSTERNet
+from .odin_net import ODINNet
+from .msp_net import ResNet_Base
+from .godin_net import GodinNet

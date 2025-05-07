@@ -7,10 +7,12 @@ from torch.utils.data import DataLoader
 from ncdia.utils import TRAINERS
 from ncdia.dataloader import build_dataloader
 from ncdia.algorithms.ood import AutoOOD
+from ncdia.dataloader.datasets.BMF_OOD import BMF_OOD 
 from .pretrainer import PreTrainer
-from .hooks import QuantifyHook
+from .hooks import QuantifyHook,QuantifyHook_OOD
 
-
+from torch.utils.data import DataLoader
+from torchvision import transforms
 @TRAINERS.register
 class DetTrainer(PreTrainer):
     """Pipeline for OOD detection, 
@@ -43,11 +45,20 @@ class DetTrainer(PreTrainer):
             verbose: bool = False,
             **kwargs
     ) -> None:
-        self.quantify_hook = QuantifyHook(
-            gather_train_stats=gather_train_stats,
-            gather_test_stats=gather_test_stats,
-            verbose=verbose
-        )
+
+        if cfg.CIL == False:
+            self.quantify_hook = QuantifyHook_OOD(
+                gather_train_stats=gather_train_stats,
+                gather_test_stats=gather_test_stats,
+                verbose=verbose
+            )
+        else:
+            self.quantify_hook = QuantifyHook(
+                gather_train_stats=gather_train_stats,
+                gather_test_stats=gather_test_stats,
+                verbose=verbose
+            )
+        
         super(DetTrainer, self).__init__(
             cfg=cfg,
             model=model,
@@ -56,6 +67,8 @@ class DetTrainer(PreTrainer):
             **kwargs
         )
 
+        self.best_acc = -1
+        self.eval_loader_tmp = eval_loader
         self._eval_loader = {}
         if 'evalloader' in self._cfg:
             self._eval_loader.update(dict(self._cfg['evalloader']))
@@ -70,11 +83,13 @@ class DetTrainer(PreTrainer):
     @property
     def eval_loader(self) -> DataLoader:
         """DataLoader: DataLoader for OOD evaluation."""
-        if not self._eval_loader:
-            return None
-        if isinstance(self._eval_loader, dict):
-            self._eval_loader, self._eval_dataset_kwargs, \
-                self._eval_loader_kwargs = build_dataloader(self._eval_loader)
+        self._eval_loader = {}
+        if 'evalloader' in self._cfg:
+            self._eval_loader.update(dict(self._cfg['evalloader']))
+        if isinstance(self.eval_loader_tmp, dict):
+            self._eval_loader.update(self.eval_loader_tmp)
+        elif isinstance(self.eval_loader_tmp, DataLoader):
+            self._eval_loader = self.eval_loader_tmp
         return self._eval_loader
     
     @property
@@ -110,6 +125,30 @@ class DetTrainer(PreTrainer):
 
         return self.model
 
+    def val(self):
+        """Validation process."""
+        self.call_hook('before_val')
+        self.call_hook('before_val_epoch')
+
+        for batch_idx, batch in enumerate(self.val_loader):
+            self.iter = batch_idx
+            self.call_hook('before_val_iter',
+                           batch_idx=batch_idx, data_batch=batch)
+
+            outputs = self.val_step(batch)
+
+            self.call_hook('after_val_iter',
+                           batch_idx=batch_idx, data_batch=batch, outputs=outputs)
+
+        self.call_hook('after_val_epoch', metrics=self.metrics)
+        self.call_hook('after_val')
+        if float(self.metrics['acc'].avg) > self.best_acc:
+            self.best_acc = float(self.metrics['acc'].avg)
+            print('save_best_epoch......')
+            self.save_ckpt(os.path.join(self.work_dir,'best.pth'))
+
+
+
     def evaluate(
             self,
             metrics: list = ['msp'],
@@ -129,33 +168,96 @@ class DetTrainer(PreTrainer):
             dict: OOD scores, keys are the names of the OOD detection methods,
                 values are the OOD scores and search threshold.
         """
-        train_stats = self.train_stats
-        test_stats = self.test_stats
+        if self.cfg.CIL:
+            train_stats = self.train_stats
+            test_stats = self.test_stats
 
-        eval_stats = self.quantify_hook.gather_stats(
-            model=self.model,
-            dataloader=evalloader if evalloader else self.eval_loader,
-            device=self.device,
-            verbose=self.verbose
-        )
+            eval_stats = self.quantify_hook.gather_stats(
+                model=self.model,
+                dataloader=evalloader if evalloader else self.eval_loader,
+                device=self.device,
+                verbose=self.verbose
+            )
 
-        scores = AutoOOD().eval(
-            metrics=metrics,
-            prototype_cls=train_stats['prototypes'],
-            fc_weight=self.model.fc.weight.clone().detach().cpu(),
-            train_feats=train_stats['features'],
-            train_logits=train_stats['logits'],
-            id_feats=test_stats['features'],
-            id_logits=test_stats['logits'],
-            id_labels=test_stats['labels'],
-            ood_feats=eval_stats['features'],
-            ood_logits=eval_stats['logits'],
-            ood_labels=eval_stats['labels'],
-            tpr_th=tpr_th,
-            prec_th=prec_th
-        )
+            scores = self.algorithm.eval(
+                id_gt=test_stats['labels'],
+                id_logits=test_stats['logits'],
+                id_feat=test_stats['features'],
+                ood_logits=eval_stats['logits'],
+                ood_feat=eval_stats['features'],
+                train_logits=train_stats['logits'],
+                train_feat=train_stats['features'],
+                tpr_th=tpr_th,
+                prec_th=prec_th,
+                hyparameters=self.algorithm.hyparameters if hasattr(self.algorithm, 'hyparameters') else None
+            )
 
-        return scores
+            return scores
+
+
+        else:
+            train_stats = self.train_stats
+            if train_stats != None:
+                train_logits = train_stats['logits']
+                train_feat = train_stats['features']
+                train_gt = train_stats['labels']
+            else:
+                train_logits = ''
+                train_feat = ''
+                train_gt = ''
+            test_stats = self.test_stats
+            hyparameters = self.algorithm.hyparameters if hasattr(self.algorithm, 'hyparameters') else None
+            self.model.eval()
+            for setting_name,id_setting in self._eval_loader.items():
+                print('*************evaluate {} setting*************'.format(setting_name))
+
+                for dataset_name,data_cfg in id_setting.items():
+                    evalset = BMF_OOD(
+                    root = data_cfg['root'],
+                    split = data_cfg['split'],
+                    subset_labels = None,
+                    subset_file = None,
+                    transform = None)
+                    evalloader = DataLoader(
+                        evalset,
+                        batch_size=32,
+                        shuffle=False,
+                        num_workers=8,
+                    )
+                    if dataset_name == 'dataset':
+                        test_stats = self.quantify_hook.gather_stats(
+                            model=self.model,
+                            dataloader=evalloader,
+                            device=self.device,
+                            id_acc = True,
+                            verbose=self.verbose
+                        )
+                    else:
+                        print('*************evaluate {} Datasets*************'.format(dataset_name))
+                        eval_stats = self.quantify_hook.gather_stats(
+                            model=self.model,
+                            dataloader=evalloader,
+                            device=self.device,
+                            id_acc=False,
+                            verbose=self.verbose
+                        )
+                        scores = self.algorithm.eval(
+                            id_gt=test_stats['labels'],
+                            id_logits=test_stats['logits'],
+                            id_feat=test_stats['features'],
+                            ood_logits=eval_stats['logits'],
+                            ood_feat=eval_stats['features'],
+                            train_logits=train_logits,
+                            train_feat=train_feat,
+                            train_gt=train_gt,
+                            tpr_th=tpr_th,
+                            prec_th=prec_th,
+                            hyparameters=hyparameters
+                        )
+                        print('FPR95:',scores[2]*100)
+                        print('AUROC:',scores[3]*100)
+
+            exit(0)
         
     def detect(
             self,

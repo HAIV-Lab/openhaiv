@@ -1,0 +1,151 @@
+_base_: configs/dataloader/loader.yaml
+
+trainloader:
+  dataset:
+    type: BMF_OOD
+    root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/ID/train/
+    split: train
+    download: True
+    transform:
+
+
+valloader:
+  dataset:
+    type: BMF_OOD
+    root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/ID/test/
+    split: val
+    download: True
+    transform:
+
+testloader:
+  dataset:
+    type: BMF_OOD
+    root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/ID/test/
+    split: test
+    download: True
+    transform:
+
+evalloader:  # used for eval ood
+  Standard_ID:
+    dataset: # ID name:dataset, split:test
+      type: BMF_OOD
+      root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/ID/test/
+      split: test
+      download: True
+      transform:
+
+    ood_easy:  # OOD name:XXXX, split:OOD     
+      type: BMF_OOD
+      root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/OOD_Easy/test/
+      split: ood
+      download: True
+      transform:
+ 
+    ood_hard:  
+        type: BMF_OOD 
+        root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/OOD_Hard/test/
+        split: ood
+        transform:  
+
+    SUN:  
+        type: BMF_OOD 
+        root: /data/zqh/xz/data/SUN/
+        split: ood
+        transform:  
+
+  CS_ID_Resampling_bias:
+    dataset:
+      type: BMF_OOD
+      root: /new_data/datasets/OES/sub-dataset2-RGB-domain2/ID/test/
+      split: test
+      download: True
+      transform:
+
+    bias_ood:        
+      type: BMF_OOD
+      root: /new_data/datasets/OES/sub-dataset2-RGB-domain2/OOD/test/
+      split: ood
+      download: True
+      transform:
+
+    ood_easy:        
+      type: BMF_OOD
+      root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/OOD_Easy/test/
+      split: ood
+      download: True
+      transform:
+
+    ood_hard:  
+        type: BMF_OOD 
+        root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/OOD_Hard/test/
+        split: ood
+        transform:  
+
+    SUN:  
+        type: BMF_OOD 
+        root: /data/zqh/xz/data/SUN/
+        split: ood
+        transform: 
+         
+  Aerial_modal_bias:
+    dataset:
+      type: BMF_OOD
+      root: /new_data/datasets/OES/sub-dataset3-Aerial-domain3/ID/test/
+      split: test
+      download: True
+      transform:
+
+    bias_ood:        
+      type: BMF_OOD
+      root: /new_data/datasets/OES/sub-dataset3-Aerial-domain3/OOD/test/
+      split: ood
+      download: True
+      transform:
+
+    SUN:  
+        type: BMF_OOD 
+        root: /data/zqh/xz/data/SUN/
+        split: ood
+        transform:   
+        
+  MSRGB_modal_bias:
+    dataset:
+      type: BMF_OOD
+      root: /new_data/datasets/OES/sub-dataset4-MSRGB-domain4/ID/test/
+      split: test
+      download: True
+      transform:
+
+    bias_ood:        
+      type: BMF_OOD
+      root: /new_data/datasets/OES/sub-dataset4-MSRGB-domain4/OOD/test/
+      split: ood
+      download: True
+      transform:
+
+    SUN:  
+        type: BMF_OOD 
+        root: /data/zqh/xz/data/SUN/
+        split: ood
+        transform: 
+          
+  IR_modal_bias:
+    dataset:
+      type: BMF_OOD
+      root: /new_data/datasets/OES/sub-dataset5-IR-domain5/ID/test/
+      split: test
+      download: True
+      transform:
+
+    bias_ood:        
+      type: BMF_OOD
+      root: /new_data/datasets/OES/sub-dataset5-IR-domain5/OOD/test/
+      split: ood
+      download: True
+      transform:
+
+    SUN:  
+        type: BMF_OOD 
+        root: /data/zqh/xz/data/SUN/
+        split: ood
+        transform:   

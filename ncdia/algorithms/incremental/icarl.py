@@ -242,7 +242,6 @@ class iCaRL(BaseAlg):
         session = self.trainer.session
         known_class = self.args.CIL.base_classes + session * self.args.CIL.way
         self._network = trainer.model
-
         if session>=1:
             self._old_network = trainer.buffer['old_model']
             self._old_network = self._old_network.cuda()
