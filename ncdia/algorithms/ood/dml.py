@@ -37,11 +37,7 @@ class DMLHook(AlgHook):
 
 @ALGORITHMS.register
 class DML(BaseAlg):
-<<<<<<< HEAD
-    """Standard supervised learning algorithm.
-=======
     """Decoupling MaxLogit.
->>>>>>> origin/ood_xz
 
     Containing:
         - train_step(trainer, data, label, *args, **kwargs)
@@ -58,11 +54,7 @@ class DML(BaseAlg):
             trainer.register_hook(hook)
 
     def train_step(self, trainer, data, label, *args, **kwargs):
-<<<<<<< HEAD
-        """Training step for standard supervised learning.
-=======
         """Training step for Decoupling MaxLogit.
->>>>>>> origin/ood_xz
 
         Args:
             trainer (object): Trainer object.
@@ -99,11 +91,7 @@ class DML(BaseAlg):
         return {"loss": loss.item(), "acc": acc.item()}
 
     def val_step(self, trainer, data, label, *args, **kwargs):
-<<<<<<< HEAD
-        """Validation step for standard supervised learning.
-=======
         """Validation step for Decoupling MaxLogit.
->>>>>>> origin/ood_xz
 
         Args:
             trainer (object): Trainer object.
@@ -131,11 +119,7 @@ class DML(BaseAlg):
         return {"loss": loss.item(), "acc": acc.item()}
 
     def test_step(self, trainer, data, label, *args, **kwargs):
-<<<<<<< HEAD
-        """Test step for standard supervised learning.
-=======
         """Test step for Decoupling MaxLogit.
->>>>>>> origin/ood_xz
 
         Args:
             trainer (object): Trainer object.
@@ -150,8 +134,6 @@ class DML(BaseAlg):
                 - "acc": Accuracy value.
         """
         return self.val_step(trainer, data, label, *args, **kwargs)
-<<<<<<< HEAD
-=======
     
     @staticmethod
     def eval(id_gt: torch.Tensor ,id_logits: torch.Tensor, id_feat: torch.Tensor, 
@@ -207,4 +189,3 @@ class DML(BaseAlg):
             return ood_metrics(conf, label, tpr_th), None
         else:
             return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
->>>>>>> origin/ood_xz
