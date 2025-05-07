@@ -2,6 +2,10 @@
 
 This is a framework for open-world object recognition, supporting out-of-distribution detection, novel class discovery, and incremental learning algorithms to enable robust and flexible object recognition in unconstrained environments.
 
+## News
+
+[04/2024] 🌟 The code repository is created.
+
 ### Install
 
 It is recommended to use anaconda3 to manage and maintain the python library environment.
@@ -73,9 +77,18 @@ python setup.py install
 - `Tip-Adapter`: Tip-Adapter: Training-free CLIP-Adapter for Better Vision-Language Modeling. ECCV 2022[[paper](https://arxiv.org/abs/2111.03930)]
 - `NegPrompt`: Learning Transferable Negative Prompts for Out-of-Distribution Detection. CVPR 2024[[paper](https://arxiv.org/abs/2404.03248)]
 
+### 🤝Contributors
+
 #### Few-shot class-incremental learning
 - `Alice`: Few-Shot Class-Incremental Learning from an Open-Set Perspective. ECCV2022 [[paper](https://arxiv.org/abs/2208.00147)]
 - `FACT`: Forward Compatible Few-Shot Class-Incremental Learning. CVPR 2022 [[paper](https://arxiv.org/abs/2203.06953)]
 - `SAVC`: Learning with Fantasy: Semantic-Aware Virtual Contrastive Constraint for Few-Shot Class-Incremental Learning CVPR2023 [[paper](https://arxiv.org/abs/2304.00426)]
 
 
+### 🙏Acknowledgement
+- [OpenOOD](https://github.com/Jingkang50/OpenOOD), an extensible codebase for out-of-distribution detection with Vision Models only.
+- [OpenOOD-VLM](https://github.com/YBZh/OpenOOD-VLM), an extensible codebase for out-of-distribution detection with both Vision Models and Vision-Language Models.
+- [PyCIL](https://github.com/G-U-N/PyCIL), an extensible codebase for incremental learning.
+
+### ✉️Contact
+If there are any questions, please feel free to propose new features by opening an issue or contact with the author: Xiang Xiang. Enjoy the code.
