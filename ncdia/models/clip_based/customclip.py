@@ -5,11 +5,108 @@ import torch.nn as nn
 from timm.models.layers import trunc_normal_
 from .clip import clip
 from .clip_locoop import clip_locoop
-from .clip_maple import clip_maple
+# from .clip_maple import clip_maple
 from .clip_dpm import clip_dpm
-from .promptlearner import PromptLearner, NegPromptLearner, MultiModalPromptLearner, MLCPromptLearner
-from .clip_utils import load_clip_to_cpu, load_clip_to_cpu_locoop, get_text_features
+from .promptlearner import PromptLearner, MLCPromptLearner #, NegPromptLearner, MultiModalPromptLearner
+from .clip_utils import load_clip_to_cpu, load_clip_to_cpu_locoop, load_clip_to_cpu_dpm, get_text_features
 from ncdia.utils import MODELS, Configs
+
+classnames = [
+    'Abies alba',
+    'Airport',
+    'Airport hangar',
+    'Airport terminal',
+    'Apartment',
+    'Aquaculture',
+    'Archaeological site',
+    'Artificial dense forest land',
+    'Artificial grassland',
+    'Artificial sparse forest land',
+    'Avenue',
+    'BareLand',
+    'Barn',
+    'Basketball court',
+    'Blue structured factory building',
+    'Bridge',
+    'Burial site',
+    'Car dealership',
+    'Center',
+    'Chaparral',
+    'Church',
+    'Circular farmland',
+    'Cloud',
+    'Coast',
+    'Construction site',
+    'Container',
+    'Crop field',
+    'Crossroads',
+    'Desert',
+    'Detached house',
+    'Dock',
+    'Eroded farmland',
+    'Freeway',
+    'Golf course',
+    'Harbor',
+    'Hirst',
+    'Ice land',
+    'Impoverished settlement',
+    'Interchange',
+    'Lake',
+    'Lakeshore',
+    'Larix decidua',
+    'Lighthouse',
+    'Low scattered building',
+    'Mangrove',
+    'Meadow',
+    'Medium density scattered building',
+    'Medium residential',
+    'Mountain',
+    'Natural dense forest land',
+    'Natural sparse forest land',
+    'Nuclear powerplant',
+    'Palace',
+    'Picea abies',
+    'Pier',
+    'Pinus nigra',
+    'Pinus strobus',
+    'Pinus sylvestris',
+    'Prison',
+    'Pseudotsuga menziesii',
+    'Race track',
+    'Rectangular farmland',
+    'Red structured factory building',
+    'River',
+    'Road',
+    'Rock land',
+    'Roundabout',
+    'Runway',
+    'Runway close',
+    'Salt marshes',
+    'Sandbeach',
+    'Scattered blue roof factory building',
+    'School',
+    'Shrubwood',
+    'Single transmission tower',
+    'Smokestack',
+    'Snowberg',
+    'Solar farm',
+    'Sparse residential',
+    'Sparse shrub land',
+    'Square',
+    'Stadium',
+    'Storage tank',
+    'Storage tank area',
+    'Stream',
+    'Surface mine',
+    'Swimming pool',
+    'Toll booth',
+    'Tunnel opening',
+    'Vegetable plot',
+    'Water treatment facility',
+    'Wind farm',
+    'Wind turbine',
+    'Zoo'
+]
 
 @MODELS.register
 class TextEncoder(nn.Module):
@@ -105,20 +202,27 @@ class CustomCLIP_ZeroShot(nn.Module):
         clip_model = load_clip_to_cpu(backbone, local_path)
         clip_model = clip_model.cuda()
         self.model = clip_model
+        self.dtype = self.model.dtype
+        self.text_encoder = TextEncoder(clip_model)
         self.logit_scale = clip_model.logit_scale.data
         print("Turning off gradients in both the image and the text encoder")
         for name, param in clip_model.named_parameters():
             param.requires_grad_(False) 
-        self.text_features = get_text_features(self.model, dataset, text_prompt)
-
+        # self.text_features = get_text_features(self.model, dataset, text_prompt)
+        prompt_text = ['a photo of a '+name.replace("_", " ") for name in classnames]
+        self.tokenized_prompts = torch.cat([clip.tokenize(p) for p in prompt_text]).cuda()
+        self.embedding = clip_model.token_embedding(self.tokenized_prompts).type(self.dtype)
+        prompts =  self.embedding.type(self.dtype)
+        tokenized_prompts = self.tokenized_prompts
+        self.text_features = self.text_encoder(prompts, tokenized_prompts)
+        self.text_features = self.text_features / self.text_features.norm(dim=-1, keepdim=True)
 
     def forward(self, x):
-        image_features = self.model.encode_image(x)
+        image_features = self.model.encode_image(x.type(self.model.dtype))
         image_features /= image_features.norm(dim=-1, keepdim=True)
         logit_scale = self.logit_scale.exp()
-        text_features = self.text_features.squeeze(1) 
 
-        logits = logit_scale * image_features @ text_features.T 
+        logits = logit_scale * image_features @ self.text_features.T 
         return logits
 
     def get_features(self, x):
@@ -144,14 +248,23 @@ class CustomCLIP_ZeroShot_w_local(nn.Module):
             print(f"Loading CLIP (backbone: {backbone})")
         else:
             print(f"Loading CLIP (backbone from {local_path})")
-        clip_model = load_clip_to_cpu_locoop(backbone, local_path)
+        clip_model = load_clip_to_cpu_dpm(backbone, local_path)
         clip_model = clip_model.cuda()
         self.model = clip_model
+        self.dtype = self.model.dtype
+        self.text_encoder = TextEncoder(clip_model)
         self.logit_scale = clip_model.logit_scale.data
         print("Turning off gradients in both the image and the text encoder")
         for name, param in clip_model.named_parameters():
             param.requires_grad_(False) 
-        self.text_features = get_text_features(self.model, dataset, text_prompt)
+        # self.text_features = get_text_features(self.model, dataset, text_prompt)
+        prompt_text = ['a photo of a '+name.replace("_", " ") for name in classnames]
+        self.tokenized_prompts = torch.cat([clip.tokenize(p) for p in prompt_text]).cuda()
+        self.embedding = clip_model.token_embedding(self.tokenized_prompts).type(self.dtype)
+        prompts =  self.embedding.type(self.dtype)
+        tokenized_prompts = self.tokenized_prompts
+        self.text_features = self.text_encoder(prompts, tokenized_prompts)
+        self.text_features = self.text_features / self.text_features.norm(dim=-1, keepdim=True)
 
 
     def forward(self, x):
@@ -159,10 +272,10 @@ class CustomCLIP_ZeroShot_w_local(nn.Module):
         image_features /= image_features.norm(dim=-1, keepdim=True)
         local_image_features /= local_image_features.norm(dim=-1, keepdim=True)
         logit_scale = self.logit_scale.exp()
-        text_features = self.text_features.squeeze(1) 
+        # text_features = self.text_features.squeeze(1) 
 
-        logits = logit_scale * image_features @ text_features.T 
-        local_logits = logit_scale * local_image_features @ text_features.T
+        logits = logit_scale * image_features @ self.text_features.T 
+        local_logits = logit_scale * local_image_features @ self.text_features.T
         return logits, local_logits
 
     def get_features(self, x):
@@ -407,9 +520,10 @@ class DPM_Block(nn.Module):
         Fv = F.normalize(Fv, dim=-1, p=2)  # [B, L, C]
         feat_v = F.normalize(feat_v, dim=-1, p=2)  # [B, L, C]
         feat_vv = F.normalize(feat_vv, dim=-1, p=2)  # [B, L, C]
+        visual_prototype = F.normalize(self.visual_prototype, dim=-1, p=2)  # [L, C]
         logits1 = torch.mul(Fv, Ft).sum(-1)
         logits2 = torch.mul(feat_v, Ft).sum(-1)
-        logits3 = torch.mul(feat_vv, self.visual_prototype).sum(-1)
+        logits3 = torch.mul(feat_vv, visual_prototype).sum(-1)
         with torch.no_grad():
             class_count = torch.bincount(label, minlength=L)
             class_sum = Fv[:, 0, :].new_zeros(L, C)
@@ -446,9 +560,10 @@ class DPM_Block(nn.Module):
         Fv = F.normalize(Fv, dim=-1, p=2)  # [B, L, C]
         feat_v = F.normalize(feat_v, dim=-1, p=2)  # [B, L, C]
         feat_vv = F.normalize(feat_vv, dim=-1, p=2)  # [B, L, C]
+        visual_prototype = F.normalize(self.visual_prototype, dim=-1, p=2)  # [L, C]
         logits1 = self.logit_scale * torch.mul(Fv, Ft).sum(-1)
         logits2 = self.logit_scale * torch.mul(feat_v, Ft).sum(-1)
-        logits3 = self.logit_scale * torch.mul(feat_vv, self.visual_prototype).sum(-1)
+        logits3 = self.logit_scale * torch.mul(feat_vv, visual_prototype).sum(-1)
         return logits1, logits2, logits3
     
 @MODELS.register   
@@ -517,119 +632,118 @@ class DPM_Proj2(nn.Module):
             nn.init.constant_(m.bias, 0).half()
             nn.init.constant_(m.weight, 1.0).half()
 
-'''
-custom CLIP for NegPrompt 
-Learning Transferable Negative Prompts for Out-of-Distribution Detection
-CVPR 2024 https://arxiv.org/abs/2404.03248
-'''   
-@MODELS.register
-class CustomCLIP_NegPrompt(nn.Module):
-    def __init__(self, cfg, classnames, clip_model):
-        super().__init__()
-        self.prompt_learner = NegPromptLearner(cfg.backbone, classnames, clip_model)
-        self.tokenized_prompts = self.prompt_learner.tokenized_prompts
-        self.image_encoder = clip_model.visual
-        self.text_encoder = TextEncoder(clip_model)
-        self.logit_scale = clip_model.logit_scale
-        self.dtype = clip_model.dtype
-        self.vanilla_clip = clip_model.cuda()
-        self.text_features = None
+# '''
+# custom CLIP for NegPrompt 
+# Learning Transferable Negative Prompts for Out-of-Distribution Detection
+# CVPR 2024 https://arxiv.org/abs/2404.03248
+# '''   
+# @MODELS.register
+# class CustomCLIP_NegPrompt(nn.Module):
+#     def __init__(self, cfg, classnames, clip_model):
+#         super().__init__()
+#         self.prompt_learner = NegPromptLearner(cfg.backbone, classnames, clip_model)
+#         self.tokenized_prompts = self.prompt_learner.tokenized_prompts
+#         self.image_encoder = clip_model.visual
+#         self.text_encoder = TextEncoder(clip_model)
+#         self.logit_scale = clip_model.logit_scale
+#         self.dtype = clip_model.dtype
+#         self.vanilla_clip = clip_model.cuda()
+#         self.text_features = None
 
-    def forward(self, image, return_feat):
-        image_features = self.image_encoder(image.type(self.dtype)) ##128*512
-        if not self.training and self.text_features is not None:
-                text_features = self.text_features  ## accrelating testing. 
-        else:
-            print('re-calculate the text feature with learned prompts.')
-            prompts = self.prompt_learner() # torch.Size([1000, 77, 512])
-            tokenized_prompts = self.tokenized_prompts  ## 1000*77
-            text_features = self.text_encoder(prompts, tokenized_prompts) # 1000*512
-            self.text_features = text_features
+#     def forward(self, image, return_feat):
+#         image_features = self.image_encoder(image.type(self.dtype)) ##128*512
+#         if not self.training and self.text_features is not None:
+#                 text_features = self.text_features  ## accrelating testing. 
+#         else:
+#             print('re-calculate the text feature with learned prompts.')
+#             prompts = self.prompt_learner() # torch.Size([1000, 77, 512])
+#             tokenized_prompts = self.tokenized_prompts  ## 1000*77
+#             text_features = self.text_encoder(prompts, tokenized_prompts) # 1000*512
+#             self.text_features = text_features
             
-        image_features = image_features / image_features.norm(dim=-1, keepdim=True)
-        text_features = text_features / text_features.norm(dim=-1, keepdim=True)
-        logit_scale = self.logit_scale.exp()
-        if return_feat:
-            return image_features, text_features, logit_scale
-        else:
-            logits = logit_scale * image_features @ text_features.t()
-            return logits
+#         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
+#         text_features = text_features / text_features.norm(dim=-1, keepdim=True)
+#         logit_scale = self.logit_scale.exp()
+#         if return_feat:
+#             return image_features, text_features, logit_scale
+#         else:
+#             logits = logit_scale * image_features @ text_features.t()
+#             return logits
 
-'''
-custom CLIP for CALIP
-CALIP: Zero-Shot Enhancement of CLIP with Parameter-free Attention
-AAAI 2023 https://arxiv.org/abs/2209.14169
-'''
-# 以下代码实现有问题
-@MODELS.register
-class CustomCLIP_CALIP(nn.Module):
-    def __init__(self, cfg):
-        super().__init__()
-        backbone = cfg.backbone.name # 'ViT-B/16'
-        assert backbone in clip.available_models()
-        print(f"Loading CLIP (backbone: {backbone})")
-        clip_model = load_clip_to_cpu(backbone)
-        clip_model = clip_model.cuda()
-        self.model = clip_model
-        self.logit_scale = clip_model.logit_scale.data
-        print("Turning off gradients in both the image and the text encoder")
-        for name, param in clip_model.named_parameters():
-            param.requires_grad_(False) 
-        self.text_features = get_text_features(self.model, cfg.backbone.dataset, cfg.backbone.text_prompt)
+# '''
+# custom CLIP for CALIP
+# CALIP: Zero-Shot Enhancement of CLIP with Parameter-free Attention
+# AAAI 2023 https://arxiv.org/abs/2209.14169
+# '''
+# @MODELS.register
+# class CustomCLIP_CALIP(nn.Module):
+#     def __init__(self, cfg):
+#         super().__init__()
+#         backbone = cfg.backbone.name # 'ViT-B/16'
+#         assert backbone in clip.available_models()
+#         print(f"Loading CLIP (backbone: {backbone})")
+#         clip_model = load_clip_to_cpu(backbone)
+#         clip_model = clip_model.cuda()
+#         self.model = clip_model
+#         self.logit_scale = clip_model.logit_scale.data
+#         print("Turning off gradients in both the image and the text encoder")
+#         for name, param in clip_model.named_parameters():
+#             param.requires_grad_(False) 
+#         self.text_features = get_text_features(self.model, cfg.backbone.dataset, cfg.backbone.text_prompt)
 
 
-    def forward(self, x):
-        '''
-        image_features: [B, D]
-        image_spatial_features: [B, P, D]
-        self.text_features: [N, D]
-        '''
-        image_global_features, image_spatial_features = self.model.encode_image(x)
-        image_global_features /= image_global_features.norm(dim=-1, keepdim=True)
-        image_spatial_features /= image_spatial_features.norm(dim=-1, keepdim=True)
+#     def forward(self, x):
+#         '''
+#         image_features: [B, D]
+#         image_spatial_features: [B, P, D]
+#         self.text_features: [N, D]
+#         '''
+#         image_global_features, image_spatial_features = self.model.encode_image(x)
+#         image_global_features /= image_global_features.norm(dim=-1, keepdim=True)
+#         image_spatial_features /= image_spatial_features.norm(dim=-1, keepdim=True)
         
-        logit_scale = self.logit_scale.exp()
-        logits1 = logit_scale * image_global_features @ self.text_features 
+#         logit_scale = self.logit_scale.exp()
+#         logits1 = logit_scale * image_global_features @ self.text_features 
         
-        A_weight = torch.matmul(image_spatial_features, self.text_features.t())  # [B,P,D]x[D,N] -> [B,P,N]
-        A_weight1 = F.softmax(A_weight, dim=0) # softmax along the spatial dimension
-        A_weight2 = F.softmax(A_weight, dim=1) # softmax along the text dimension
+#         A_weight = torch.matmul(image_spatial_features, self.text_features.t())  # [B,P,D]x[D,N] -> [B,P,N]
+#         A_weight1 = F.softmax(A_weight, dim=0) # softmax along the spatial dimension
+#         A_weight2 = F.softmax(A_weight, dim=1) # softmax along the text dimension
         
-        feat_t_a = torch.matmul(image_global_features, A_weight1) # [B,1,D][B,P,N]
-        feat_v_a = torch.matmul(A_weight2, self.text_features.permute(1, 0)) 
-        feat_v_a = feat_v_a.mean(0)+feat_v_a.max(0)[0]
-        logits2 = image_global_features @ feat_t_a
-        logits3 = feat_v_a @ self.text_features
-        logits = logits1 + logits2 + logits3
-        return logits
-'''
-custom CLIP for multi-modal prompt learning, eg. Maple
-MaPLe: Multi-modal Prompt Learning
-CVPR 2023 https://arxiv.org/abs/2210.03117
-'''
-@MODELS.register
-class CustomCLIP_Maple(nn.Module):
-    def __init__(self, cfg, classnames, clip_model):
-        super().__init__()
-        self.prompt_learner = MultiModalPromptLearner(cfg, classnames, clip_model)
-        self.tokenized_prompts = self.prompt_learner.tokenized_prompts
-        self.image_encoder = clip_model.visual
-        self.text_encoder = TextEncoder_Maple(clip_model)
-        self.logit_scale = clip_model.logit_scale
-        self.dtype = clip_model.dtype
+#         feat_t_a = torch.matmul(image_global_features, A_weight1) # [B,1,D][B,P,N]
+#         feat_v_a = torch.matmul(A_weight2, self.text_features.permute(1, 0)) 
+#         feat_v_a = feat_v_a.mean(0)+feat_v_a.max(0)[0]
+#         logits2 = image_global_features @ feat_t_a
+#         logits3 = feat_v_a @ self.text_features
+#         logits = logits1 + logits2 + logits3
+#         return logits
+# '''
+# custom CLIP for multi-modal prompt learning, eg. Maple
+# MaPLe: Multi-modal Prompt Learning
+# CVPR 2023 https://arxiv.org/abs/2210.03117
+# '''
+# @MODELS.register
+# class CustomCLIP_Maple(nn.Module):
+#     def __init__(self, cfg, classnames, clip_model):
+#         super().__init__()
+#         self.prompt_learner = MultiModalPromptLearner(cfg, classnames, clip_model)
+#         self.tokenized_prompts = self.prompt_learner.tokenized_prompts
+#         self.image_encoder = clip_model.visual
+#         self.text_encoder = TextEncoder_Maple(clip_model)
+#         self.logit_scale = clip_model.logit_scale
+#         self.dtype = clip_model.dtype
 
-    def forward(self, image, return_feat):
-        tokenized_prompts = self.tokenized_prompts
-        logit_scale = self.logit_scale.exp()
+#     def forward(self, image, return_feat):
+#         tokenized_prompts = self.tokenized_prompts
+#         logit_scale = self.logit_scale.exp()
 
-        prompts, shared_ctx, deep_compound_prompts_text, deep_compound_prompts_vision = self.prompt_learner()
-        text_features = self.text_encoder(prompts, tokenized_prompts, deep_compound_prompts_text)
-        image_features = self.image_encoder(image.type(self.dtype), shared_ctx, deep_compound_prompts_vision)
+#         prompts, shared_ctx, deep_compound_prompts_text, deep_compound_prompts_vision = self.prompt_learner()
+#         text_features = self.text_encoder(prompts, tokenized_prompts, deep_compound_prompts_text)
+#         image_features = self.image_encoder(image.type(self.dtype), shared_ctx, deep_compound_prompts_vision)
 
-        image_features = image_features / image_features.norm(dim=-1, keepdim=True)
-        text_features = text_features / text_features.norm(dim=-1, keepdim=True)
-        if return_feat:
-            return image_features, text_features, logit_scale
-        else:
-            logits = logit_scale * image_features @ text_features.t()
-            return logits
+#         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
+#         text_features = text_features / text_features.norm(dim=-1, keepdim=True)
+#         if return_feat:
+#             return image_features, text_features, logit_scale
+#         else:
+#             logits = logit_scale * image_features @ text_features.t()
+#             return logits

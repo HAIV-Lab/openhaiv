@@ -34,7 +34,7 @@ scheduler:
   warmup_type: constant
   warmup_lr: 1e-4
 
-seed: 0
+seed: 1555
 device: cuda
 
 exp_name: exp

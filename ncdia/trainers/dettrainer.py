@@ -186,7 +186,8 @@ class DetTrainer(PreTrainer):
                     transform = None)
                 evalloader = DataLoader(
                     evalset,
-                    batch_size=32,
+                    # batch_size=32,
+                    batch_size=64,
                     shuffle=False,
                     num_workers=8,
                 )
@@ -228,6 +229,7 @@ class DetTrainer(PreTrainer):
                         train_feat=train_stats['features'] if train_stats else None,
                         train_local_feat=train_stats['local_features'] if train_stats else None,
                         prototypes=train_stats['prototypes'] if train_stats else None,
+                        s_prototypes=train_stats['s_prototypes'] if train_stats else None,
                         tpr_th=tpr_th,
                         prec_th=prec_th,
                         hyperparameters=self.algorithm.hyperparameters if hasattr(self.algorithm, 'hyperparameters') else None

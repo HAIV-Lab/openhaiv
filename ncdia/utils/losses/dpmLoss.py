@@ -13,7 +13,7 @@ class DPMLoss(nn.Module):
     def __init__(self, **kwargs):
         super(DPMLoss, self).__init__(**kwargs)
 
-    def forward(self, input, target, factor1=0, factor2=1, factor3=0):
+    def forward(self, input, target, factor1=0, factor2=1, factor3=1):
         """
         Args:
             input (tuple): A tuple containing:

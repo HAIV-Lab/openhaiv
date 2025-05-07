@@ -8,7 +8,7 @@ from ncdia.utils import HOOKS
 from ncdia.trainers.hooks import AlgHook
 import numpy as np
 from tqdm import tqdm
-from .metrics import ood_metrics, search_threshold
+from .metrics import ood_metrics, search_threshold # , get_measures
 
 @ALGORITHMS.register
 class MSP(BaseAlg):
@@ -53,6 +53,7 @@ class MSP(BaseAlg):
         train_local_logits: torch.Tensor = None, 
         train_local_feat: torch.Tensor = None,
         prototypes: torch.Tensor = None, 
+        s_prototypes: torch.Tensor = None,
         tpr_th: float = 0.95, 
         prec_th: float = None, 
         hyperparameters = None
@@ -74,6 +75,7 @@ class MSP(BaseAlg):
             train_local_logits (torch.Tensor): Training local logits. Shape (K, P, C).
             train_local_feat (torch.Tensor): Training local features. Shape (K, P, D).
             prototypes (torch.Tensor): Prototypes of train set. Shape (C, C).
+            s_prototypes (torch.Tensor): Prototypes of train set. Shape (C, C).
             tpr_th (float): True positive rate threshold to compute
                 false positive rate. Default is 0.95.
             prec_th (float | None): Precision threshold for searching threshold.
@@ -99,6 +101,7 @@ class MSP(BaseAlg):
         if prec_th is None:
             # return conf, label, *ood_metrics(conf, label, tpr_th), None, None, None
             return ood_metrics(conf, label, tpr_th), None
+            # return get_measures(id_conf, ood_conf, tpr_th), None
         else:
             # return conf, label, *ood_metrics(conf, label, tpr_th), *search_threshold(conf, label, prec_th)
             return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)

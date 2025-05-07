@@ -212,10 +212,10 @@ class QuantifyHook_OOD(AlgHook):
             else:
                 preds = model(data)
             feats = model.get_features(data)
-            if isinstance(feats, tuple) and len(feats) == 2:
+            if isinstance(preds, tuple) and len(preds) == 2:
                 feats, local_feats = feats  # 解包元组
                 preds, local_preds = preds
-            if isinstance(feats, tuple) and len(feats) == 3:
+            if isinstance(preds, tuple) and len(preds) == 3:
                 feats = feats[1]
                 preds = preds[1]
             features.append(feats.clone().detach().cpu())
@@ -246,18 +246,24 @@ class QuantifyHook_OOD(AlgHook):
 
         # Calculate the prototypes
         prototypes = []
+        s_prototypes = []
         for cls in torch.unique(labels):
             cls_idx = torch.where(labels == cls)
+            s_logits = torch.softmax(logits/5, dim=1)
             cls_preds = logits[cls_idx]
             prototypes.append(torch.mean(cls_preds, dim=0))
+            cls_preds = s_logits[cls_idx]
+            s_prototypes.append(torch.mean(cls_preds, dim=0))
         prototypes = torch.stack(prototypes, dim=0)
+        s_prototypes = torch.stack(s_prototypes, dim=0)
 
         return {
             "features": features,
             "logits": logits,
             "labels": labels,
             "prototypes": prototypes,
-            "local_features": local_features if local_preds is not None else None,
+            "s_prototypes": s_prototypes,
+            "local_features": local_features if local_features is not None else None,
             "local_logits": local_logits if local_logits is not None else None,
             "top1_acc": top1_acc if id_acc else None,
             "top5_acc": top5_acc if id_acc else None,

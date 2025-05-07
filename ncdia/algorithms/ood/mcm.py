@@ -13,8 +13,9 @@ from .metrics import ood_metrics, search_threshold
 @ALGORITHMS.register
 class MCM(BaseAlg):
 
-    def __init__(self, trainer) -> None:
+    def __init__(self, trainer, hyperparameters=None) -> None:
         super().__init__(trainer)
+        self.hyperparameters = hyperparameters
 
     def val_step(self, trainer, data, label, *args, **kwargs):
 
@@ -53,6 +54,7 @@ class MCM(BaseAlg):
         train_local_logits: torch.Tensor = None, 
         train_local_feat: torch.Tensor = None,
         prototypes: torch.Tensor = None, 
+        s_prototypes: torch.Tensor = None,
         tpr_th: float = 0.95, 
         prec_th: float = None, 
         hyperparameters = None
@@ -74,6 +76,7 @@ class MCM(BaseAlg):
             train_local_logits (torch.Tensor): Training local logits. Shape (K, P, C).
             train_local_feat (torch.Tensor): Training local features. Shape (K, P, D).
             prototypes (torch.Tensor): Prototypes of train set. Shape (C, C).
+            s_prototypes (torch.Tensor): Prototypes of train set. Shape (C, C).
             tpr_th (float): True positive rate threshold to compute
                 false positive rate. Default is 0.95.
             prec_th (float | None): Precision threshold for searching threshold.

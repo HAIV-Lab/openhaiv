@@ -1,6 +1,7 @@
 _base_: configs/dataloader/loader.yaml
 
 trainloader:
+  batch_size: 512
   dataset:
     type: BMF_OOD
     root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/ID/train/
@@ -10,6 +11,7 @@ trainloader:
       resize: {size: 224}
 
 valloader:
+  batch_size: 512
   dataset:
     type: BMF_OOD
     root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/ID/test/
@@ -18,11 +20,13 @@ valloader:
     transform:
       resize: {size: 224}
 testloader:
+  batch_size: 512
   dataset:
     type: BMF_OOD
     root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/ID/test/
     split: test
     num_classes: 94
+    batchsize: 512
     transform:
       resize: {size: 224}
 

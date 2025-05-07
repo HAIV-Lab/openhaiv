@@ -2,6 +2,44 @@
 import numpy as np
 import sklearn.metrics as skm
 
+# def stable_cumsum(arr, rtol=1e-05, atol=1e-08):
+#     """Use high precision for cumsum and check that final value matches sum."""
+#     out = np.cumsum(arr, dtype=np.float64)
+#     expected = np.sum(arr, dtype=np.float64)
+#     if not np.allclose(out[-1], expected, rtol=rtol, atol=atol):
+#         raise RuntimeError('cumsum was found to be unstable: '
+#                            'its last element does not correspond to sum')
+#     return out
+
+# def fpr_and_fdr_at_recall(y_true, y_score, recall_level=0.95):
+#     """Compute FPR at a given recall level."""
+#     y_true = (y_true == 1)  # Treat ID samples (1) as positive
+#     desc_score_indices = np.argsort(y_score, kind="mergesort")[::-1]
+#     y_score = y_score[desc_score_indices]
+#     y_true = y_true[desc_score_indices]
+
+#     distinct_value_indices = np.where(np.diff(y_score))[0]
+#     threshold_idxs = np.r_[distinct_value_indices, y_true.size - 1]
+
+#     tps = stable_cumsum(y_true)[threshold_idxs]
+#     fps = 1 + threshold_idxs - tps
+
+#     recall = tps / tps[-1]
+#     cutoff = np.argmin(np.abs(recall - recall_level))
+
+#     return fps[cutoff] / (np.sum(np.logical_not(y_true)))
+
+# def get_measures(in_score, out_score, recall_level=0.95):
+#     """Compute AUROC, AUPR, and FPR."""
+#     labels = np.concatenate([np.ones(len(in_score)), np.zeros(len(out_score))])
+#     scores = np.concatenate([in_score, out_score])
+
+#     auroc = skm.roc_auc_score(labels, scores)
+#     aupr_in = skm.average_precision_score(labels, scores)
+#     aupr_out = skm.average_precision_score(1 - labels, -scores)
+#     fpr = fpr_and_fdr_at_recall(labels, scores, recall_level)
+
+#     return fpr, auroc, aupr_in, aupr_out
 
 def ood_metrics(conf: np.ndarray, label: np.ndarray, tpr_th: float = 0.95):
     """Compute OOD metrics.

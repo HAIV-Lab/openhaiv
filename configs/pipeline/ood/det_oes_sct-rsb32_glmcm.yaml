@@ -11,7 +11,7 @@ trainer:
 algorithm:
   type: GLMCM
   hyperparameters:
-    T: 1
+    T: 100
     factor: 1
 
 model:
@@ -38,7 +38,7 @@ optimizer:
 scheduler:
   type: Constant
 
-seed: 0
+seed: 1
 device: cuda
 
 exp_name: exp

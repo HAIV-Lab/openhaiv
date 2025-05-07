@@ -20,6 +20,7 @@ model:
 criterion:
   type: CrossEntropyLoss
 
+
 optimizer:
   type: sgd
   lr: 0.01

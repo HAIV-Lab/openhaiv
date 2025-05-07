@@ -197,3 +197,10 @@ output/
 .vscode/
 
 # End of https://www.toptal.com/developers/gitignore/api/python,linux
+
+# something related to ood
+ncdia/models/clip_based/todolist.md
+ncdia/models/clip_based/open_clip
+ncdia/models/clip_based/clip_maple
+ncdia/models/net/conf_branch_net.py
+ncdia/models/net/

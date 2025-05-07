@@ -9,7 +9,7 @@ trainer:
 algorithm:
   type: GLMCM
   hyperparameters:
-    T: 100
+    T: 1
     factor: 1
 
 
@@ -22,7 +22,8 @@ model:
   text_prompt: 'simple'
 
 criterion:
-  type: CrossEntropyLoss
+  # type: CrossEntropyLoss
+  type: LoCoOpLoss
 
 optimizer:
   type: Adam

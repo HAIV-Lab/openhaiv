@@ -11,7 +11,7 @@ trainer:
 algorithm:
   type: MCM
   hyperparameters:
-    T: 1
+    T: 100
 
 model:
   type: CoOp
@@ -37,7 +37,7 @@ optimizer:
 scheduler:
   type: Constant
 
-seed: 0
+seed: 1
 device: cuda
 
 exp_name: exp

@@ -11,7 +11,7 @@ trainer:
 algorithm:
   type: GLMCM
   hyperparameters:
-    T: 1
+    T: 100
     factor: 1
 
 model:

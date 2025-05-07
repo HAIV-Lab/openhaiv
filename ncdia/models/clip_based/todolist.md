@@ -49,7 +49,7 @@ main differences are in model.py
 - [x] `DPMLoss`
   
 # OOD Scores
-- [ ] `MCM`
-- [ ] `GLMCM`
-- [ ] `DPM`
+- [x] `MCM`
+- [x] `GLMCM`
+- [x] `DPM`
 - [ ] `NegLabel`

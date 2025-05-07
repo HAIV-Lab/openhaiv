@@ -11,8 +11,7 @@ trainer:
 algorithm:
   type: DPM
   hyperparameters:
-    T: 1
-    beta: 2
+    T: 100
 
 model:
   type: DPM
@@ -38,7 +37,7 @@ optimizer:
 scheduler:
   type: Constant
 
-seed: 0
+seed: 1555
 device: cuda
 
 exp_name: exp

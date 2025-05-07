@@ -10,7 +10,7 @@ trainer:
 algorithm:
   type: MCM
   hyperparameters:
-    T: 100
+    T: 1
 
 model:
   type: CustomCLIP_ZeroShot
