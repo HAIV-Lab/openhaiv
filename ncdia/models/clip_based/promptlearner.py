@@ -1,10 +1,11 @@
-import clip
+# import clip
 import torch
 import torch.nn as nn
 import copy
 from copy import deepcopy
+from ncdia.models.clip_based import clip
 from ncdia.utils import MODELS, Configs
-from clip.simple_tokenizer import SimpleTokenizer as _Tokenizer
+from ncdia.models.clip_based.clip.simple_tokenizer import SimpleTokenizer as _Tokenizer
 
 _tokenizer = _Tokenizer()
 

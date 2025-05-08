@@ -4,7 +4,7 @@ This is a framework for open-world object recognition, supporting out-of-distrib
 
 ## News
 
-[04/2024] 🌟 The code repository is created.
+[09/2024] 🌟 The code repository is created.
 
 ### 🎉News
 
