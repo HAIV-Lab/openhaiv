@@ -46,7 +46,7 @@ class DetTrainer(PreTrainer):
             **kwargs
     ) -> None:
         # CIL = False
-        if self.cfg.CIL == False:
+        if cfg.CIL == False:
             self.quantify_hook = QuantifyHook_OOD(
                 gather_train_stats=gather_train_stats,
                 gather_test_stats=gather_test_stats,
@@ -169,7 +169,7 @@ class DetTrainer(PreTrainer):
                 values are the OOD scores and search threshold.
         """
         # CIL = False
-        if self.cfg.CIL:
+        if self._cfg.CIL:
             train_stats = self.train_stats
             test_stats = self.test_stats
 

@@ -46,10 +46,23 @@ class VIM(BaseAlg):
         super().__init__(trainer)
         self.trainer = trainer
         # use a dict to store hyperparameters
-        self.hyperparameters = {"dim": dim, 'w': self.trainer.model.fc.weight.data.cpu().numpy(), 'b': self.trainer.model.fc.bias.data.cpu().numpy()}
+        self.hyparameters = {"dim": dim, 'w': self.trainer.model.network.fc.weight.data.cpu().numpy(), 'b': self.trainer.model.network.fc.bias.data.cpu().numpy()}
 
     def val_step(self, trainer, data, label, *args, **kwargs):
-        
+        """Validation step for Decoupling MaxLogit.
+
+        Args:
+            trainer (object): Trainer object.
+            data (torch.Tensor): Input data.
+            label (torch.Tensor): Label data.
+            args (tuple): Additional arguments.
+            kwargs (dict): Additional keyword arguments.
+
+        Returns:
+            results (dict): Validation results. Contains the following:
+                - "loss": Loss value.
+                - "acc": Accuracy value.
+        """
         model = trainer.model
         device = trainer.device
 
@@ -65,67 +78,58 @@ class VIM(BaseAlg):
 
 
     def test_step(self, trainer, data, label, *args, **kwargs):
-        
+        """Test step for Decoupling MaxLogit.
+
+        Args:
+            trainer (object): Trainer object.
+            data (torch.Tensor): Input data.
+            label (torch.Tensor): Label data.
+            args (tuple): Additional arguments.
+            kwargs (dict): Additional keyword arguments.
+
+        Returns:
+            results (dict): Test results. Contains the following:
+                - "loss": Loss value.
+                - "acc": Accuracy value.
+        """
         return self.val_step(trainer, data, label, *args, **kwargs)
 
     @staticmethod
-    def eval(
-        id_gt: torch.Tensor,
-        id_logits: torch.Tensor, 
-        id_feat: torch.Tensor,
-        ood_logits: torch.Tensor, 
-        ood_feat: torch.Tensor, 
-        id_local_logits: torch.Tensor=None, 
-        id_local_feat: torch.Tensor=None, 
-        ood_local_logits: torch.Tensor=None, 
-        ood_local_feat: torch.Tensor=None,
-        train_gt: torch.Tensor = None, 
-        train_logits: torch.Tensor = None, 
-        train_feat: torch.Tensor = None, 
-        train_local_logits: torch.Tensor = None, 
-        train_local_feat: torch.Tensor = None,
-        prototypes: torch.Tensor = None, 
-        s_prototypes: torch.Tensor = None,
-        tpr_th: float = 0.95, 
-        prec_th: float = None, 
-        hyperparameters = None
-    ):
-        """
+    def eval(id_gt: torch.Tensor ,id_logits: torch.Tensor, id_feat: torch.Tensor, 
+            ood_logits: torch.Tensor, ood_feat: torch.Tensor, 
+            train_logits: torch.Tensor = None, train_feat: torch.Tensor = None,  train_gt: torch.Tensor = None,
+            tpr_th: float = 0.95, prec_th: float = None, hyparameters: dict = None):
+        """Decoupled MaxLogit+ (DML+) method for OOD detection.
+
+        Decoupling MaxLogit for Out-of-Distribution Detection
+        https://openaccess.thecvf.com/content/CVPR2023/html/Zhang_Decoupling_MaxLogit_for_Out-of-Distribution_Detection_CVPR_2023_paper
+
         Args:
-            id_gt (torch.Tensor): ID ground truth labels. Shape (N,).
             id_logits (torch.Tensor): ID logits. Shape (N, C).
             id_feat (torch.Tensor): ID features. Shape (N, D).
             ood_logits (torch.Tensor): OOD logits. Shape (M, C).
             ood_feat (torch.Tensor): OOD features. Shape (M, D).
-            id_local_logits (torch.Tensor): ID local logits. Shape (N, P, C).
-            id_local_feat (torch.Tensor): ID local features. Shape (N, P, D).
-            ood_local_logits (torch.Tensor): OOD local logits. Shape (M, P, C).
-            ood_local_feat (torch.Tensor): OOD local features. Shape (M, P, D).
-            train_gt (torch.Tensor): Training ground truth labels. Shape (K,).
             train_logits (torch.Tensor): Training logits. Shape (K, C).
             train_feat (torch.Tensor): Training features. Shape (K, D).
-            train_local_logits (torch.Tensor): Training local logits. Shape (K, P, C).
-            train_local_feat (torch.Tensor): Training local features. Shape (K, P, D).
-            prototypes (torch.Tensor): Prototypes. Shape (C, C).
-            s_prototypes (torch.Tensor): Prototypes. Shape (C, C).
             tpr_th (float): True positive rate threshold to compute
                 false positive rate. Default is 0.95.
             prec_th (float | None): Precision threshold for searching threshold.
                 If None, not searching for threshold. Default is None.
-            hyperparameters (dict): Hyperparameters for DPM.
+
         Returns:
             fpr (float): False positive rate.
             auroc (float): Area under the ROC curve.
-            aupr_in (float): Area under the precision-recall curve for in-distribution samples.
-            aupr_out (float): Area under the precision-recall curve for out-of-distribution
+            aupr_in (float): Area under the precision-recall curve 
+                for in-distribution samples.
+            aupr_out (float): Area under the precision-recall curve
+                for out-of-distribution
         """
         print("VIM inference..")
 
-        w, b = hyperparameters['w'], hyperparameters['b']
-        dim = hyperparameters['dim']
+        w, b = hyparameters['w'], hyparameters['b']
+        dim = hyparameters['dim']
         feature_id_train = train_feat.cpu().numpy()
         logit_id_train = feature_id_train @ w.T + b
-
         u = -np.matmul(pinv(w), b)
         ec = EmpiricalCovariance(assume_centered=True)
         ec.fit(feature_id_train - u)
@@ -161,6 +165,6 @@ class VIM(BaseAlg):
         label = np.concatenate([id_gt.cpu(), neg_ood_gt])
 
         if prec_th is None:
-            return ood_metrics(conf, label, tpr_th), None
+            return conf, label, *ood_metrics(conf, label, tpr_th), None, None, None
         else:
-            return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
+            return conf, label, *ood_metrics(conf, label, tpr_th), *search_threshold(conf, label, prec_th)
