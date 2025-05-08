@@ -2,11 +2,11 @@
 
 This is a framework for open-world object recognition, supporting out-of-distribution detection, novel class discovery, and incremental learning algorithms to enable robust and flexible object recognition in unconstrained environments.
 
-## News
 
-[09/2024] 🌟 The code repository is created.
 
 ### 🎉News
+
+[09/2024] 🌟 The code repository is created.
 
 ### 🌟Features
 
@@ -162,4 +162,4 @@ If you find our repository useful for your research, please consider citing thes
 - [PyCIL](https://github.com/G-U-N/PyCIL), an extensible codebase for incremental learning.
 
 ### ✉️Contact
-If there are any questions, please feel free to propose new features by opening an issue or contact with the author: xxx. Enjoy the code.
+If there are any questions, please feel free to propose new features by opening an issue or contact with the author: Xiang Xiang. Enjoy the code.
