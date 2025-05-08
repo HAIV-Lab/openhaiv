@@ -132,6 +132,8 @@ python setup.py install
 
 ### 🤝Contributors
 
+Xiang Xiang coordinate and lead this work. Qinhao Zhou and Jing Ma are responsible for developing the code framework, while Zhuo Xu, Yifan Liang and HanLin Li modify the framework and expand the methods, conducting experiments on the respective approaches. Qinhao Zhou and Zhuo Xu authored the main content of the manuscript. All work is completed under the guidance of Xiang Xiang.
+
 ### 📖Citation
 If you find our repository useful for your research, please consider citing these papers:
 ```bibtex
