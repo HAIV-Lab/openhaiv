@@ -8,11 +8,8 @@ This is a framework for open-world object recognition, supporting out-of-distrib
 
 [09/2024] 🌟 The code repository is created.
 
-### 🌟Features
 
 ### ⚙️Install
-#### install python3
-#### in linux 
 It is recommended to use anaconda3 to manage and maintain the python library environment.
 1. Download the .sh file from the anaconda3 website
 2. install anaconda3 with .sh file
@@ -35,14 +32,7 @@ python setup.py install
 * scipy>=1.14.0
 * scikit-learn>=1.5.1
 
-### 📂Datasets
-#### Class-incremental learning
 
-#### Domain-incremental learning
-
-#### Few-shot Class-incremental learning
-
-#### Out-of-distribution Detection
 
 
 ### 🤖Supported Models for OpenHAIV
