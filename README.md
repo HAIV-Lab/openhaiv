@@ -38,9 +38,7 @@ python setup.py install
 ### 🤖Supported Models for OpenHAIV
   `ResNet`、`ViT`、`CLIP`
 
-### 🎨Supported Augmentations for OpenHAIV
 
-<!--`Mixup`、`Cutmix`、`Styleaugment`、`Randaugment`、`Augmix`、`Deepaugment`、`Pixmix`、`Regmixup`-->
 
 ### 📚Supported Methods for OpenHAIV
 
