@@ -33,6 +33,7 @@ def build_optimizer(
         else:
             param_groups = model
 
+    # print(f"model.parameters: {model.parameters}")
     type = type.lower()
     if type == 'adam':
         optimizer = torch.optim.Adam(param_groups, **kwargs)

@@ -12,3 +12,4 @@ from .foster_net import FOSTERNet
 from .odin_net import ODINNet
 from .msp_net import ResNet_Base
 from .godin_net import GodinNet
+from .odin_net import ODINNet

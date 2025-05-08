@@ -9,7 +9,7 @@ from ncdia.dataloader import build_dataloader
 from ncdia.algorithms.ood import AutoOOD
 from ncdia.dataloader.datasets.BMF_OOD import BMF_OOD 
 from .pretrainer import PreTrainer
-from .hooks import QuantifyHook,QuantifyHook_OOD
+from .hooks import QuantifyHook, QuantifyHook_OOD
 
 from torch.utils.data import DataLoader
 from torchvision import transforms
@@ -42,7 +42,7 @@ class DetTrainer(PreTrainer):
             gather_train_stats: bool = False,
             gather_test_stats: bool = False,
             eval_loader: DataLoader | dict | None = None,
-            verbose: bool = False,
+            verbose: bool = True,
             **kwargs
     ) -> None:
 
@@ -193,31 +193,26 @@ class DetTrainer(PreTrainer):
             )
 
             return scores
-
-
+        
+    
         else:
-            train_stats = self.train_stats
-            if train_stats != None:
-                train_logits = train_stats['logits']
-                train_feat = train_stats['features']
-                train_gt = train_stats['labels']
-            else:
-                train_logits = ''
-                train_feat = ''
-                train_gt = ''
-            test_stats = self.test_stats
-            hyparameters = self.algorithm.hyparameters if hasattr(self.algorithm, 'hyparameters') else None
-            self.model.eval()
-            for setting_name,id_setting in self._eval_loader.items():
-                print('*************evaluate {} setting*************'.format(setting_name))
+            train_stats = self.quantify_hook.gather_stats(
+                model=self.model,
+                dataloader=self.train_loader,
+                device=self.device,
+                verbose=self.verbose
+                self.model.eval()
+            )
+            for setting_name, id_setting in self._eval_loader.items():
+                self.logger.info('*************evaluate {} setting*************'.format(setting_name))
 
-                for dataset_name,data_cfg in id_setting.items():
+                for dataset_name, data_cfg in id_setting.items():
                     evalset = BMF_OOD(
-                    root = data_cfg['root'],
-                    split = data_cfg['split'],
-                    subset_labels = None,
-                    subset_file = None,
-                    transform = None)
+                        root = data_cfg['root'],
+                        split = data_cfg['split'],
+                        subset_labels = None,
+                        subset_file = None,
+                        transform = None)
                     evalloader = DataLoader(
                         evalset,
                         batch_size=32,
@@ -225,6 +220,7 @@ class DetTrainer(PreTrainer):
                         num_workers=8,
                     )
                     if dataset_name == 'dataset':
+                        self.logger.info('*************evaluate {} test set*************'.format(setting_name))
                         test_stats = self.quantify_hook.gather_stats(
                             model=self.model,
                             dataloader=evalloader,
@@ -232,8 +228,12 @@ class DetTrainer(PreTrainer):
                             id_acc = True,
                             verbose=self.verbose
                         )
+                        top1_acc = test_stats['top1_acc']
+                        top5_acc = test_stats['top5_acc']
+                        self.logger.info(f'Top-1 Accuracy: {top1_acc:.2f}%')
+                        self.logger.info(f'Top-5 Accuracy: {top5_acc:.2f}%')
                     else:
-                        print('*************evaluate {} Datasets*************'.format(dataset_name))
+                        self.logger.info('*************evaluate {} Datasets*************'.format(dataset_name))
                         eval_stats = self.quantify_hook.gather_stats(
                             model=self.model,
                             dataloader=evalloader,
@@ -244,20 +244,27 @@ class DetTrainer(PreTrainer):
                         scores = self.algorithm.eval(
                             id_gt=test_stats['labels'],
                             id_logits=test_stats['logits'],
+                            id_local_logits=test_stats['local_logits'],
                             id_feat=test_stats['features'],
+                            id_local_feat=test_stats['local_features'],
                             ood_logits=eval_stats['logits'],
+                            ood_local_logits=eval_stats['local_logits'],
                             ood_feat=eval_stats['features'],
-                            train_logits=train_logits,
-                            train_feat=train_feat,
-                            train_gt=train_gt,
+                            ood_local_feat=eval_stats['local_features'],
+                            train_gt=train_stats['labels'] if train_stats else None, 
+                            train_logits=train_stats['logits'] if train_stats else None,
+                            train_local_logits=train_stats['local_logits'] if train_stats else None,
+                            train_feat=train_stats['features'] if train_stats else None,
+                            train_local_feat=train_stats['local_features'] if train_stats else None,
+                            prototypes=train_stats['prototypes'] if train_stats else None,
+                            s_prototypes=train_stats['s_prototypes'] if train_stats else None,
                             tpr_th=tpr_th,
                             prec_th=prec_th,
-                            hyparameters=hyparameters
+                            hyperparameters=self.algorithm.hyperparameters if hasattr(self.algorithm, 'hyperparameters') else None
                         )
-                        print('FPR95:',scores[2]*100)
-                        print('AUROC:',scores[3]*100)
-
-            exit(0)
+                        fpr, aur, aupr_in, aupr_out = scores[0]
+                        self.logger.info(f"aur, fpr, aupr_in, aupr_out: {aur:.4f}, {fpr:.4f}, {aupr_in:.4f}, {aupr_out:.4f}")
+        return scores
         
     def detect(
             self,

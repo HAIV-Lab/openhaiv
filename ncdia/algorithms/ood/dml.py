@@ -9,6 +9,9 @@ from ncdia.trainers.hooks import AlgHook
 import numpy as np
 from tqdm import tqdm
 from .metrics import ood_metrics, search_threshold
+import numpy as np
+from tqdm import tqdm
+from .metrics import ood_metrics, search_threshold
 @HOOKS.register
 class DMLHook(AlgHook):
     def __init__(self) -> None:
@@ -43,6 +46,7 @@ class DML(BaseAlg):
         - train_step(trainer, data, label, *args, **kwargs)
         - val_step(trainer, data, label, *args, **kwargs)
         - test_step(trainer, data, label, *args, **kwargs)
+        - eval
 
     """
     def __init__(self, trainer) -> None:
@@ -122,11 +126,16 @@ class DML(BaseAlg):
         """Test step for Decoupling MaxLogit.
 
         Args:
-            trainer (object): Trainer object.
-            data (torch.Tensor): Input data.
-            label (torch.Tensor): Label data.
-            args (tuple): Additional arguments.
-            kwargs (dict): Additional keyword arguments.
+            id_logits (torch.Tensor): ID logits. Shape (N, C).
+            id_feat (torch.Tensor): ID features. Shape (N, D).
+            ood_logits (torch.Tensor): OOD logits. Shape (M, C).
+            ood_feat (torch.Tensor): OOD features. Shape (M, D).
+            train_logits (torch.Tensor): Training logits. Shape (K, C).
+            train_feat (torch.Tensor): Training features. Shape (K, D).
+            tpr_th (float): True positive rate threshold to compute
+                false positive rate. Default is 0.95.
+            prec_th (float | None): Precision threshold for searching threshold.
+                If None, not searching for threshold. Default is None.
 
         Returns:
             results (dict): Test results. Contains the following:

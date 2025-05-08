@@ -36,8 +36,8 @@ class ODINNet(nn.Module):
         self.noise = noise
         self.input_std = input_std
         self.network = MODELS.build(copy.deepcopy(self.args))
-        num_features = self.network.fc.in_features  # »ñÈ¡ÊäÈëÌØÕ÷Î¬¶È
-        self.network.fc = torch.nn.Linear(num_features, num_classes_true)  # Ìæ»»ÎªÐÂµÄÈ«Á¬½Ó²ã
+        num_features = self.network.fc.in_features  # ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î¬ï¿½ï¿½
+        self.network.fc = torch.nn.Linear(num_features, num_classes_true)  # ï¿½æ»»Îªï¿½Âµï¿½È«ï¿½ï¿½ï¿½Ó²ï¿½
         self.out_features = None
         if checkpoint:
             print('load_checkpoint')

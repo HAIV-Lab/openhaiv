@@ -1,3 +1,4 @@
+import torch
 from ncdia.utils import ALGORITHMS
 from ncdia.utils.metrics import accuracy
 from ncdia.algorithms.base import BaseAlg
@@ -29,11 +30,15 @@ class StandardSL(BaseAlg):
                 - "acc": Accuracy value.
         """
         model = trainer.model
+
         criterion = trainer.criterion
         device = trainer.device
 
         data, label = data.to(device), label.to(device)
-        outputs = model(data)
+        if hasattr(model, 'forward') and 'label' in model.forward.__code__.co_varnames:
+            outputs = model(data, label)
+        else:
+            outputs = model(data)
 
         loss = criterion(outputs, label)
         acc = accuracy(outputs, label)[0]
@@ -60,8 +65,12 @@ class StandardSL(BaseAlg):
         criterion = trainer.criterion
         device = trainer.device
 
-        data, label = data.to(device), label.to(device)
-        outputs = model(data)
+        with torch.no_grad():
+            data, label = data.to(device), label.to(device)
+            if hasattr(model, "evaluate") and callable(getattr(model, 'evaluate')):
+                outputs = model.evaluate(data)
+            else:
+                outputs = model(data)
 
         loss = criterion(outputs, label)
         acc = accuracy(outputs, label)[0]

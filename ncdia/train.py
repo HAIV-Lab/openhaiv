@@ -23,7 +23,6 @@ def main(args):
     # Setup random seed
     if cfg.seed >= 0:
         set_random_seed(cfg.seed)
-
     # Build the trainer from config
     trainer = TRAINERS.build(cfg.trainer, cfg=cfg)
 

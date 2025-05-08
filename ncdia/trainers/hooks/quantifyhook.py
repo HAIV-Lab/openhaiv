@@ -53,20 +53,37 @@ class QuantifyHook(AlgHook):
 
         # Gather the statistics
         features, logits, labels = [], [], []
+        local_features, local_logits = [], []
+        local_feats=None
+        local_preds=None
         for batch in tbar:
             data = batch['data'].to(device)
             label = batch['label'].to(device)
-            preds = model(data)
-            preds = preds[:, :num_classes]
-            feats = model.get_features()
-
+            if hasattr(model, "evaluate") and callable(getattr(model, 'evaluate')):
+                preds = model.evaluate(data)
+            else:
+                preds = model(data)
+            # preds = preds[:, :num_classes]
+            feats = model.get_features(data)
+            if isinstance(feats, tuple) and len(feats) == 2:
+                feats, local_feats = feats  # 解包元组
+                preds, local_preds = preds
+            if isinstance(feats, tuple) and len(feats) == 3:
+                feats = feats[1]
+                preds = preds[1]
             features.append(feats.clone().detach().cpu())
             logits.append(preds.clone().detach().cpu())
             labels.append(label.clone().detach().cpu())
+            if local_preds is not None:
+                local_features.append(local_feats.clone().detach().cpu())
+                local_logits.append(local_preds.clone().detach().cpu())
         
         features = torch.cat(features, dim=0)
         logits = torch.cat(logits, dim=0)
         labels = torch.cat(labels, dim=0).to(torch.int)
+        if local_preds is not None:
+            local_features = torch.cat(local_features, dim=0)
+            local_logits = torch.cat(local_logits, dim=0)
 
         # Calculate the prototypes
         prototypes = []
@@ -81,6 +98,8 @@ class QuantifyHook(AlgHook):
             "logits": logits,
             "labels": labels,
             "prototypes": prototypes,
+            "local_features": local_features if local_preds is not None else None,
+            "local_logits": local_logits if local_logits is not None else None,
         }
 
     def after_train(self, trainer) -> None:
@@ -134,7 +153,6 @@ class QuantifyHook(AlgHook):
                 test_stats,
                 os.path.join(trainer.work_dir, "test_stats.pt")
             )
-
 
 @HOOKS.register
 class QuantifyHook_OOD(AlgHook):
@@ -162,7 +180,7 @@ class QuantifyHook_OOD(AlgHook):
         self.save_stats = save_stats
         self.verbose = verbose
 
-    def gather_stats(self, model, dataloader, device, id_acc = False, verbose=False) -> dict:
+    def gather_stats(self, model, dataloader, device, id_acc=False, verbose=False) -> dict:
         """Calculate the statistics of dataset.
 
         Args:
@@ -183,20 +201,37 @@ class QuantifyHook_OOD(AlgHook):
 
         # Gather the statistics
         features, logits, labels = [], [], []
+        local_features, local_logits = [], []
+        local_feats=None
+        local_preds=None
         for batch in tbar:
             data = batch['data'].to(device)
             label = batch['label'].to(device)
-            preds = model(data)
-            preds = preds
+            if hasattr(model, "evaluate") and callable(getattr(model, 'evaluate')):
+                preds = model.evaluate(data)
+            else:
+                preds = model(data)
             feats = model.get_features(data)
-
+            if isinstance(preds, tuple) and len(preds) == 2:
+                feats, local_feats = feats  # 解包元组
+                preds, local_preds = preds
+            if isinstance(preds, tuple) and len(preds) == 3:
+                feats = feats[1]
+                preds = preds[1]
             features.append(feats.clone().detach().cpu())
             logits.append(preds.clone().detach().cpu())
             labels.append(label.clone().detach().cpu())
+            if local_preds is not None:
+                local_features.append(local_feats.clone().detach().cpu())
+                local_logits.append(local_preds.clone().detach().cpu())
 
         features = torch.cat(features, dim=0)
         logits = torch.cat(logits, dim=0)
         labels = torch.cat(labels, dim=0).to(torch.int)
+        if local_preds is not None:
+            local_features = torch.cat(local_features, dim=0)
+            local_logits = torch.cat(local_logits, dim=0)
+
         if id_acc:
             _, preds = logits.topk(5, dim=1)  # Get top-5 predictions
             correct = preds.eq(labels.view(-1, 1).expand_as(preds))
@@ -209,21 +244,29 @@ class QuantifyHook_OOD(AlgHook):
             top5_correct = correct.any(dim=1).sum().item()
             top5_acc = top5_correct / labels.size(0) * 100
 
-            print(f'Top-1 Accuracy: {top1_acc:.2f}%')
-            print(f'Top-5 Accuracy: {top5_acc:.2f}%')
         # Calculate the prototypes
         prototypes = []
+        s_prototypes = []
         for cls in torch.unique(labels):
             cls_idx = torch.where(labels == cls)
+            s_logits = torch.softmax(logits/5, dim=1)
             cls_preds = logits[cls_idx]
             prototypes.append(torch.mean(cls_preds, dim=0))
+            cls_preds = s_logits[cls_idx]
+            s_prototypes.append(torch.mean(cls_preds, dim=0))
         prototypes = torch.stack(prototypes, dim=0)
+        s_prototypes = torch.stack(s_prototypes, dim=0)
 
         return {
             "features": features,
             "logits": logits,
             "labels": labels,
             "prototypes": prototypes,
+            "s_prototypes": s_prototypes,
+            "local_features": local_features if local_features is not None else None,
+            "local_logits": local_logits if local_logits is not None else None,
+            "top1_acc": top1_acc if id_acc else None,
+            "top5_acc": top5_acc if id_acc else None,
         }
 
     def after_train(self, trainer) -> None:
@@ -277,3 +320,4 @@ class QuantifyHook_OOD(AlgHook):
                 test_stats,
                 os.path.join(trainer.work_dir, "test_stats.pt")
             )
+

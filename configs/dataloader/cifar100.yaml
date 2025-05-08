@@ -3,9 +3,11 @@ _base_: configs/dataloader/loader.yaml
 trainloader:
   dataset:
     type: CIFAR100
-    root: /data/hdd/datasets/cifar100/
+    # root: /data/hdd/datasets/cifar100/
+    root: /new_data/datasets/OOD/cifar100
     train: True
-    download: True
+    # download: True
+    download: False 
     transform:
       random_crop:
         size: 32
@@ -20,9 +22,11 @@ trainloader:
 valloader:
   dataset:
     type: CIFAR100
-    root: /data/hdd/datasets/cifar100/
+    # root: /data/hdd/datasets/cifar100/
+    root: /new_data/datasets/OOD/cifar100
     train: False
-    download: True
+    # download: True
+    download: False
     transform:
       to_tensor: null
       normalize:
@@ -32,9 +36,11 @@ valloader:
 testloader:
   dataset:
     type: CIFAR100
-    root: /data/hdd/datasets/cifar100/
+    # root: /data/hdd/datasets/cifar100/
+    root: /new_data/datasets/OOD/cifar100
     train: False
-    download: True
+    # download: True
+    download: False
     transform:
       to_tensor: null
       normalize:

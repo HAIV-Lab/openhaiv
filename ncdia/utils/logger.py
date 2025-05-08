@@ -21,6 +21,11 @@ class Logger(object):
         >>> sys.stdout = Logger(osp.join(save_dir, log_name))
     """
     def __init__(self, fpath: str | None = None):
+        if fpath is not None:
+            # 使用时间戳生成唯一的日志文件名
+            timestamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())
+            fpath = osp.join(osp.dirname(fpath), f"{osp.basename(fpath).split('.')[0]}_{timestamp}.log") 
+        
         self.fpath = fpath
         self.fdir = osp.dirname(fpath) if fpath is not None else None
 

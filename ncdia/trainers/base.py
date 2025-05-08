@@ -404,6 +404,9 @@ class BaseTrainer(object):
         self.call_hook('before_train')
 
         for epoch in range(self.max_epochs):
+            self.model.train()
+            print(f"Train")
+            print(f"Model is in training mode:{self.model.training}")
             self.epoch = epoch
             self.call_hook('before_train_epoch')
 
@@ -418,7 +421,7 @@ class BaseTrainer(object):
                     batch_idx=batch_idx, data_batch=batch, outputs=outputs)
 
             self.call_hook('after_train_epoch')
-
+            self.model.eval()
             self.val()
 
         self.save_ckpt(os.path.join(self.work_dir, 'latest.pth'))
@@ -433,6 +436,9 @@ class BaseTrainer(object):
 
     def val(self):
         """Validation process."""
+        self.model.eval()
+        print(f"Validation")
+        print(f"Model is in training mode:{self.model.training}")
         self.call_hook('before_val')
         self.call_hook('before_val_epoch')
 
@@ -451,6 +457,9 @@ class BaseTrainer(object):
 
     def test(self):
         """Test process."""
+        self.model.eval()
+        print(f"Test")
+        print(f"Model is in training mode:{self.model.training}")
         self.call_hook('before_test')
         self.call_hook('before_test_epoch')
 
