@@ -45,8 +45,8 @@ class DetTrainer(PreTrainer):
             verbose: bool = True,
             **kwargs
     ) -> None:
-
-        if cfg.CIL == False:
+        CIL = False
+        if CIL == False:
             self.quantify_hook = QuantifyHook_OOD(
                 gather_train_stats=gather_train_stats,
                 gather_test_stats=gather_test_stats,
@@ -168,7 +168,8 @@ class DetTrainer(PreTrainer):
             dict: OOD scores, keys are the names of the OOD detection methods,
                 values are the OOD scores and search threshold.
         """
-        if self.cfg.CIL:
+        CIL = False
+        if CIL:
             train_stats = self.train_stats
             test_stats = self.test_stats
 
@@ -196,12 +197,12 @@ class DetTrainer(PreTrainer):
         
     
         else:
+            self.model.eval()
             train_stats = self.quantify_hook.gather_stats(
                 model=self.model,
                 dataloader=self.train_loader,
                 device=self.device,
-                verbose=self.verbose
-                self.model.eval()
+                verbose=self.verbose,
             )
             for setting_name, id_setting in self._eval_loader.items():
                 self.logger.info('*************evaluate {} setting*************'.format(setting_name))

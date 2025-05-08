@@ -190,6 +190,7 @@ pyrightconfig.json
 
 # Output directory
 output/
+output_old/
 
 # End of https://www.toptal.com/developers/gitignore/api/python,linux
 
