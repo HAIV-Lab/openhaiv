@@ -263,6 +263,8 @@ class DetTrainer(PreTrainer):
                             prec_th=prec_th,
                             hyperparameters=self.algorithm.hyperparameters if hasattr(self.algorithm, 'hyperparameters') else None
                         )
+                        # print('FPR95:',scores[2]*100)
+                        # print('AUROC:',scores[3]*100)
                         fpr, aur, aupr_in, aupr_out = scores[0]
                         self.logger.info(f"aur, fpr, aupr_in, aupr_out: {aur:.4f}, {fpr:.4f}, {aupr_in:.4f}, {aupr_out:.4f}")
         return scores

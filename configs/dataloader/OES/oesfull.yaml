@@ -49,7 +49,7 @@ evalloader:  # used for eval ood
 
     SUN:  
         type: BMF_OOD 
-        root: /new_data/datasets/OOD_dataset/SUN
+        root: /data/zqh/xz/data/SUN/
         split: ood
         transform:  
 
@@ -83,7 +83,7 @@ evalloader:  # used for eval ood
 
     SUN:  
         type: BMF_OOD 
-        root: /new_data/datasets/OOD_dataset/SUN
+        root: /data/zqh/xz/data/SUN/
         split: ood
         transform: 
          
@@ -104,7 +104,7 @@ evalloader:  # used for eval ood
 
     SUN:  
         type: BMF_OOD 
-        root: /new_data/datasets/OOD_dataset/SUN
+        root: /data/zqh/xz/data/SUN/
         split: ood
         transform:   
         
@@ -125,7 +125,7 @@ evalloader:  # used for eval ood
 
     SUN:  
         type: BMF_OOD 
-        root: /new_data/datasets/OOD_dataset/SUN
+        root: /data/zqh/xz/data/SUN/
         split: ood
         transform: 
           
@@ -146,6 +146,6 @@ evalloader:  # used for eval ood
 
     SUN:  
         type: BMF_OOD 
-        root: /new_data/datasets/OOD_dataset/SUN
+        root: /data/zqh/xz/data/SUN/
         split: ood
         transform:   
