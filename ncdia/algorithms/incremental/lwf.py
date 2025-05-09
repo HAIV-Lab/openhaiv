@@ -87,7 +87,7 @@ class LwF(BaseAlg):
         ret = {}
         ret['loss'] = loss
         ret['acc'] = acc
-        ret['per_class_acc'] = per_acc
+        # ret['per_class_acc'] = per_acc
 
         return ret
     

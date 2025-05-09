@@ -267,7 +267,7 @@ class iCaRL(BaseAlg):
         ret = {}
         ret['loss'] = loss
         ret['acc'] = acc
-        ret['per_class_acc'] = per_acc
+        # ret['per_class_acc'] = per_acc
         return ret
 
     def val_step(self, trainer, data, label, *args, **kwargs):
