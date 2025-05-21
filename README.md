@@ -145,7 +145,7 @@ bash ./scripts/inc_BM200_lwf.sh
 
 ### 🤝Contributors
 
-Xiang Xiang, Qinhao Zhou, Jing Ma, Zhuo Xu, Jiaxin Dai, Yifan Liang, Hanlin Li.
+Xiang Xiang, Qinhao Zhou, Jing Ma, Zhuo Xu, Jiaxin Dai, Yifan Liang, Hanlin Li, Yao Deng.
 
 ### 📖Citation
 If you find our repository useful for your research, please consider citing these papers:
