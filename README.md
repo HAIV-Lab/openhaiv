@@ -32,6 +32,19 @@ python setup.py install
 * scipy>=1.14.0
 * scikit-learn>=1.5.1
 
+#### train and evaluation
+
+Example For OOD:
+```
+python ncdia/train.py     --cfg configs/pipeline/ood_detection/msp/det_oes_rn50_msp_train.yaml     --opts device='cuda:0'
+```
+
+
+Example For CIL:
+```
+bash ./scripts/inc_BM200_lwf.sh  
+```
+
 
 
 
@@ -132,7 +145,7 @@ python setup.py install
 
 ### 🤝Contributors
 
-Xiang Xiang coordinate and lead this work. Qinhao Zhou and Jing Ma are responsible for developing the code framework, while Zhuo Xu, Yifan Liang and HanLin Li modify the framework and expand the methods, conducting experiments on the respective approaches. Qinhao Zhou and Zhuo Xu authored the main content of the manuscript. All work is completed under the guidance of Xiang Xiang.
+Xiang Xiang, Qinhao Zhou, Jing Ma, Zhuo Xu, Jiaxin Dai, Yifan Liang, Hanlin Li.
 
 ### 📖Citation
 If you find our repository useful for your research, please consider citing these papers:
