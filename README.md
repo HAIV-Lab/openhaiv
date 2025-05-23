@@ -47,12 +47,12 @@ bash ./scripts/inc_BM200_lwf.sh
 
 Example For NCD:
 ```
-Set model weight in *weight_path*.  
-Set *id_txt_file* and *ood_txt_file*.  
-Set *output_dir*.  
+Set model weight in weight_path.  
+Set id_txt_file and ood_txt_file.  
+Set output_dir.  
 
 Run:  
-`python ncd.py`
+python ncd.py
 ```
 
 
