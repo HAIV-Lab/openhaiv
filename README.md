@@ -45,7 +45,14 @@ Example For CIL:
 bash ./scripts/inc_BM200_lwf.sh  
 ```
 
+Example For NCD:
 
+```
+set model weight in weight_path.
+set id_txt_file and ood_txt_file.
+set output_dir.
+python ncd.py
+```
 
 
 ### 🤖Supported Models for OpenHAIV
