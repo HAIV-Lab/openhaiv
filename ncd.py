@@ -166,8 +166,8 @@ for cluster_id in range(n_clusters):
 
         shutil.copy2(src_path, dest_path)
 
-print(f"聚类完成！共处理 {len(image_paths)} 张图片")
-print(f"原始聚类分布: {np.bincount(clusters)}")
-print(f"重映射后聚类分布: {np.bincount(remapped_labels[remapped_labels != -1])}")  # 忽略未匹配的-1标签
+print(f"Clustering completed! Processed {len(image_paths)} images in total.")
+print(f"Original cluster distribution: {np.bincount(clusters)}")
+print(f"Remapped cluster distribution: {np.bincount(remapped_labels[remapped_labels != -1])}")  # Ignore unmatched labels (-1)
 print(f"Normalized Clustering Distance (NCD): {ncd_value:.4f}")
-print(f"结果保存在: {os.path.abspath(output_dir)}")
+print(f"Results saved to: {os.path.abspath(output_dir)}")
