@@ -121,7 +121,7 @@ class DERNET(nn.Module):
             self.convnets[-1].load_state_dict(self.convnets[-2].state_dict())
 
         if self.out_dim is None:
-            self.out_dim = 512
+            self.out_dim = 2048
         fc = self.generate_fc(self.feature_dim, nb_classes)
         if self.fc is not None:
             nb_output = self.fc.out_features

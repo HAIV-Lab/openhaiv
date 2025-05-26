@@ -1,7 +1,7 @@
 model:
   type: IncrementalNet
   network:
-    type: resnet18
+    type: resnet50
     pretrained: True
   base_classes: 20
   num_classes: 200

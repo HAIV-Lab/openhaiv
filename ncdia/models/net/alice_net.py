@@ -40,7 +40,7 @@ class AliceNET(nn.Module):
             network['type'] = 'resnet18'
         self.encoder = MODELS.build(network)
         
-        self.num_features = 512
+        self.num_features = 2048
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
         self.pre_allocate = num_classes

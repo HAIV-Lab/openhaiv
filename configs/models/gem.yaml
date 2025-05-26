@@ -1,7 +1,7 @@
 model:
   type: AliceNet
   network:
-    type: resnet18
+    type: resnet50
     pretrained: True
   base_classes: 9
   num_classes: 189
