@@ -124,7 +124,7 @@ test_transform = transforms.Compose([
 ])
 
 model = FeatureExtractor()
-weight_path = "/data/zqh/openhaiv/output/supervised/inc_BM200_finetune_1/exp/task_0.pth"
+weight_path = " "
 checkpoint = torch.load(weight_path)
 state_dict = checkpoint['state_dict'] if 'state_dict' in checkpoint else checkpoint
 state_dict = {k.replace('network.', '').replace('module.', ''): v for k, v in state_dict.items()}
