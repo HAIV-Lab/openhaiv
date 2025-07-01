@@ -176,4 +176,4 @@ If you find our repository useful for your research, please consider citing thes
 - [PyCIL](https://github.com/G-U-N/PyCIL), an extensible codebase for incremental learning.
 
 ### ✉️Contact
-If there are any questions, please feel free to propose new features by opening an issue or contact with the author: Xiang Xiang. Enjoy the code.
+If there are any questions, please feel free to propose new features by opening an issue or contact with the author: Xiang Xiang (xex@hust.edu.cn). Enjoy the code.
