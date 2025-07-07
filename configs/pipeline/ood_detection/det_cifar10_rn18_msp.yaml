@@ -8,7 +8,7 @@ trainer:
   max_epochs: 0
 
 algorithm:
-  type: MLS
+  type: MSP
 
 model:
   type: ResNet18
@@ -29,4 +29,4 @@ seed: 0
 device: cuda
 
 exp_name: exp
-work_dir: ./output/ood/det_cifar10_rn18_mls
+work_dir: ./output/ood/det_cifar10_rn18_msp

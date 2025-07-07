@@ -131,8 +131,8 @@ state_dict = {k.replace('network.', '').replace('module.', ''): v for k, v in st
 state_dict = {k.replace('convnet.', 'resnet.'): v for k, v in state_dict.items()}
 model.load_state_dict(state_dict, strict=False)
 
-id_txt_file = "/data/zqh/xz/openhaiv-ood_xz/output/ood/vim_cil_test_0423/exp/0.99id.txt"
-ood_txt_file = "/data/zqh/xz/openhaiv-ood_xz/output/ood/vim_cil_test_0423/exp/0.99ood.txt"
+id_txt_file = "output/ood/vim_cil_test_0423/exp/0.99id.txt"
+ood_txt_file = "output/ood/vim_cil_test_0423/exp/0.99ood.txt"
 image_paths, X, true_labels = load_images_from_txt(id_txt_file, ood_txt_file, model, test_transform, batch_size=64)
 
 scaler = StandardScaler()
@@ -145,7 +145,7 @@ clusters = kmeans.fit_predict(X_scaled)
 ncd_value, remapped_labels = compute_ncd_and_remap(true_labels, clusters, n_clusters)
 print(f"Normalized Clustering Distance (NCD): {ncd_value:.4f}")
 
-output_dir = "/data/zqh/xz/openhaiv-ood_xz/output/ood/vim_cil_test_0423/exp/ncd_data/"
+output_dir = "output/ood/vim_cil_test_0423/exp/ncd_data/"
 if os.path.exists(output_dir):
     shutil.rmtree(output_dir)
 os.makedirs(output_dir)
