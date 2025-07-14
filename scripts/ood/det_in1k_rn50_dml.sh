@@ -1,14 +1,21 @@
-# train loss focal
+# Benchmark: ImageNet-1K
+# Model: ResNet50
+# Method: DML-Cosine
+# Task: Out-of-Distribution Detection
 python ncdia/train.py \
     --cfg configs/pipeline/ood_detection/det_in1k_rn50_dml_cosine.yaml \
     --opts device='cuda:0'
 
-# train loss center
+# Model: ResNet50
+# Method: DML-Norm
+# Task: Out-of-Distribution Detection
 python ncdia/train.py \
     --cfg configs/pipeline/ood_detection/det_in1k_rn50_dml_norm.yaml \
     --opts device='cuda:0'
 
-# test
+# Model: ResNet18
+# Method: DML
+# Task: Out-of-Distribution Detection
 python ncdia/train.py \
     --cfg configs/pipeline/ood_detection/det_in1k_rn18_dml.yaml \
     --opts device='cuda:0'

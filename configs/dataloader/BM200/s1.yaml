@@ -7,9 +7,6 @@ trainloader:
     root: /data/datasets/CIL/BMF/
     split: train
     subset_labels: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28]
-    # [109, 110, 111, 112, 113, 114, 115, 116, 117, 118]
-    # [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28]
-    # subset_file: /data/datasets/CIL/cub/cub/all/session_2.txt
     transform: train
 
 valloader:
