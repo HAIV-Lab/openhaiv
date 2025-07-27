@@ -8,7 +8,7 @@ from .hook import Hook
 @HOOKS.register
 class LoggerHook(Hook):
     """A hook to log information during training and evaluation.
-    
+
     Args:
         interval (int): Logging interval every `interval` steps.
         ignore_last (bool): Whether to ignore the last step when
@@ -20,24 +20,24 @@ class LoggerHook(Hook):
             such as ".log" or ".txt".
         timestamp (bool): Whether to add timestamp to the log.
     """
-    
-    priority = 'BELOW_NORMAL'
+
+    priority = "BELOW_NORMAL"
 
     def __init__(
-            self,
-            interval: int = 25,
-            ignore_last: bool = False,
-            exp_name: str = 'exp',
-            out_dir: str = None,
-            out_suffix: str = '.log',
-            timestamp: bool = True,
+        self,
+        interval: int = 25,
+        ignore_last: bool = False,
+        exp_name: str = "exp",
+        out_dir: str = None,
+        out_suffix: str = ".log",
+        timestamp: bool = True,
     ):
         super(LoggerHook, self).__init__()
 
         interval = int(interval)
         if interval <= 0:
-            raise ValueError('interval must be a positive integer')
-        
+            raise ValueError("interval must be a positive integer")
+
         exp_name = str(exp_name)
         out_suffix = str(out_suffix)
 
@@ -48,10 +48,10 @@ class LoggerHook(Hook):
         self.out_suffix = out_suffix
         self.timestamp = timestamp
         self.logger = None
-    
+
     def info(self, msg: str, **kwargs) -> None:
         """Log information.
-        
+
         Args:
             msg (str): Information to be logged.
 
@@ -60,8 +60,8 @@ class LoggerHook(Hook):
                 logger is initialized in `before_run` method.
         """
         if not self.logger:
-            raise RuntimeError('logger is not initialized')
-        
+            raise RuntimeError("logger is not initialized")
+
         if self.timestamp:
             self.logger.info(msg, **kwargs)
         else:
@@ -78,12 +78,11 @@ class LoggerHook(Hook):
         else:
             self.out_dir = str(self.out_dir)
 
-        self.log_file = os.path.join(
-            self.out_dir, f'{self.exp_name}{self.out_suffix}')
+        self.log_file = os.path.join(self.out_dir, f"{self.exp_name}{self.out_suffix}")
         self.logger = Logger(self.log_file)
 
         # Create config file and save to disk in the form of yaml
-        self.logger.create_config(trainer.cfg['cfg'])
+        self.logger.create_config(trainer.cfg["cfg"])
 
         # Print config and save to log file
         self.logger.write(trainer.cfg)
@@ -91,16 +90,14 @@ class LoggerHook(Hook):
         trainer._logger = self.logger
 
     def before_run(self, trainer) -> None:
-        """
-
-        """
+        """ """
 
     def after_train_iter(
-            self,
-            trainer: object,
-            batch_idx: int,
-            data_batch: dict | tuple | list | None = None,
-            outputs: dict | None = None
+        self,
+        trainer: object,
+        batch_idx: int,
+        data_batch: dict | tuple | list | None = None,
+        outputs: dict | None = None,
     ) -> None:
         """Print output information every `interval` train steps.
 
@@ -117,22 +114,24 @@ class LoggerHook(Hook):
             return
 
         if (batch_idx + 1) % self.interval == 0:
-            msg = f'Epoch(train) [{trainer.epoch + 1}/{trainer.max_epochs}] ' \
-                  f'Iter [{batch_idx + 1}/{trainer.max_train_iters}] '
+            msg = (
+                f"Epoch(train) [{trainer.epoch + 1}/{trainer.max_epochs}] "
+                f"Iter [{batch_idx + 1}/{trainer.max_train_iters}] "
+            )
             if outputs:
                 for key, value in outputs.items():
                     if isinstance(value, float):
-                        msg += f'| {key}: {value:.4f} '
+                        msg += f"| {key}: {value:.4f} "
                     elif isinstance(value, (int, str)):
-                        msg += f'| {key}: {value} '
+                        msg += f"| {key}: {value} "
             self.info(msg)
 
     def after_val_iter(
-            self,
-            trainer: object,
-            batch_idx: int,
-            data_batch: dict | tuple | list | None = None,
-            outputs: Sequence | None = None
+        self,
+        trainer: object,
+        batch_idx: int,
+        data_batch: dict | tuple | list | None = None,
+        outputs: Sequence | None = None,
     ) -> None:
         """Print output information every `interval` validation steps.
 
@@ -144,26 +143,26 @@ class LoggerHook(Hook):
         """
         if self.interval <= 0:
             return
-        
+
         if self.ignore_last and batch_idx == trainer.max_val_iters - 1:
             return
 
         if (batch_idx + 1) % self.interval == 0:
-            msg = f'Epoch(val) Iter [{batch_idx + 1}/{trainer.max_val_iters}] '
+            msg = f"Epoch(val) Iter [{batch_idx + 1}/{trainer.max_val_iters}] "
             if outputs:
                 for key, value in outputs.items():
                     if isinstance(value, float):
-                        msg += f'| {key}: {value:.4f} '
+                        msg += f"| {key}: {value:.4f} "
                     elif isinstance(value, (int, str)):
-                        msg += f'| {key}: {value} '
+                        msg += f"| {key}: {value} "
             self.info(msg)
-        
+
     def after_test_iter(
-            self,
-            trainer: object,
-            batch_idx: int,
-            data_batch: dict | tuple | list | None = None,
-            outputs: Sequence | None = None
+        self,
+        trainer: object,
+        batch_idx: int,
+        data_batch: dict | tuple | list | None = None,
+        outputs: Sequence | None = None,
     ) -> None:
         """Print output information every `interval` test steps.
 
@@ -175,18 +174,18 @@ class LoggerHook(Hook):
         """
         if self.interval <= 0:
             return
-        
+
         if self.ignore_last and batch_idx == trainer.max_test_iters - 1:
             return
 
         if (batch_idx + 1) % self.interval == 0:
-            msg = f'Epoch(test) Iter [{batch_idx + 1}/{trainer.max_test_iters}] '
+            msg = f"Epoch(test) Iter [{batch_idx + 1}/{trainer.max_test_iters}] "
             if outputs:
                 for key, value in outputs.items():
                     if isinstance(value, float):
-                        msg += f'| {key}: {value:.4f} '
+                        msg += f"| {key}: {value:.4f} "
                     elif isinstance(value, (int, str)):
-                        msg += f'| {key}: {value} '
+                        msg += f"| {key}: {value} "
             self.info(msg)
 
     def before_val_epoch(self, trainer) -> None:
@@ -195,12 +194,10 @@ class LoggerHook(Hook):
         Args:
             trainer (object): Trainer object.
         """
-        self.info('Evaluating...')
-        
+        self.info("Evaluating...")
+
     def after_val_epoch(
-            self,
-            trainer: object,
-            metrics: Dict[str, float] | None = None
+        self, trainer: object, metrics: Dict[str, float] | None = None
     ) -> None:
         """Print evaluation results after each validation epoch.
 
@@ -210,28 +207,26 @@ class LoggerHook(Hook):
         """
         if not isinstance(metrics, dict) or not metrics:
             return
-        
-        msg = f'Epoch(val) '
+
+        msg = f"Epoch(val) "
         for name, metric in metrics.items():
             value = metric.value
             if isinstance(value, float):
-                msg += f'| {name}: {value:.4f} '
+                msg += f"| {name}: {value:.4f} "
             elif isinstance(value, (int, str)):
-                msg += f'| {name}: {value} '
+                msg += f"| {name}: {value} "
         self.info(msg)
-    
+
     def before_test_epoch(self, trainer) -> None:
         """Print information before each test epoch.
 
         Args:
             trainer (object): Trainer object.
         """
-        self.info('Evaluating...')
+        self.info("Evaluating...")
 
     def after_test_epoch(
-            self,
-            trainer: object,
-            metrics: Dict[str, float] | None = None
+        self, trainer: object, metrics: Dict[str, float] | None = None
     ) -> None:
         """Print evaluation results after each test epoch.
 
@@ -241,12 +236,12 @@ class LoggerHook(Hook):
         """
         if not isinstance(metrics, dict) or not metrics:
             return
-        
-        msg = f'Epoch(test) '
+
+        msg = f"Epoch(test) "
         for name, metric in metrics.items():
             value = metric.value
             if isinstance(value, float):
-                msg += f'| {name}: {value:.4f} '
+                msg += f"| {name}: {value:.4f} "
             elif isinstance(value, (int, str)):
-                msg += f'| {name}: {value} '
+                msg += f"| {name}: {value} "
         self.info(msg)

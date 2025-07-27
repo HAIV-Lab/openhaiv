@@ -18,6 +18,7 @@ class BM200(BaseDataset):
         transform (list | str): transform to apply on the dataset.
             If str, it should be one of 'train', 'test' for predefined transforms.
     """
+
     # train_transform = transforms.Compose([
     #     transforms.Resize(256, interpolation=transforms.InterpolationMode.BILINEAR),
     #     transforms.RandomResizedCrop(224),
@@ -32,26 +33,34 @@ class BM200(BaseDataset):
     #     transforms.ToTensor(),
     #     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     # ])
-    train_transform = transforms.Compose([
-        transforms.Resize((256, 256), interpolation=transforms.InterpolationMode.BILINEAR),
-        transforms.CenterCrop(224),
-        transforms.RandomHorizontalFlip(0.5),
-        transforms.RandomCrop(224, padding=4),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    ])
+    train_transform = transforms.Compose(
+        [
+            transforms.Resize(
+                (256, 256), interpolation=transforms.InterpolationMode.BILINEAR
+            ),
+            transforms.CenterCrop(224),
+            transforms.RandomHorizontalFlip(0.5),
+            transforms.RandomCrop(224, padding=4),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ]
+    )
 
-    test_transform = transforms.Compose([
-        transforms.Resize((256,256), interpolation=transforms.InterpolationMode.BILINEAR),
-        transforms.CenterCrop(224),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    ])
-    
+    test_transform = transforms.Compose(
+        [
+            transforms.Resize(
+                (256, 256), interpolation=transforms.InterpolationMode.BILINEAR
+            ),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ]
+    )
+
     def __init__(
         self,
         root: str,
-        split: str = 'train',
+        split: str = "train",
         subset_labels: list = None,
         subset_file: str = None,
         transform: list | str = None,
@@ -61,28 +70,32 @@ class BM200(BaseDataset):
         self.root = root
         self.split = split
 
-        if split == 'train':
-            self.images, self.labels = self._load_data(os.path.join(root, 'train'))
-        elif split == 'test':
-            self.images, self.labels = self._load_data(os.path.join(root, 'test'))
+        if split == "train":
+            self.images, self.labels = self._load_data(os.path.join(root, "train"))
+        elif split == "test":
+            self.images, self.labels = self._load_data(os.path.join(root, "test"))
         else:
             raise ValueError(f"Unknown split: {split}")
 
         if subset_labels is not None:
-            self.images, self.labels = self._select_from_label(self.images, self.labels, subset_labels)
+            self.images, self.labels = self._select_from_label(
+                self.images, self.labels, subset_labels
+            )
         if subset_file is not None:
-            self.images, self.labels = self._select_from_file(self.images, self.labels, subset_file)
+            self.images, self.labels = self._select_from_file(
+                self.images, self.labels, subset_file
+            )
 
         if isinstance(transform, str):
-            if transform == 'train':
+            if transform == "train":
                 self.transform = self.train_transform
-            elif transform == 'test':
+            elif transform == "test":
                 self.transform = self.test_transform
             else:
                 raise ValueError(f"Unknown transform: {transform}")
         else:
             self.transform = transform
-        
+
     def _load_data(self, img_dir: str):
         """Load data from root folder
 
@@ -96,12 +109,12 @@ class BM200(BaseDataset):
         imgpaths, labels = [], []
         for index, file_name in enumerate(os.listdir(img_dir)):
             images = os.listdir(os.path.join(img_dir, file_name))
-            for k in  range(len(images)):
-                image_path = os.path.join(img_dir, file_name,images[k])
+            for k in range(len(images)):
+                image_path = os.path.join(img_dir, file_name, images[k])
                 imgpaths.append(image_path)
                 labels.append(index)
         return imgpaths, labels
-    
+
     def __len__(self) -> int:
         return len(self.images)
 
@@ -113,12 +126,12 @@ class BM200(BaseDataset):
             img = self.transform(img)
 
         return {
-            'data': img,
-            'label': label,
-            'attribute': [],
-            'imgpath': imgpath,
+            "data": img,
+            "label": label,
+            "attribute": [],
+            "imgpath": imgpath,
         }
-    
+
     def _select_from_label(self, images: list, labels: list, subset_labels: list | int):
         """Select images from a subset of labels
 
@@ -153,11 +166,11 @@ class BM200(BaseDataset):
             list: list of labels
         """
         selected_images, selected_labels = [], []
-        with open(file, 'r') as f:
+        with open(file, "r") as f:
             for line in f:
                 img = os.path.abspath(line.strip())
                 if img in images:
                     selected_images.append(img)
                     selected_labels.append(labels[images.index(img)])
-        
+
         return selected_images, selected_labels

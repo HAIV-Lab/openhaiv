@@ -5,17 +5,18 @@ from ncdia.utils import LOSSES
 @LOSSES.register
 class CrossEntropyLoss(nn.CrossEntropyLoss):
     """CrossEntropyLoss with label smoothing.
-    
+
     Args:
         smoothing (float): The smoothing factor. Default: 0.0.
     """
+
     def __init__(self, smoothing: float = 0.0, **kwargs):
         super(CrossEntropyLoss, self).__init__(**kwargs)
         self.smoothing = smoothing
 
     def forward(self, input, target):
         """Forward function.
-        
+
         Args:
             input (Tensor): The input tensor.
             target (Tensor): The target tensor.

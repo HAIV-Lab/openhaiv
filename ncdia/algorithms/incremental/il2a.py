@@ -18,4 +18,3 @@ class IL2A(BaseAlg):
         self._network = None
         self.transform = None
         self.loss = torch.nn.CrossEntropyLoss().cuda()
-        

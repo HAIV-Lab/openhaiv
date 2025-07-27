@@ -40,14 +40,14 @@ class PASSHook(AlgHook):
 
     def after_train(self, trainer) -> None:
         algorithm = trainer.algorithm
-        filename = 'task_' + str(trainer.session) + '.pth'
+        filename = "task_" + str(trainer.session) + ".pth"
         trainer.save_ckpt(os.path.join(trainer.work_dir, filename))
         trainer.buffer["old_model"] = IncrementalNet(
             trainer.cfg.model.network,
             trainer.cfg.CIL.base_classes,
             trainer.cfg.CIL.num_classes,
             trainer.cfg.CIL.att_classes,
-            trainer.cfg.model.net_alice
+            trainer.cfg.model.net_alice,
         )
         trainer.buffer["old_model"].load_state_dict(trainer.model.state_dict())
         for param in trainer.buffer["old_model"].parameters():
@@ -60,9 +60,15 @@ class PASSHook(AlgHook):
             trainer.buffer["class_label"] = self.class_label
             trainer.buffer["radii"] = self.radii
         else:
-            trainer.buffer["prototype"] = np.concatenate((trainer.buffer["prototype"], self.prototype), axis=0)
-            trainer.buffer["class_label"] = np.concatenate((trainer.buffer["class_label"], self.class_label), axis=0)
-            trainer.buffer["radii"] = np.concatenate((trainer.buffer["radii"], self.radii), axis=0)
+            trainer.buffer["prototype"] = np.concatenate(
+                (trainer.buffer["prototype"], self.prototype), axis=0
+            )
+            trainer.buffer["class_label"] = np.concatenate(
+                (trainer.buffer["class_label"], self.class_label), axis=0
+            )
+            trainer.buffer["radii"] = np.concatenate(
+                (trainer.buffer["radii"], self.radii), axis=0
+            )
         trainer.buffer["radius"] = np.sqrt(np.mean(trainer.buffer["radii"]))
 
     def _build_protos(self, trainer):
@@ -73,19 +79,21 @@ class PASSHook(AlgHook):
         labels = []
         radii = []
         prototype = []
-        
+
         if session == 0:
             known_class = 0
         else:
-            known_class = trainer.cfg.CIL.base_classes + (session - 1) * trainer.cfg.CIL.way
+            known_class = (
+                trainer.cfg.CIL.base_classes + (session - 1) * trainer.cfg.CIL.way
+            )
         total_class = trainer.cfg.CIL.base_classes + session * trainer.cfg.CIL.way
 
         _network.eval()
         with torch.no_grad():
             for i, batch in enumerate(tqdm(_loader, desc="Building prototypes")):
-                images = batch['data'].cuda()
+                images = batch["data"].cuda()
                 features.append(_network.extract_vector(images).cpu().numpy())
-                labels.append(batch['label'].numpy())
+                labels.append(batch["label"].numpy())
 
         features = np.concatenate(features, axis=0)
         labels = np.concatenate(labels, axis=0)
@@ -102,6 +110,7 @@ class PASSHook(AlgHook):
         self.prototype = np.array(prototype)
         self.radii = np.array(radii)
         self.class_label = class_set
+
 
 @ALGORITHMS.register
 class PASS(BaseAlg):
@@ -121,7 +130,6 @@ class PASS(BaseAlg):
         self.temperature = 0.1
         self.kd_weight = 10
         self.proto_weight = 10
-
 
     def train_step(self, trainer, data, label, attribute, imgpath):
         """
@@ -147,7 +155,7 @@ class PASS(BaseAlg):
         loss, acc, per_acc = self._compute_loss(data, labels)
         loss.backward()
 
-        ret = {'loss': loss, 'acc': acc, 'per_class_acc': per_acc}
+        ret = {"loss": loss, "acc": acc, "per_class_acc": per_acc}
 
         return ret
 
@@ -183,7 +191,7 @@ class PASS(BaseAlg):
         loss = self.loss(logits_, labels)
         per_acc = str(per_class_accuracy(logits_, labels))
 
-        ret = {'loss': loss.item(), 'acc': acc.item(), 'per_class_acc': per_acc}
+        ret = {"loss": loss.item(), "acc": acc.item(), "per_class_acc": per_acc}
 
         return ret
 
@@ -213,17 +221,25 @@ class PASS(BaseAlg):
             feature_old = self._old_network.extract_vector(data)
             loss_kd = self.kd_weight * torch.dist(feature, feature_old, 2)
 
-            index = np.random.choice(range(known_class),
-                                     size=self.batchsize * int(np.ceil(known_class / (total_class - known_class))),
-                                     replace=True)
+            index = np.random.choice(
+                range(known_class),
+                size=self.batchsize
+                * int(np.ceil(known_class / (total_class - known_class))),
+                replace=True,
+            )
             proto_features = self.trainer.buffer["prototype"][index]
             proto_labels = index
-            proto_features = (proto_features + np.random.normal(0, 1, proto_features.shape) *
-                              self.trainer.buffer["radius"])
+            proto_features = (
+                proto_features
+                + np.random.normal(0, 1, proto_features.shape)
+                * self.trainer.buffer["radius"]
+            )
             proto_features = torch.from_numpy(proto_features).float().cuda()
             proto_labels = torch.from_numpy(proto_labels).cuda()
             proto_logits = self._network.fc(proto_features)
-            loss_proto = self.proto_weight * self.loss(proto_logits / self.temperature, proto_labels)
+            loss_proto = self.proto_weight * self.loss(
+                proto_logits / self.temperature, proto_labels
+            )
 
             loss = loss_cls + loss_kd + loss_proto
 

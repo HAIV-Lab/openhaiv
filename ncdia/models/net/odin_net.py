@@ -16,8 +16,9 @@ class ODINNet(nn.Module):
 
     Args:
         network (Configs): Network configuration.
-    
+
     """
+
     def __init__(
         self,
         network: Configs,
@@ -29,20 +30,25 @@ class ODINNet(nn.Module):
     ) -> None:
         super().__init__()
         self.args = network.cfg
-        self.args['pretrained'] = True
-        num_classes_true = self.args['num_classes']
-        self.args['num_classes'] = 1000
+        self.args["pretrained"] = True
+        num_classes_true = self.args["num_classes"]
+        self.args["num_classes"] = 1000
         self.temperature = temperature
         self.noise = noise
         self.input_std = input_std
         self.network = MODELS.build(copy.deepcopy(self.args))
         num_features = self.network.fc.in_features  # ��ȡ��������ά��
-        self.network.fc = torch.nn.Linear(num_features, num_classes_true)  # �滻Ϊ�µ�ȫ���Ӳ�
+        self.network.fc = torch.nn.Linear(
+            num_features, num_classes_true
+        )  # �滻Ϊ�µ�ȫ���Ӳ�
         self.out_features = None
         if checkpoint:
-            print('load_checkpoint')
+            print("load_checkpoint")
             state_dict = torch.load(checkpoint)
-            state_dict = {k.replace('network.', ''): v for k, v in state_dict['state_dict'].items()}
+            state_dict = {
+                k.replace("network.", ""): v
+                for k, v in state_dict["state_dict"].items()
+            }
             self.network.load_state_dict(state_dict, strict=False)
 
     def forward(self, x):
@@ -82,6 +88,6 @@ class ODINNet(nn.Module):
 
         # conf, pred = nnOutput.max(dim=1)
         return nnOutput
-    
-    def get_features(self,x):
+
+    def get_features(self, x):
         return self.network.get_features()

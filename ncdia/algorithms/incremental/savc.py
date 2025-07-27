@@ -13,27 +13,28 @@ from ncdia.trainers.hooks import AlgHook
 from ncdia.models.net.alice_net import AliceNET
 from ncdia.models.net.inc_net import IncrementalNet
 
+
 @HOOKS.register
 class SAVCHook(AlgHook):
     def __init__(self) -> None:
         super().__init__()
-    
+
     def after_train(self, trainer) -> None:
         algorithm = trainer.algorithm
         algorithm.replace_fc()
 
-        filename = 'task_' + str(trainer.session) + '.pth'
+        filename = "task_" + str(trainer.session) + ".pth"
         trainer.save_ckpt(os.path.join(trainer.work_dir, filename))
         if trainer.session == 0:
             self.save_train_static(trainer)
-    
+
     def save_train_static(self, trainer):
         all_class = trainer.train_loader.dataset.num_classes
         features, logits, labels, att_logits = [], [], [], []
         tbar = tqdm(trainer.train_loader, dynamic_ncols=True, disable=True)
         for batch in tbar:
-            data = batch['data'].to(trainer.device)
-            label = batch['label'].to(trainer.device)
+            data = batch["data"].to(trainer.device)
+            label = batch["label"].to(trainer.device)
             joint_preds, joint_preds_att = trainer.model(data)
             joint_preds = joint_preds[:, :all_class]
             feats = trainer.model.get_features(data)
@@ -59,24 +60,33 @@ class SAVCHook(AlgHook):
             prototype_att.append(torch.mean(att_predictions, dim=0))
 
         att_logits = self.get_test_logits(trainer)
-        filename = 'train_static.pt'
-        torch.save({'train_features': features, 'train_logits': logits, 'att_logits': att_logits, 'prototype': torch.stack(prototype_cls), 'prototype_att': torch.stack(prototype_att)}, os.path.join(trainer.work_dir, filename))
-    
+        filename = "train_static.pt"
+        torch.save(
+            {
+                "train_features": features,
+                "train_logits": logits,
+                "att_logits": att_logits,
+                "prototype": torch.stack(prototype_cls),
+                "prototype_att": torch.stack(prototype_att),
+            },
+            os.path.join(trainer.work_dir, filename),
+        )
+
     def before_train(self, trainer) -> None:
-        trainer.train_loader.dataset.multi_train = True\
-    
+        trainer.train_loader.dataset.multi_train = True
+
     def get_test_logits(self, trainer) -> None:
         all_class = trainer.train_loader.dataset.num_classes
         att_logits = []
         tbar = tqdm(trainer.test_loader, dynamic_ncols=True, disable=True)
         for batch in tbar:
-            data = batch['data'].to(trainer.device)
-            label = batch['label'].to(trainer.device)
+            data = batch["data"].to(trainer.device)
+            label = batch["label"].to(trainer.device)
             joint_preds, joint_preds_att = trainer.model(data)
             joint_preds = joint_preds[:, :all_class]
 
             att_logits.append(joint_preds_att.clone().detach().cpu())
-        
+
         att_logits = torch.cat(att_logits, dim=0)
         return att_logits
 
@@ -99,17 +109,22 @@ class SAVC(BaseAlg):
         else:
             self.transform = None
             self.num_trans = 0
-        
+
         session = trainer.session
         if session == 1:
             self._network = trainer.model
             self._network.eval()
             self._network.mode = self.args.CIL.new_mode
-            trainer.train_loader.dataset.multi_train =False
+            trainer.train_loader.dataset.multi_train = False
             trainloader = trainer.train_loader
             tsfm = trainer.val_loader.dataset.transform
             trainloader.dataset.transform = tsfm
-            class_list = list(range(self.args.CIL.base_class+ (session-1)*self.args.CIL.way, self.args.CIL.base_class + self.args.CIL.way * session))
+            class_list = list(
+                range(
+                    self.args.CIL.base_class + (session - 1) * self.args.CIL.way,
+                    self.args.CIL.base_class + self.args.CIL.way * session,
+                )
+            )
             # print("###pre fc data: ", self._network.fc.weight.data[13])
             self._network.update_fc(trainloader, class_list, session)
             # print("###update fc data: ", self._network.fc.weight.data[13])
@@ -125,7 +140,7 @@ class SAVC(BaseAlg):
             imgpath: imgpath in batch
         """
         session = trainer.session
-        if session==0:
+        if session == 0:
             self._network = trainer.model
             self._network.train()
             device = trainer.device
@@ -146,21 +161,21 @@ class SAVC(BaseAlg):
             # else:
             #     data_small = None
 
-            data_classify = self.transform(original)    
+            data_classify = self.transform(original)
             data_query = self.transform(data_1)
             data_key = self.transform(data_2)
             # data_small = self.transform(data_small)
 
             m = data_query.size()[0] // b
-            joint_labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
+            joint_labels = torch.stack([label * m + ii for ii in range(m)], 1).view(-1)
             # att_b, att_c = attribute.shape
             # joint_attribute = attribute.unsqueeze(1).repeat(1, 2, 1)
             # joint_attribute = joint_attribute.reshape(2 * att_b, att_c)
 
             # ------  forward  ------- #
-            joint_preds, joint_preds_att = self._network(im_cla=data_classify)  
-            joint_preds = joint_preds[:, :self.config.CIL.base_class*m]
-            
+            joint_preds, joint_preds_att = self._network(im_cla=data_classify)
+            joint_preds = joint_preds[:, : self.config.CIL.base_class * m]
+
             tmp_preds_att = joint_preds_att.sigmoid()
             bceloss = torch.nn.BCELoss()
             # att_loss = bceloss(tmp_preds_att, joint_attribute.float())
@@ -176,7 +191,6 @@ class SAVC(BaseAlg):
             loss = joint_loss
             loss.backward()
 
-
             # acc = self._accuracy(joint_labels, joint_preds)
             # print(joint_labels.shape)
             # print(joint_preds.shape)
@@ -185,9 +199,9 @@ class SAVC(BaseAlg):
             per_acc = str(per_class_accuracy(joint_preds, joint_labels))
 
             ret = {}
-            ret['loss'] = loss
-            ret['acc'] = acc
-            ret['per_class_acc'] = per_acc
+            ret["loss"] = loss
+            ret["acc"] = acc
+            ret["per_class_acc"] = per_acc
             return ret
         else:
             ret = {}
@@ -231,22 +245,21 @@ class SAVC(BaseAlg):
             m = data.size()[0] // b
             joint_preds, _ = self._network(data)
             feat = self._network.get_features(data)
-            joint_preds = joint_preds[:, :test_class*m]
-            
+            joint_preds = joint_preds[:, : test_class * m]
+
             agg_preds = 0
             agg_feat = feat.view(-1, m, feat.size(1)).mean(dim=1)
             for j in range(m):
-                agg_preds = agg_preds + joint_preds[j::m, j::m] / m  
+                agg_preds = agg_preds + joint_preds[j::m, j::m] / m
             # print(agg_preds)
             # print(label)
             # loss = F.cross_entropy(joint_preds, label)
-            
+
             feature_list.append(agg_feat)
             logit_list.append(agg_preds)
             score = torch.softmax(agg_preds, dim=1)
             conf, pred = torch.max(score, dim=1)
             acc = self._accuracy(pred, label)
-            
 
             pred_list.append(pred.cpu())
             conf_list.append(conf.cpu())
@@ -259,13 +272,12 @@ class SAVC(BaseAlg):
         label_list = torch.cat(label_list).numpy().astype(int)
         # loss = F.cross_entropy(torch.from_numpy(label_list), torch.from_numpy(logit_list))
         ret = {}
-        ret['acc']=acc
+        ret["acc"] = acc
         # ret['loss']=loss
 
-        
         return ret
-    
-    def replace_fc(self): 
+
+    def replace_fc(self):
         session = self.trainer.session
         self.trainer.train_loader.dataset.multi_train = False
         if not self.args.CIL.not_data_init and session == 0:
@@ -279,13 +291,15 @@ class SAVC(BaseAlg):
             label_list = []
             with torch.no_grad():
                 for i, batch in enumerate(train_loader):
-                    data = batch['data'].cuda()
-                    label = batch['label'].cuda()
-    
+                    data = batch["data"].cuda()
+                    label = batch["label"].cuda()
+
                     b = data.size()[0]
                     data = self.transform(data)
                     m = data.size()[0] // b
-                    labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
+                    labels = torch.stack([label * m + ii for ii in range(m)], 1).view(
+                        -1
+                    )
                     embedding = self._network.get_features(data)
 
                     embedding_list.append(embedding.cpu())
@@ -295,7 +309,7 @@ class SAVC(BaseAlg):
 
             proto_list = []
 
-            for class_index in range(self.args.CIL.base_class*m):
+            for class_index in range(self.args.CIL.base_class * m):
                 data_index = (label_list == class_index).nonzero()
                 embedding_this = embedding_list[data_index.squeeze(-1)]
                 embedding_this = embedding_this.mean(0)
@@ -303,8 +317,7 @@ class SAVC(BaseAlg):
 
             proto_list = torch.stack(proto_list, dim=0)
 
-            self._network.fc.weight.data[:self.args.CIL.base_class*m] = proto_list
-
+            self._network.fc.weight.data[: self.args.CIL.base_class * m] = proto_list
 
     def test_step(self, trainer, data, label, *args, **kwargs):
         """Test step for standard supervised learning.
@@ -329,7 +342,7 @@ class SAVC(BaseAlg):
 
     def _accuracy(self, labels, preds):
         """
-        compute accuracy 
+        compute accuracy
         Args:
             labels: true label
             preds: predict label

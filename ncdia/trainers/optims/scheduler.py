@@ -19,15 +19,16 @@ class CosineWarmupLR(_LRScheduler):
         >>> optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
         >>> scheduler = CosineWarmupLR(optimizer, T_max=100, eta_min=0, warmup_epochs=10)
     """
+
     def __init__(
-            self,
-            optimizer: torch.optim.Optimizer,
-            T_max: int,
-            eta_min: float = 0,
-            warmup_epochs: int = 0,
-            warmup_type: str = 'constant',
-            warmup_lr: float | None = None,
-            last_epoch: int = -1,
+        self,
+        optimizer: torch.optim.Optimizer,
+        T_max: int,
+        eta_min: float = 0,
+        warmup_epochs: int = 0,
+        warmup_type: str = "constant",
+        warmup_lr: float | None = None,
+        last_epoch: int = -1,
     ):
         self.T_max = T_max
         self.eta_min = eta_min
@@ -38,22 +39,31 @@ class CosineWarmupLR(_LRScheduler):
 
     def get_lr(self):
         if self.last_epoch < self.warmup_epochs:
-            if self.warmup_type == 'constant':
+            if self.warmup_type == "constant":
                 if self.warmup_lr is None:
                     return self.base_lrs
                 else:
                     return [self.warmup_lr for _ in self.base_lrs]
-            elif self.warmup_type == 'linear':
+            elif self.warmup_type == "linear":
                 return [
                     base_lr * self.last_epoch / self.warmup_epochs
                     for base_lr in self.base_lrs
                 ]
             else:
-                raise ValueError(f'Invalid warmup type: {self.warmup_type}')
+                raise ValueError(f"Invalid warmup type: {self.warmup_type}")
         else:
             return [
-                self.eta_min + (base_lr - self.eta_min) *
-                (1 + math.cos(math.pi * (self.last_epoch - self.warmup_epochs) / (self.T_max - self.warmup_epochs))) / 2
+                self.eta_min
+                + (base_lr - self.eta_min)
+                * (
+                    1
+                    + math.cos(
+                        math.pi
+                        * (self.last_epoch - self.warmup_epochs)
+                        / (self.T_max - self.warmup_epochs)
+                    )
+                )
+                / 2
                 for base_lr in self.base_lrs
             ]
 
@@ -76,14 +86,14 @@ class LinearWarmupLR(_LRScheduler):
     """
 
     def __init__(
-            self,
-            optimizer: torch.optim.Optimizer,
-            T_max: int,
-            eta_min: float = 0,
-            warmup_epochs: int = 0,
-            warmup_type: str = 'constant',
-            warmup_lr: float | None = None,
-            last_epoch: int = -1,
+        self,
+        optimizer: torch.optim.Optimizer,
+        T_max: int,
+        eta_min: float = 0,
+        warmup_epochs: int = 0,
+        warmup_type: str = "constant",
+        warmup_lr: float | None = None,
+        last_epoch: int = -1,
     ):
         self.T_max = T_max
         self.eta_min = eta_min
@@ -94,22 +104,24 @@ class LinearWarmupLR(_LRScheduler):
 
     def get_lr(self):
         if self.last_epoch < self.warmup_epochs:
-            if self.warmup_type == 'constant':
+            if self.warmup_type == "constant":
                 if self.warmup_lr is None:
                     return self.base_lrs
                 else:
                     return [self.warmup_lr for _ in self.base_lrs]
-            elif self.warmup_type == 'linear':
+            elif self.warmup_type == "linear":
                 return [
                     base_lr * self.last_epoch / self.warmup_epochs
                     for base_lr in self.base_lrs
                 ]
             else:
-                raise ValueError(f'Invalid warmup type: {self.warmup_type}')
+                raise ValueError(f"Invalid warmup type: {self.warmup_type}")
         else:
             return [
-                self.eta_min + (base_lr - self.eta_min) *
-                (self.T_max - self.last_epoch) / (self.T_max - self.warmup_epochs)
+                self.eta_min
+                + (base_lr - self.eta_min)
+                * (self.T_max - self.last_epoch)
+                / (self.T_max - self.warmup_epochs)
                 for base_lr in self.base_lrs
             ]
 
@@ -125,6 +137,7 @@ class ConstantLR(_LRScheduler):
         >>> optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
         >>> scheduler = ConstantLR(optimizer)
     """
+
     def __init__(
         self,
         optimizer: torch.optim.Optimizer,
@@ -137,10 +150,8 @@ class ConstantLR(_LRScheduler):
 
 
 def build_scheduler(
-        type: str,
-        optimizer: torch.optim.Optimizer,
-        **kwargs
-    ) -> _LRScheduler:
+    type: str, optimizer: torch.optim.Optimizer, **kwargs
+) -> _LRScheduler:
     """Build learning rate scheduler.
 
     Args:
@@ -159,19 +170,19 @@ def build_scheduler(
         >>> scheduler = build_scheduler('cosine', optimizer)
     """
     type = type.lower()
-    if type == 'step':
+    if type == "step":
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, **kwargs)
-    elif type == 'multistep':
+    elif type == "multistep":
         lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, **kwargs)
-    elif type == 'exponential':
+    elif type == "exponential":
         lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, **kwargs)
-    elif type == 'cosine':
+    elif type == "cosine":
         lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, **kwargs)
-    elif type == 'cosine_warmup':
+    elif type == "cosine_warmup":
         lr_scheduler = CosineWarmupLR(optimizer, **kwargs)
-    elif type == 'linear_warmup':
+    elif type == "linear_warmup":
         lr_scheduler = LinearWarmupLR(optimizer, **kwargs)
-    elif type == 'constant':
+    elif type == "constant":
         lr_scheduler = ConstantLR(optimizer, **kwargs)
     else:
         raise NotImplementedError(f"LR scheduler {type} not supported")

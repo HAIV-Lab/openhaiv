@@ -3,13 +3,15 @@ import torch.nn as nn
 import torch.nn.functional as F
 from ncdia.utils import LOSSES
 
+
 @LOSSES.register
 class DPMLoss(nn.Module):
-    '''DPM Loss 
-    
+    """DPM Loss
+
     Args:
-        
-    '''
+
+    """
+
     def __init__(self, **kwargs):
         super(DPMLoss, self).__init__(**kwargs)
 
@@ -30,9 +32,9 @@ class DPMLoss(nn.Module):
         """
         logits1, logits2, logits3 = input
 
-        loss1 = F.cross_entropy(20*logits1, target)
-        loss2 = F.cross_entropy(20*logits2, target)
-        loss3 = F.cross_entropy(20*logits3, target)
+        loss1 = F.cross_entropy(20 * logits1, target)
+        loss2 = F.cross_entropy(20 * logits2, target)
+        loss3 = F.cross_entropy(20 * logits3, target)
 
         loss = factor1 * loss1 + factor2 * loss2 + factor3 * loss3
 

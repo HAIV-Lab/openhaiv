@@ -13,11 +13,13 @@ from .metrics import ood_metrics, search_threshold
 
 @ALGORITHMS.register
 def msp(
-        id_gt, id_logits,
-        ood_gt, ood_logits,
-        tpr_th: float = 0.95,
-        prec_th: float = None,
-        **kwargs
+    id_gt,
+    id_logits,
+    ood_gt,
+    ood_logits,
+    tpr_th: float = 0.95,
+    prec_th: float = None,
+    **kwargs,
 ) -> tuple:
     """Maximum Softmax Probability (MSP) method for OOD detection.
 
@@ -39,7 +41,7 @@ def msp(
         label (np.ndarray): Label array. Shape (N + M,).
         fpr (float): False positive rate.
         auroc (float): Area under the ROC curve.
-        aupr_in (float): Area under the precision-recall curve 
+        aupr_in (float): Area under the precision-recall curve
             for in-distribution samples.
         aupr_out (float): Area under the precision-recall curve
             for out-of-distribution
@@ -51,11 +53,9 @@ def msp(
     # for computing ood metrics
     neg_ood_gt = -1 * np.ones_like(ood_gt)
 
-    id_conf, _ = torch.max(
-        torch.softmax(id_logits, dim=1), dim=1)
-    ood_conf, _ = torch.max(
-        torch.softmax(ood_logits, dim=1), dim=1)
-    
+    id_conf, _ = torch.max(torch.softmax(id_logits, dim=1), dim=1)
+    ood_conf, _ = torch.max(torch.softmax(ood_logits, dim=1), dim=1)
+
     conf = np.concatenate([id_conf.cpu(), ood_conf.cpu()])
     label = np.concatenate([id_gt, ood_gt])
     neg_label = np.concatenate([id_gt, neg_ood_gt])
@@ -63,17 +63,24 @@ def msp(
     if prec_th is None:
         return conf, label, *ood_metrics(conf, neg_label, tpr_th), None, None, None
     else:
-        return conf, label, *ood_metrics(conf, neg_label, tpr_th), *search_threshold(conf, neg_label, prec_th)
+        return (
+            conf,
+            label,
+            *ood_metrics(conf, neg_label, tpr_th),
+            *search_threshold(conf, neg_label, prec_th),
+        )
 
 
 @ALGORITHMS.register
 def mcm(
-        id_gt, id_logits,
-        ood_gt, ood_logits,
-        T: int = 2,
-        tpr_th: float = 0.95,
-        prec_th: float = None,
-        **kwargs
+    id_gt,
+    id_logits,
+    ood_gt,
+    ood_logits,
+    T: int = 2,
+    tpr_th: float = 0.95,
+    prec_th: float = None,
+    **kwargs,
 ) -> tuple:
     """Maximum Concept Matching (MCM) method for OOD detection.
 
@@ -94,7 +101,7 @@ def mcm(
     Returns:
         fpr (float): False positive rate.
         auroc (float): Area under the ROC curve.
-        aupr_in (float): Area under the precision-recall curve 
+        aupr_in (float): Area under the precision-recall curve
             for in-distribution samples.
         aupr_out (float): Area under the precision-recall curve
             for out-of-distribution
@@ -103,28 +110,31 @@ def mcm(
     # for computing ood metrics
     ood_gt = -1 * np.ones_like(ood_gt)
 
-    id_conf, _ = torch.max(
-        torch.softmax(id_logits / T, dim=1), dim=1)
-    ood_conf, _ = torch.max(
-        torch.softmax(ood_logits / T, dim=1), dim=1)
+    id_conf, _ = torch.max(torch.softmax(id_logits / T, dim=1), dim=1)
+    ood_conf, _ = torch.max(torch.softmax(ood_logits / T, dim=1), dim=1)
 
     conf = np.concatenate([id_conf.cpu(), ood_conf.cpu()])
     label = np.concatenate([id_gt.cpu(), ood_gt])
-    
+
     if prec_th is None:
         return ood_metrics(conf, label, tpr_th), None
     else:
         return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
-    
+
+
 @ALGORITHMS.register
 def glmcm(
-        id_gt, id_global_logits, id_local_logits,
-        ood_gt, ood_global_logits, ood_local_logits,
-        T: int = 2,
-        lambda_local: float = 1,
-        tpr_th: float = 0.95,
-        prec_th: float = None,
-        **kwargs
+    id_gt,
+    id_global_logits,
+    id_local_logits,
+    ood_gt,
+    ood_global_logits,
+    ood_local_logits,
+    T: int = 2,
+    lambda_local: float = 1,
+    tpr_th: float = 0.95,
+    prec_th: float = None,
+    **kwargs,
 ) -> tuple:
     """Global-Local Maximum Concept Matching (GL-MCM) method for OOD detection.
 
@@ -148,7 +158,7 @@ def glmcm(
     Returns:
         fpr (float): False positive rate.
         auroc (float): Area under the ROC curve.
-        aupr_in (float): Area under the precision-recall curve 
+        aupr_in (float): Area under the precision-recall curve
             for in-distribution samples.
         aupr_out (float): Area under the precision-recall curve
             for out-of-distribution
@@ -157,38 +167,39 @@ def glmcm(
     # for computing ood metrics
     ood_gt = -1 * np.ones_like(ood_gt)
 
-    id_global_conf, _ = torch.max(
-        torch.softmax(id_global_logits / T, dim=1), dim=1)
-    id_local_conf, _ = torch.max(
-        torch.softmax(id_local_logits / T, dim=1), dim=(1,2))
-    ood_global_conf, _ = torch.max(
-        torch.softmax(ood_global_logits / T, dim=1), dim=1)
+    id_global_conf, _ = torch.max(torch.softmax(id_global_logits / T, dim=1), dim=1)
+    id_local_conf, _ = torch.max(torch.softmax(id_local_logits / T, dim=1), dim=(1, 2))
+    ood_global_conf, _ = torch.max(torch.softmax(ood_global_logits / T, dim=1), dim=1)
     ood_local_conf, _ = torch.max(
-        torch.softmax(ood_local_logits / T, dim=1), dim=(1,2))
+        torch.softmax(ood_local_logits / T, dim=1), dim=(1, 2)
+    )
     id_conf = id_global_conf + id_local_conf
     ood_conf = ood_global_conf + lambda_local * ood_local_conf
 
     conf = np.concatenate([id_conf.cpu(), ood_conf.cpu()])
     label = np.concatenate([id_gt.cpu(), ood_gt])
-    
+
     if prec_th is None:
         return ood_metrics(conf, label, tpr_th), None
     else:
         return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
 
+
 @ALGORITHMS.register
 def max_logit(
-        id_gt, id_logits,
-        ood_gt, ood_logits,
-        tpr_th: float = 0.95,
-        prec_th: float = None,
-        **kwargs
+    id_gt,
+    id_logits,
+    ood_gt,
+    ood_logits,
+    tpr_th: float = 0.95,
+    prec_th: float = None,
+    **kwargs,
 ) -> tuple:
     """Maximum Logit (MaxLogit) method for OOD detection.
 
     Scaling Out-of-Distribution Detection for Real-World Settings
     https://arxiv.org/abs/1911.11132
-    
+
     Args:
         id_gt (torch.Tensor): ID ground truth labels. Shape (N,).
         id_logits (torch.Tensor): ID logits. Shape (N, C).
@@ -202,7 +213,7 @@ def max_logit(
     Returns:
         fpr (float): False positive rate.
         auroc (float): Area under the ROC curve.
-        aupr_in (float): Area under the precision-recall curve 
+        aupr_in (float): Area under the precision-recall curve
             for in-distribution samples.
         aupr_out (float): Area under the precision-recall curve
             for out-of-distribution
@@ -216,7 +227,7 @@ def max_logit(
 
     conf = np.concatenate([id_conf.cpu(), ood_conf.cpu()])
     label = np.concatenate([id_gt.cpu(), ood_gt])
-    
+
     if prec_th is None:
         return ood_metrics(conf, label, tpr_th), None
     else:
@@ -225,11 +236,13 @@ def max_logit(
 
 @ALGORITHMS.register
 def energy(
-        id_gt, id_logits,
-        ood_gt, ood_logits,
-        tpr_th: float = 0.95,
-        prec_th: float = None,
-        **kwargs
+    id_gt,
+    id_logits,
+    ood_gt,
+    ood_logits,
+    tpr_th: float = 0.95,
+    prec_th: float = None,
+    **kwargs,
 ) -> tuple:
     """Energy-based method for OOD detection.
 
@@ -249,7 +262,7 @@ def energy(
     Returns:
         fpr (float): False positive rate.
         auroc (float): Area under the ROC curve.
-        aupr_in (float): Area under the precision-recall curve 
+        aupr_in (float): Area under the precision-recall curve
             for in-distribution samples.
         aupr_out (float): Area under the precision-recall curve
             for out-of-distribution
@@ -263,7 +276,7 @@ def energy(
 
     conf = np.concatenate([id_conf, ood_conf])
     label = np.concatenate([id_gt.cpu(), ood_gt])
-    
+
     if prec_th is None:
         return ood_metrics(conf, label, tpr_th), None
     else:
@@ -272,12 +285,17 @@ def energy(
 
 @ALGORITHMS.register
 def vim(
-        id_gt, id_logits, id_feat, 
-        ood_gt, ood_logits, ood_feat, 
-        train_logits, train_feat,
-        tpr_th: float = 0.95,
-        prec_th: float = None,
-        **kwargs
+    id_gt,
+    id_logits,
+    id_feat,
+    ood_gt,
+    ood_logits,
+    ood_feat,
+    train_logits,
+    train_feat,
+    tpr_th: float = 0.95,
+    prec_th: float = None,
+    **kwargs,
 ) -> tuple:
     """Virtual-Logit Matching (ViM) method for OOD detection.
 
@@ -301,7 +319,7 @@ def vim(
     Returns:
         fpr (float): False positive rate.
         auroc (float): Area under the ROC curve.
-        aupr_in (float): Area under the precision-recall curve 
+        aupr_in (float): Area under the precision-recall curve
             for in-distribution samples.
         aupr_out (float): Area under the precision-recall curve
             for out-of-distribution
@@ -309,13 +327,12 @@ def vim(
     # set the ground truth labels for OOD samples to -1
     # for computing ood metrics
     ood_gt = -1 * np.ones_like(ood_gt)
-    
+
     D = train_feat.shape[1] // 2
     ec = EmpiricalCovariance(assume_centered=True)
     ec.fit(train_feat.cpu())
     eig_vals, eigen_vectors = np.linalg.eig(ec.covariance_)
-    NS = np.ascontiguousarray(
-        (eigen_vectors.T[np.argsort(eig_vals * -1)[D:]]).T)
+    NS = np.ascontiguousarray((eigen_vectors.T[np.argsort(eig_vals * -1)[D:]]).T)
     vlogit_id_train = norm(np.matmul(train_feat.cpu(), NS), axis=-1)
     alpha = train_logits.max(axis=-1)[0].mean() / vlogit_id_train.mean()
 
@@ -328,7 +345,7 @@ def vim(
     ood_conf = -ood_vlogit + ood_energy
     conf = np.concatenate([id_conf, ood_conf])
     label = np.concatenate([id_gt.cpu(), ood_gt])
-    
+
     if prec_th is None:
         return ood_metrics(conf, label, tpr_th), None
     else:
@@ -337,12 +354,14 @@ def vim(
 
 @ALGORITHMS.register
 def dml(
-        id_gt, id_feat,
-        ood_gt, ood_feat,
-        fc_weight: torch.Tensor,
-        tpr_th: float = 0.95,
-        prec_th: float = None,
-        **kwargs
+    id_gt,
+    id_feat,
+    ood_gt,
+    ood_feat,
+    fc_weight: torch.Tensor,
+    tpr_th: float = 0.95,
+    prec_th: float = None,
+    **kwargs,
 ) -> tuple:
     """Decoupled MaxLogit (DML) method for OOD detection.
 
@@ -363,7 +382,7 @@ def dml(
     Returns:
         fpr (float): False positive rate.
         auroc (float): Area under the ROC curve.
-        aupr_in (float): Area under the precision-recall curve 
+        aupr_in (float): Area under the precision-recall curve
             for in-distribution samples.
         aupr_out (float): Area under the precision-recall curve
             for out-of-distribution
@@ -389,7 +408,7 @@ def dml(
 
     conf = np.concatenate([id_conf.cpu(), ood_conf.cpu()])
     label = np.concatenate([id_gt.cpu(), ood_gt])
-    
+
     if prec_th is None:
         return ood_metrics(conf, label, tpr_th), None
     else:
@@ -398,12 +417,17 @@ def dml(
 
 @ALGORITHMS.register
 def dmlp(
-        id_gt, id_logits, id_feat, 
-        ood_gt, ood_logits, ood_feat, 
-        train_logits, train_feat,
-        tpr_th: float = 0.95,
-        prec_th: float = None,
-        **kwargs
+    id_gt,
+    id_logits,
+    id_feat,
+    ood_gt,
+    ood_logits,
+    ood_feat,
+    train_logits,
+    train_feat,
+    tpr_th: float = 0.95,
+    prec_th: float = None,
+    **kwargs,
 ) -> tuple:
     """Decoupled MaxLogit+ (DML+) method for OOD detection.
 
@@ -427,7 +451,7 @@ def dmlp(
     Returns:
         fpr (float): False positive rate.
         auroc (float): Area under the ROC curve.
-        aupr_in (float): Area under the precision-recall curve 
+        aupr_in (float): Area under the precision-recall curve
             for in-distribution samples.
         aupr_out (float): Area under the precision-recall curve
             for out-of-distribution
@@ -439,17 +463,17 @@ def dmlp(
     out_score1 = np.max(id_logits.data.cpu().numpy(), axis=1)
 
     tmp1 = np.sum(in_score1)
-    in_score1_tmp = in_score1/tmp1
-    out_score1_tmp = out_score1/tmp1
+    in_score1_tmp = in_score1 / tmp1
+    out_score1_tmp = out_score1 / tmp1
 
     in_score2 = id_feat.norm(2, dim=1).data.cpu().numpy()
     out_score2 = id_feat.norm(2, dim=1).data.cpu().numpy()
 
     tmp1 = np.sum(in_score2)
-    in_score2_tmp = in_score2/tmp1
-    out_score2_tmp = out_score2/tmp1
+    in_score2_tmp = in_score2 / tmp1
+    out_score2_tmp = out_score2 / tmp1
 
-    in_score = in_score1_tmp + in_score2_tmp  
+    in_score = in_score1_tmp + in_score2_tmp
     out_score = out_score1_tmp + out_score2_tmp
 
     conf = np.concatenate([in_score, out_score])
@@ -480,13 +504,13 @@ def dmlp(
 
     # _ood_conf = F.normalize(ood_logits, p=2, dim=1) @ prototype.T
     # _ood_conf, _ = torch.max(_ood_conf, dim=1, keepdim=True)
-    
+
     # id_conf = id_conf.cpu() + 40 * _id_conf.cpu()
     # ood_conf = ood_conf.cpu() + 40 * _ood_conf.cpu()
-    
+
     # conf = np.concatenate([id_conf, ood_conf])
     # label = np.concatenate([id_gt.cpu(), ood_gt])
-    
+
     if prec_th is None:
         return ood_metrics(conf, label, tpr_th), None
     else:
@@ -495,12 +519,14 @@ def dmlp(
 
 @ALGORITHMS.register
 def prot(
-        id_gt, id_logits,
-        ood_gt, ood_logits,
-        prototypes: list,
-        tpr_th: float = 0.95,
-        prec_th: float = None,
-        **kwargs
+    id_gt,
+    id_logits,
+    ood_gt,
+    ood_logits,
+    prototypes: list,
+    tpr_th: float = 0.95,
+    prec_th: float = None,
+    **kwargs,
 ) -> tuple:
     """Prototype-based (Prot) method for OOD detection.
 
@@ -510,7 +536,7 @@ def prot(
         ood_gt (torch.Tensor): OOD ground truth labels, shape (M,).
         ood_logits (list of torch.Tensor): OOD logits, containing shape (M, C).
         prototypes (list of torch.Tensor): Prototypes, containing shape (D, C).
-        tpr_th (float): True positive rate threshold to compute 
+        tpr_th (float): True positive rate threshold to compute
             false positive rate.
         prec_th (float | None): Precision threshold for searching threshold.
             If None, not searching for threshold. Default is
@@ -518,7 +544,7 @@ def prot(
     Returns:
         fpr (float): False positive rate.
         auroc (float): Area under the ROC curve.
-        aupr_in (float): Area under the precision-recall curve 
+        aupr_in (float): Area under the precision-recall curve
             for in-distribution samples.
         aupr_out (float): Area under the precision-recall curve
             for out-of-distribution
@@ -543,11 +569,13 @@ def prot(
 
     conf = np.concatenate([id_conf, ood_conf])
     label = np.concatenate([id_gt.cpu(), ood_gt])
-    
+
     if prec_th is None:
         return ood_metrics(conf, label, tpr_th), None
     else:
-        return *ood_metrics(conf, label, tpr_th), *search_threshold(conf, label, prec_th)
+        return *ood_metrics(conf, label, tpr_th), *search_threshold(
+            conf, label, prec_th
+        )
 
 
 # def attr(
@@ -575,7 +603,7 @@ def prot(
 #     Returns:
 #         fpr (float): False positive rate.
 #         auroc (float): Area under the ROC curve.
-#         aupr_in (float): Area under the precision-recall curve 
+#         aupr_in (float): Area under the precision-recall curve
 #             for in-distribution samples.
 #         aupr_out (float): Area under the precision-recall curve
 #             for out-of-distribution

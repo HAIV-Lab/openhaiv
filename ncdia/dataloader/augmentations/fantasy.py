@@ -4,7 +4,9 @@ import torch
 def rotation():
     def _transform(images):
         size = images.shape[1:]
-        return torch.stack([torch.rot90(images, k, (2, 3)) for k in range(4)], 1).view(-1, *size)
+        return torch.stack([torch.rot90(images, k, (2, 3)) for k in range(4)], 1).view(
+            -1, *size
+        )
 
     return _transform, 4
 
@@ -12,7 +14,9 @@ def rotation():
 def rotation2():
     def _transform(images):
         size = images.shape[1:]
-        return torch.stack([torch.rot90(images, k, (2, 3)) for k in [0, 2]], 1).view(-1, *size)
+        return torch.stack([torch.rot90(images, k, (2, 3)) for k in [0, 2]], 1).view(
+            -1, *size
+        )
 
     return _transform, 2
 
@@ -20,12 +24,27 @@ def rotation2():
 def color_perm():
     def _transform(images):
         size = images.shape[1:]
-        images = torch.stack([images,
-                              torch.stack([images[:, 0, :, :], images[:, 2, :, :], images[:, 1, :, :]], 1),
-                              torch.stack([images[:, 1, :, :], images[:, 0, :, :], images[:, 2, :, :]], 1),
-                              torch.stack([images[:, 1, :, :], images[:, 2, :, :], images[:, 0, :, :]], 1),
-                              torch.stack([images[:, 2, :, :], images[:, 0, :, :], images[:, 1, :, :]], 1),
-                              torch.stack([images[:, 2, :, :], images[:, 1, :, :], images[:, 0, :, :]], 1)], 1).view(-1, *size)
+        images = torch.stack(
+            [
+                images,
+                torch.stack(
+                    [images[:, 0, :, :], images[:, 2, :, :], images[:, 1, :, :]], 1
+                ),
+                torch.stack(
+                    [images[:, 1, :, :], images[:, 0, :, :], images[:, 2, :, :]], 1
+                ),
+                torch.stack(
+                    [images[:, 1, :, :], images[:, 2, :, :], images[:, 0, :, :]], 1
+                ),
+                torch.stack(
+                    [images[:, 2, :, :], images[:, 0, :, :], images[:, 1, :, :]], 1
+                ),
+                torch.stack(
+                    [images[:, 2, :, :], images[:, 1, :, :], images[:, 0, :, :]], 1
+                ),
+            ],
+            1,
+        ).view(-1, *size)
         return images.contiguous()
 
     return _transform, 6
@@ -34,9 +53,18 @@ def color_perm():
 def color_perm3():
     def _transform(images):
         size = images.shape[1:]
-        images = torch.stack([images,
-                              torch.stack([images[:, 1, :, :], images[:, 2, :, :], images[:, 0, :, :]], 1),
-                              torch.stack([images[:, 2, :, :], images[:, 0, :, :], images[:, 1, :, :]], 1)], 1).view(-1, *size)
+        images = torch.stack(
+            [
+                images,
+                torch.stack(
+                    [images[:, 1, :, :], images[:, 2, :, :], images[:, 0, :, :]], 1
+                ),
+                torch.stack(
+                    [images[:, 2, :, :], images[:, 0, :, :], images[:, 1, :, :]], 1
+                ),
+            ],
+            1,
+        ).view(-1, *size)
         return images.contiguous()
 
     return _transform, 3

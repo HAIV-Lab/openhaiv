@@ -47,13 +47,14 @@ class Registry(dict):
         >>> print(len(REGISTRY))
         2
     """
+
     def __init__(self, **kwargs):
         super(Registry, self).__init__()
         self._dict = dict(**kwargs)
 
     def register_callable(self, target: callable):
         """Register a target.
-        
+
         Args:
             target (callable): callable target to be registered.
 
@@ -62,7 +63,7 @@ class Registry(dict):
         """
         if not callable(target):
             raise TypeError(f"Target {target} is not callable.")
-        
+
         key = target.__name__.lower()
         value = target
         # if key in self._dict:
@@ -82,7 +83,7 @@ class Registry(dict):
         """
         if not isinstance(target, dict):
             raise TypeError(f"Target {target} is not a dict.")
-        
+
         for key, value in target.items():
             if not callable(value):
                 raise TypeError(f"Target {value} is not callable.")
@@ -110,7 +111,7 @@ class Registry(dict):
         else:
             raise TypeError(f"Target {target} is not callable or dict.")
         return target
-        
+
     def build(self, target: dict | Configs, **kwargs):
         """Build a target with configs.
 
@@ -136,21 +137,21 @@ class Registry(dict):
         else:
             target.update(kwargs)
 
-        if 'type' not in target:
+        if "type" not in target:
             raise KeyError(f"Key 'type' is not found in target {target}.")
-        
-        target_type = target['type'].lower()
+
+        target_type = target["type"].lower()
         if target_type not in self._dict:
             raise KeyError(f"Target type {target_type} is not registered.")
-        
-        target.pop('type')
+
+        target.pop("type")
         target = self[target_type](**target)
-        
+
         return target
-    
+
     def __call__(self, target):
         return self.register(target)
-    
+
     def __setitem__(self, key, value):
         self._dict[key] = value
 
@@ -161,18 +162,18 @@ class Registry(dict):
     def __contains__(self, key):
         key = key.lower()
         return key in self._dict
-    
+
     def __str__(self):
         return str(self._dict)
 
     def __len__(self):
         return len(self._dict)
-    
+
     def keys(self):
         return self._dict.keys()
-    
+
     def values(self):
         return self._dict.values()
-    
+
     def items(self):
         return self._dict.items()

@@ -6,12 +6,14 @@ from .modules import *
 
 from typing import Any, Optional
 
-__all__ = ['vit_b_16', 'vit_b_32', 'vit_l_16', 'vit_l_32', 'vit_h_14']
+__all__ = ["vit_b_16", "vit_b_32", "vit_l_16", "vit_l_32", "vit_h_14"]
 
 
 @MODELS.register
 @handle_legacy_interface(weights=("pretrained", ViT_B_16_Weights.IMAGENET1K_V1))
-def vit_b_16(*, weights: Optional[ViT_B_16_Weights] = None, progress: bool = True, **kwargs: Any) -> VisionTransformer:
+def vit_b_16(
+    *, weights: Optional[ViT_B_16_Weights] = None, progress: bool = True, **kwargs: Any
+) -> VisionTransformer:
     """
     Constructs a vit_b_16 architecture from
     `An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale <https://arxiv.org/abs/2010.11929>`_.
@@ -45,7 +47,9 @@ def vit_b_16(*, weights: Optional[ViT_B_16_Weights] = None, progress: bool = Tru
 
 @MODELS.register
 @handle_legacy_interface(weights=("pretrained", ViT_B_32_Weights.IMAGENET1K_V1))
-def vit_b_32(*, weights: Optional[ViT_B_32_Weights] = None, progress: bool = True, **kwargs: Any) -> VisionTransformer:
+def vit_b_32(
+    *, weights: Optional[ViT_B_32_Weights] = None, progress: bool = True, **kwargs: Any
+) -> VisionTransformer:
     """
     Constructs a vit_b_32 architecture from
     `An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale <https://arxiv.org/abs/2010.11929>`_.
@@ -79,7 +83,9 @@ def vit_b_32(*, weights: Optional[ViT_B_32_Weights] = None, progress: bool = Tru
 
 @MODELS.register
 @handle_legacy_interface(weights=("pretrained", ViT_L_16_Weights.IMAGENET1K_V1))
-def vit_l_16(*, weights: Optional[ViT_L_16_Weights] = None, progress: bool = True, **kwargs: Any) -> VisionTransformer:
+def vit_l_16(
+    *, weights: Optional[ViT_L_16_Weights] = None, progress: bool = True, **kwargs: Any
+) -> VisionTransformer:
     """
     Constructs a vit_l_16 architecture from
     `An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale <https://arxiv.org/abs/2010.11929>`_.
@@ -113,7 +119,9 @@ def vit_l_16(*, weights: Optional[ViT_L_16_Weights] = None, progress: bool = Tru
 
 @MODELS.register
 @handle_legacy_interface(weights=("pretrained", ViT_L_32_Weights.IMAGENET1K_V1))
-def vit_l_32(*, weights: Optional[ViT_L_32_Weights] = None, progress: bool = True, **kwargs: Any) -> VisionTransformer:
+def vit_l_32(
+    *, weights: Optional[ViT_L_32_Weights] = None, progress: bool = True, **kwargs: Any
+) -> VisionTransformer:
     """
     Constructs a vit_l_32 architecture from
     `An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale <https://arxiv.org/abs/2010.11929>`_.
@@ -147,7 +155,9 @@ def vit_l_32(*, weights: Optional[ViT_L_32_Weights] = None, progress: bool = Tru
 
 @MODELS.register
 @handle_legacy_interface(weights=("pretrained", None))
-def vit_h_14(*, weights: Optional[ViT_H_14_Weights] = None, progress: bool = True, **kwargs: Any) -> VisionTransformer:
+def vit_h_14(
+    *, weights: Optional[ViT_H_14_Weights] = None, progress: bool = True, **kwargs: Any
+) -> VisionTransformer:
     """
     Constructs a vit_h_14 architecture from
     `An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale <https://arxiv.org/abs/2010.11929>`_.

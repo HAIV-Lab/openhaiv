@@ -7,8 +7,13 @@ from torch.utils.data import DataLoader
 from torch.optim import Optimizer, lr_scheduler
 
 from ncdia.utils import (
-    TRAINERS, HOOKS, LOSSES, ALGORITHMS, MODELS,
-    mkdir_if_missing, auto_device,
+    TRAINERS,
+    HOOKS,
+    LOSSES,
+    ALGORITHMS,
+    MODELS,
+    mkdir_if_missing,
+    auto_device,
 )
 from ncdia.trainers.hooks import Hook
 from ncdia.trainers.priority import get_priority, Priority
@@ -39,12 +44,12 @@ class BaseTrainer(object):
             - 'device' (str | torch.device | None): Device to use.
                 If None, use 'cuda' if available.
             - 'trainloader':
-                - 'dataset': 
+                - 'dataset':
                     - 'type' (str): Type of dataset.
                     - kwargs (dict) for dataset, such as 'root', 'split', etc.
                 - kwargs (dict) for DataLoader, such as 'batch_size', 'shuffle', etc.
             - 'valloader':
-                - 'dataset': 
+                - 'dataset':
                     - 'type' (str): Type of dataset.
                     - kwargs (dict) for dataset, such as 'root', 'split', etc.
                 - kwargs (dict) for DataLoader, such as 'batch_size', 'shuffle', etc.
@@ -92,19 +97,20 @@ class BaseTrainer(object):
         load_from (str): Checkpoint file path to load.
 
     """
+
     def __init__(
-            self,
-            cfg: dict | None = None,
-            session: int = 0,
-            model: nn.Module = None,
-            train_loader: DataLoader | dict | None = None,
-            val_loader: DataLoader | dict | None = None,
-            test_loader: DataLoader | dict | None = None,
-            default_hooks: Dict[str, Hook | dict] | None = None,
-            custom_hooks: List[Hook | dict] | None = None,
-            load_from: str | None = None,
-            exp_name: str | None = None,
-            work_dir: str | None = None,
+        self,
+        cfg: dict | None = None,
+        session: int = 0,
+        model: nn.Module = None,
+        train_loader: DataLoader | dict | None = None,
+        val_loader: DataLoader | dict | None = None,
+        test_loader: DataLoader | dict | None = None,
+        default_hooks: Dict[str, Hook | dict] | None = None,
+        custom_hooks: List[Hook | dict] | None = None,
+        load_from: str | None = None,
+        exp_name: str | None = None,
+        work_dir: str | None = None,
     ) -> None:
         super(BaseTrainer, self).__init__()
         self._cfg = cfg
@@ -112,52 +118,52 @@ class BaseTrainer(object):
         self._logger = None
 
         self._model = {}
-        if 'model' in self._cfg:
-            self._model.update(dict(self._cfg['model']))
+        if "model" in self._cfg:
+            self._model.update(dict(self._cfg["model"]))
         if isinstance(model, dict):
             self._model.update(model)
         elif isinstance(model, nn.Module):
             self._model = model
 
-        if 'optimizer' in self._cfg:
-            self._optimizer = dict(self._cfg['optimizer'])
+        if "optimizer" in self._cfg:
+            self._optimizer = dict(self._cfg["optimizer"])
         else:
-            raise KeyError('Optimizer is not found in `cfg`.')
-        
-        if 'scheduler' in self._cfg:
-            self._scheduler = dict(self._cfg['scheduler'])
+            raise KeyError("Optimizer is not found in `cfg`.")
+
+        if "scheduler" in self._cfg:
+            self._scheduler = dict(self._cfg["scheduler"])
         else:
-            self._scheduler = {'name': 'constant'}
-        
-        if 'criterion' in self._cfg:
-            self._criterion = dict(self._cfg['criterion'])
+            self._scheduler = {"name": "constant"}
+
+        if "criterion" in self._cfg:
+            self._criterion = dict(self._cfg["criterion"])
         else:
             raise KeyError("Criterion is not found in `cfg`.")
-        
-        if 'algorithm' in self._cfg:
-            self._algorithm = dict(self._cfg['algorithm'])
+
+        if "algorithm" in self._cfg:
+            self._algorithm = dict(self._cfg["algorithm"])
         else:
             raise KeyError("Algorithm is not found in `cfg`.")
-        
+
         self._train_loader = {}
-        if 'trainloader' in self._cfg:
-            self._train_loader.update(dict(self._cfg['trainloader']))
+        if "trainloader" in self._cfg:
+            self._train_loader.update(dict(self._cfg["trainloader"]))
         if isinstance(train_loader, dict):
             self._train_loader.update(train_loader)
         elif isinstance(train_loader, DataLoader):
             self._train_loader = train_loader
-        
+
         self._val_loader = {}
-        if 'valloader' in self._cfg:
-            self._val_loader.update(dict(self._cfg['valloader']))
+        if "valloader" in self._cfg:
+            self._val_loader.update(dict(self._cfg["valloader"]))
         if isinstance(val_loader, dict):
             self._val_loader.update(val_loader)
         elif isinstance(val_loader, DataLoader):
             self._val_loader = val_loader
-        
+
         self._test_loader = {}
-        if 'testloader' in self._cfg:
-            self._test_loader.update(dict(self._cfg['testloader']))
+        if "testloader" in self._cfg:
+            self._test_loader.update(dict(self._cfg["testloader"]))
         if isinstance(test_loader, dict):
             self._test_loader.update(test_loader)
         elif isinstance(test_loader, DataLoader):
@@ -167,19 +173,21 @@ class BaseTrainer(object):
         self.load_from = load_from
 
         # work directory
-        self._work_dir = work_dir or str(self._cfg['work_dir']) or 'output'
-        self._exp_name = exp_name or str(self._cfg['exp_name']) or 'exp'
+        self._work_dir = work_dir or str(self._cfg["work_dir"]) or "output"
+        self._exp_name = exp_name or str(self._cfg["exp_name"]) or "exp"
         mkdir_if_missing(self.work_dir)
 
         self._hooks: List[Hook] = []
         # register hooks to `self._hooks`
         self.register_hooks(default_hooks, custom_hooks)
         # call hooks to initialize trainer
-        self.call_hook('init_trainer')
+        self.call_hook("init_trainer")
         # log hooks information
-        self.logger.write(f'Hooks will be executed in the following '
-                          f'order:\n{self.get_hooks_info()}')
-    
+        self.logger.write(
+            f"Hooks will be executed in the following "
+            f"order:\n{self.get_hooks_info()}"
+        )
+
     @property
     def cfg(self) -> object:
         """Configs: Configuration for trainer."""
@@ -189,26 +197,26 @@ class BaseTrainer(object):
     def hooks(self) -> List[Hook]:
         """List[Hook]: List of registered hooks."""
         return self._hooks
-    
+
     @property
     def logger(self) -> object:
         """Logger: Logger for logging information."""
-        if '_logger' not in self.__dict__:
+        if "_logger" not in self.__dict__:
             return None
         else:
             return self._logger
-    
+
     @property
     def work_dir(self) -> str:
         """str: Working directory to save logs and checkpoints."""
         return os.path.join(self._work_dir, self._exp_name)
-    
+
     @property
     def session(self) -> int:
         """int: Session number. If == 0, execute pre-training.
         If > 0, execute incremental training."""
         return self._session
-    
+
     @property
     def model(self) -> nn.Module:
         """nn.Module: Model to be trained."""
@@ -223,109 +231,114 @@ class BaseTrainer(object):
         """int: Session number. If == 0, execute pre-training.
         If > 0, execute incremental training."""
         return self._session
-    
+
     @property
     def train_loader(self) -> DataLoader:
         """DataLoader: DataLoader for training."""
         if not self._train_loader:
             raise KeyError("Trainloader is not defined.")
         if isinstance(self._train_loader, dict):
-            self._train_loader, self._train_dataset_kwargs, \
-                    self._train_loader_kwargs = build_dataloader(self._train_loader)
+            (
+                self._train_loader,
+                self._train_dataset_kwargs,
+                self._train_loader_kwargs,
+            ) = build_dataloader(self._train_loader)
         return self._train_loader
-    
+
     @property
     def val_loader(self) -> DataLoader:
         """DataLoader: DataLoader for validation."""
         if not self._val_loader:
             raise KeyError("Valloader is not defined.")
         if isinstance(self._val_loader, dict):
-            self._val_loader, self._val_dataset_kwargs, \
-                self._val_loader_kwargs = build_dataloader(self._val_loader)
+            self._val_loader, self._val_dataset_kwargs, self._val_loader_kwargs = (
+                build_dataloader(self._val_loader)
+            )
         return self._val_loader
-    
+
     @property
     def test_loader(self) -> DataLoader:
         """DataLoader: DataLoader for testing."""
         if not self._test_loader:
             raise KeyError("Testloader is not defined.")
         if isinstance(self._test_loader, dict):
-            self._test_loader, self._test_dataset_kwargs, \
-                self._test_loader_kwargs = build_dataloader(self._test_loader)
+            self._test_loader, self._test_dataset_kwargs, self._test_loader_kwargs = (
+                build_dataloader(self._test_loader)
+            )
         return self._test_loader
-    
+
     @property
     def optimizer(self) -> Optimizer:
         """Optimizer: Optimizer to optimize model parameters."""
         if isinstance(self._optimizer, dict):
-            self._optimizer = build_optimizer(
-                model=self.model, **self._optimizer)
+            self._optimizer = build_optimizer(model=self.model, **self._optimizer)
         return self._optimizer
-    
+
     @property
     def scheduler(self) -> lr_scheduler._LRScheduler:
         """lr_scheduler._LRScheduler: Learning rate scheduler."""
         if isinstance(self._scheduler, dict):
             self._scheduler = build_scheduler(
-                optimizer=self.optimizer, **self._scheduler)
+                optimizer=self.optimizer, **self._scheduler
+            )
         return self._scheduler
-    
+
     @property
     def criterion(self) -> nn.Module:
         """Callable: Criterion for training."""
         if isinstance(self._criterion, dict):
             self._criterion = LOSSES.build(self._criterion)
         return self._criterion
-    
+
     @property
     def algorithm(self) -> object:
         """object: Algorithm for training."""
         if isinstance(self._algorithm, dict):
-            self._algorithm['trainer'] = self
+            self._algorithm["trainer"] = self
             self._algorithm = ALGORITHMS.build(self._algorithm)
         return self._algorithm
 
     @property
     def metrics(self) -> dict:
         """dict: Metrics for evaluation and testing."""
-        if not hasattr(self, '_metrics'):
+        if not hasattr(self, "_metrics"):
             return {}
         return self._metrics
-    
+
     @property
     def max_epochs(self) -> int:
         """int: Total epochs for training."""
-        if not hasattr(self, '_max_epochs'):
+        if not hasattr(self, "_max_epochs"):
             self._max_epochs = 1
         return self._max_epochs
-    
+
     @property
     def max_train_iters(self) -> int:
         """int: Iterations on one epoch for training."""
         return len(self.train_loader)
-    
+
     @property
     def max_val_iters(self) -> int:
         """int: Iterations on one epoch for validation."""
         return len(self.val_loader)
-    
+
     @property
     def max_test_iters(self) -> int:
         """int: Iterations on one epoch for testing."""
         return len(self.test_loader)
-    
+
     @property
     def device(self) -> torch.device:
         """torch.device: Device to use."""
-        if not hasattr(self, '_device'):
-            if not 'device' in self._cfg:
+        if not hasattr(self, "_device"):
+            if not "device" in self._cfg:
                 _device = None
             else:
-                _device = self._cfg['device']
+                _device = self._cfg["device"]
             self._device = auto_device(_device)
-        
+
         return self._device
-    
+
     def modify_attr(self, key: str, value) -> None:
         """Modify hidden attribute (f'_{key}') for trainer.
 
@@ -335,10 +348,10 @@ class BaseTrainer(object):
         """
         assert ("_" + key) in self.__dict__, f"Attribute _{key} not found."
         setattr(self, "_" + key, value)
-    
+
     def train_step(self, batch, **kwargs):
         """Training step. This method should be implemented in subclasses.
-        
+
         Args:
             batch (dict | tuple | list): A batch of data from the data loader.
 
@@ -353,10 +366,10 @@ class BaseTrainer(object):
                 values are the corresponding values of the keys, can be int, float, str, etc.
         """
         raise NotImplementedError
-    
+
     def val_step(self, batch, **kwargs):
         """Validation step. This method should be implemented in subclasses.
-        
+
         Args:
             batch (dict | tuple | list): A batch of data from the data loader.
 
@@ -371,10 +384,10 @@ class BaseTrainer(object):
                 values are the corresponding values of the keys, can be int, float, str, etc.
         """
         raise NotImplementedError
-    
+
     def test_step(self, batch, **kwargs):
         """Test step. This method should be implemented in subclasses.
-        
+
         Args:
             batch (dict | tuple | list): A batch of data from the data loader.
 
@@ -396,41 +409,46 @@ class BaseTrainer(object):
         Returns:
             model (nn.Module): Trained model.
         """
-        self.call_hook('before_run')
+        self.call_hook("before_run")
 
         if self.load_from:
             self.load_ckpt(self.load_from)
 
-        self.call_hook('before_train')
+        self.call_hook("before_train")
 
         for epoch in range(self.max_epochs):
             self.model.train()
             print(f"Train")
             print(f"Model is in training mode:{self.model.training}")
             self.epoch = epoch
-            self.call_hook('before_train_epoch')
+            self.call_hook("before_train_epoch")
 
             for batch_idx, batch in enumerate(self.train_loader):
                 self.iter = batch_idx
-                self.call_hook('before_train_iter',
-                    batch_idx=batch_idx, data_batch=batch)
-                
+                self.call_hook(
+                    "before_train_iter", batch_idx=batch_idx, data_batch=batch
+                )
+
                 outputs = self.train_step(batch)
 
-                self.call_hook('after_train_iter',
-                    batch_idx=batch_idx, data_batch=batch, outputs=outputs)
+                self.call_hook(
+                    "after_train_iter",
+                    batch_idx=batch_idx,
+                    data_batch=batch,
+                    outputs=outputs,
+                )
 
-            self.call_hook('after_train_epoch')
+            self.call_hook("after_train_epoch")
             self.model.eval()
             self.val()
 
-        self.save_ckpt(os.path.join(self.work_dir, 'latest.pth'))
+        self.save_ckpt(os.path.join(self.work_dir, "latest.pth"))
 
-        self.call_hook('after_train')
+        self.call_hook("after_train")
 
         self.test()
 
-        self.call_hook('after_run')
+        self.call_hook("after_run")
 
         return self.model
 
@@ -439,44 +457,47 @@ class BaseTrainer(object):
         self.model.eval()
         print(f"Validation")
         print(f"Model is in training mode:{self.model.training}")
-        self.call_hook('before_val')
-        self.call_hook('before_val_epoch')
+        self.call_hook("before_val")
+        self.call_hook("before_val_epoch")
 
         for batch_idx, batch in enumerate(self.val_loader):
             self.iter = batch_idx
-            self.call_hook('before_val_iter',
-                batch_idx=batch_idx, data_batch=batch)
-            
+            self.call_hook("before_val_iter", batch_idx=batch_idx, data_batch=batch)
+
             outputs = self.val_step(batch)
 
-            self.call_hook('after_val_iter',
-                batch_idx=batch_idx, data_batch=batch, outputs=outputs)
+            self.call_hook(
+                "after_val_iter", batch_idx=batch_idx, data_batch=batch, outputs=outputs
+            )
 
-        self.call_hook('after_val_epoch', metrics=self.metrics)
-        self.call_hook('after_val')
+        self.call_hook("after_val_epoch", metrics=self.metrics)
+        self.call_hook("after_val")
 
     def test(self):
         """Test process."""
         self.model.eval()
         print(f"Test")
         print(f"Model is in training mode:{self.model.training}")
-        self.call_hook('before_test')
-        self.call_hook('before_test_epoch')
+        self.call_hook("before_test")
+        self.call_hook("before_test_epoch")
 
         for batch_idx, batch in enumerate(self.test_loader):
             self.iter = batch_idx
-            self.call_hook('before_test_iter',
-                batch_idx=batch_idx, data_batch=batch)
-            
+            self.call_hook("before_test_iter", batch_idx=batch_idx, data_batch=batch)
+
             outputs = self.test_step(batch)
 
-            self.call_hook('after_test_iter',
-                batch_idx=batch_idx, data_batch=batch, outputs=outputs)
+            self.call_hook(
+                "after_test_iter",
+                batch_idx=batch_idx,
+                data_batch=batch,
+                outputs=outputs,
+            )
 
-        self.call_hook('after_test_epoch', metrics=self.metrics)
-        self.call_hook('after_test')
-    
-    def load_ckpt(self, fpath: str, device: str| None = 'cpu'):
+        self.call_hook("after_test_epoch", metrics=self.metrics)
+        self.call_hook("after_test")
+
+    def load_ckpt(self, fpath: str, device: str | None = "cpu"):
         """Load checkpoint from file.
 
         Args:
@@ -490,41 +511,37 @@ class BaseTrainer(object):
             ValueError: Checkpoint not found when `fpath` does not exist.
         """
         if not os.path.exists(fpath):
-            raise ValueError(f'Checkpoint {fpath} not found!')
-        
+            raise ValueError(f"Checkpoint {fpath} not found!")
+
         checkpoint = torch.load(fpath, map_location=device)
-        self.model.load_state_dict(checkpoint['state_dict'])
-        self.logger.info(f'Checkpoint loaded from {fpath}')
-        self.call_hook('after_load_checkpoint', checkpoint=checkpoint)
+        self.model.load_state_dict(checkpoint["state_dict"])
+        self.logger.info(f"Checkpoint loaded from {fpath}")
+        self.call_hook("after_load_checkpoint", checkpoint=checkpoint)
 
         return self.model
-    
+
     def save_ckpt(self, fpath: str):
         """Save checkpoint to file.
-        
+
         Args:
             fpath (str): Checkpoint file path.
         """
         mkdir_if_missing(os.path.dirname(fpath))
 
-        checkpoint = {
-            'state_dict': self.model.state_dict()}
-        self.call_hook('before_save_checkpoint', checkpoint=checkpoint)
+        checkpoint = {"state_dict": self.model.state_dict()}
+        self.call_hook("before_save_checkpoint", checkpoint=checkpoint)
         torch.save(checkpoint, fpath)
 
-        self.logger.info(f'Checkpoint saved to {fpath}')
+        self.logger.info(f"Checkpoint saved to {fpath}")
 
-    def call_hook(
-            self,
-            fn_name: str,
-            **kwargs) -> None:
+    def call_hook(self, fn_name: str, **kwargs) -> None:
         """Call all hooks with the specified function name.
 
         Args:
             fn_name (str): Function name to be called, such as
-                'before_train_epoch', 'after_train_epoch', 
-                'before_train_iter', 'after_train_iter', 
-                'before_val_epoch', 'after_val_epoch', 
+                'before_train_epoch', 'after_train_epoch',
+                'before_train_iter', 'after_train_iter',
+                'before_val_epoch', 'after_val_epoch',
                 'before_val_iter', 'after_val_iter'.
             kwargs (dict): Arguments for the function.
         """
@@ -534,12 +551,11 @@ class BaseTrainer(object):
                 try:
                     getattr(hook, fn_name)(self, **kwargs)
                 except TypeError as e:
-                    raise TypeError(f'{e} in {hook}') from None
-    
+                    raise TypeError(f"{e} in {hook}") from None
+
     def register_hook(
-            self,
-            hook: Hook | dict,
-            priority: str | int | None = None) -> None:
+        self, hook: Hook | dict, priority: str | int | None = None
+    ) -> None:
         """Register a hook into the hook list.
 
         The hook will be inserted into a priority queue, with the specified
@@ -563,12 +579,13 @@ class BaseTrainer(object):
         """
         if not isinstance(hook, (Hook, dict)):
             raise TypeError(
-                f'hook should be an instance of Hook or dict, but got {hook}')
+                f"hook should be an instance of Hook or dict, but got {hook}"
+            )
 
         _priority = None
         if isinstance(hook, dict):
-            if 'priority' in hook:
-                _priority = hook.pop('priority')
+            if "priority" in hook:
+                _priority = hook.pop("priority")
 
             hook_obj = HOOKS.build(hook)
         else:
@@ -581,8 +598,7 @@ class BaseTrainer(object):
 
         inserted = False
         for i in range(len(self._hooks) - 1, -1, -1):
-            if get_priority(hook_obj.priority) >= get_priority(
-                    self._hooks[i].priority):
+            if get_priority(hook_obj.priority) >= get_priority(self._hooks[i].priority):
                 self._hooks.insert(i + 1, hook_obj)
                 inserted = True
                 break
@@ -590,8 +606,8 @@ class BaseTrainer(object):
             self._hooks.insert(0, hook_obj)
 
     def register_default_hooks(
-            self,
-            hooks: Dict[str, Hook | dict] | None = None) -> None:
+        self, hooks: Dict[str, Hook | dict] | None = None
+    ) -> None:
         """Register default hooks into hook list.
 
         ``hooks`` will be registered into runner to execute some default
@@ -644,12 +660,12 @@ class BaseTrainer(object):
                 to be registered.
         """
         default_hooks: dict = dict(
-            logger=dict(type='LoggerHook', interval=self.cfg.trainer.interval or 25),
-            model=dict(type='ModelHook'),
-            alg=dict(type='AlgHook'),
-            optimizer = dict(type='OptimizerHook'),
-            scheduler = dict(type='SchedulerHook'),
-            metric = dict(type='MetricHook'),
+            logger=dict(type="LoggerHook", interval=self.cfg.trainer.interval or 25),
+            model=dict(type="ModelHook"),
+            alg=dict(type="AlgHook"),
+            optimizer=dict(type="OptimizerHook"),
+            scheduler=dict(type="SchedulerHook"),
+            metric=dict(type="MetricHook"),
         )
         if hooks is not None:
             for name, hook in hooks.items():
@@ -674,9 +690,10 @@ class BaseTrainer(object):
             self.register_hook(hook)
 
     def register_hooks(
-            self,
-            default_hooks: Dict[str, Hook | dict] | None = None,
-            custom_hooks: List[Hook | dict] | None = None) -> None:
+        self,
+        default_hooks: Dict[str, Hook | dict] | None = None,
+        custom_hooks: List[Hook | dict] | None = None,
+    ) -> None:
         """Register default hooks and custom hooks into hook list.
 
         Args:
@@ -706,7 +723,7 @@ class BaseTrainer(object):
             except ValueError:
                 priority = hook.priority  # type: ignore
             classname = hook.__class__.__name__
-            hook_info = f'({priority:<12}) {classname:<35}'
+            hook_info = f"({priority:<12}) {classname:<35}"
             for trigger_stage in hook.get_triggered_stages():
                 stage_hook_map[trigger_stage].append(hook_info)
 
@@ -714,8 +731,8 @@ class BaseTrainer(object):
         for stage in Hook.stages:
             hook_infos = stage_hook_map[stage]
             if len(hook_infos) > 0:
-                info = f'{stage}:\n'
-                info += '\n'.join(hook_infos)
-                info += '\n -------------------- '
+                info = f"{stage}:\n"
+                info += "\n".join(hook_infos)
+                info += "\n -------------------- "
                 stage_hook_infos.append(info)
-        return '\n'.join(stage_hook_infos)
+        return "\n".join(stage_hook_infos)

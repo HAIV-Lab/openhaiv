@@ -1,6 +1,7 @@
 import torch
 import random
 
+
 class RandomChoice(torch.nn.Module):
     def __init__(self, list_of_transforms):
         super().__init__()

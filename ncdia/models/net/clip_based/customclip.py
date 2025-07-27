@@ -3,6 +3,7 @@ from .promptlearner import PromptLearner
 from ncdia.utils import TextEncoder
 from ncdia.utils import MODELS, Configs
 
+
 @MODELS.register
 class CustomCLIP(nn.Module):
     def __init__(self, cfg, classnames, clip_model):

@@ -3,8 +3,19 @@ import os
 import xml.etree.ElementTree as ET
 import torch
 
-map_dict = {'BM-8-24': 1, 'BM-13N': 2, 'A8': 6, 'A10': 7, 'bmp2': 8, 'T62': 9, 'T34': 10, 'A15': 11, 'B133new': 13}
-include_cls = ['BM-8-24', 'BM-13N', 'A8', 'A10', 'bmp2', 'T62', 'T34', 'A15', 'B133new']
+map_dict = {
+    "BM-8-24": 1,
+    "BM-13N": 2,
+    "A8": 6,
+    "A10": 7,
+    "bmp2": 8,
+    "T62": 9,
+    "T34": 10,
+    "A15": 11,
+    "B133new": 13,
+}
+include_cls = ["BM-8-24", "BM-13N", "A8", "A10", "bmp2", "T62", "T34", "A15", "B133new"]
+
 
 def generate_classify_datasets(model_det, cfg, data_pth, xml_pth):
     detections = model_det(data_pth, conf=cfg.conf)
@@ -29,7 +40,9 @@ def generate_classify_datasets(model_det, cfg, data_pth, xml_pth):
             continue
 
         pred_boxes = detection.boxes.xywh.cpu()
-        label_gt, idx_list, true_num, pred_num, LTP_per = get_coordinating_bbox(pred_boxes, bbox_gt, label_gt)
+        label_gt, idx_list, true_num, pred_num, LTP_per = get_coordinating_bbox(
+            pred_boxes, bbox_gt, label_gt
+        )
         test_num_all += max(true_num, pred_num)
         gt = [map_dict[x] for x in label_gt]
         gt_list += gt
@@ -38,7 +51,7 @@ def generate_classify_datasets(model_det, cfg, data_pth, xml_pth):
         LTP += LTP_per
 
         # 打开图像
-        image = Image.open(image_path).convert('RGB')
+        image = Image.open(image_path).convert("RGB")
         # for idx in range(pred_num):
         #     # 获取标注的坐标信息
         #     x, y, w, h = pred_boxes[idx]
@@ -53,12 +66,21 @@ def generate_classify_datasets(model_det, cfg, data_pth, xml_pth):
             # 获取标注的坐标信息
             x, y, w, h = pred_boxes[idx]
             # 裁剪图像
-            cropped_image = image.crop(((x-0.5*w).item(), (y-0.5*w).item(), (x + 0.5*w).item(), (y + 0.5*h).item()))
+            cropped_image = image.crop(
+                (
+                    (x - 0.5 * w).item(),
+                    (y - 0.5 * w).item(),
+                    (x + 0.5 * w).item(),
+                    (y + 0.5 * h).item(),
+                )
+            )
             output_folder = data_pth + "/" + str(gt[idx])
             # output_folder = data_pth + "/" + str(session) + "/" + str(gt[idx])
             os.makedirs(output_folder, exist_ok=True)
-            cropped_image.save(output_folder + "/" + file_name + '_' + str(idx) + ".jpg")
-            img_list.append(output_folder + "/" + file_name + '_' + str(idx) + ".jpg")
+            cropped_image.save(
+                output_folder + "/" + file_name + "_" + str(idx) + ".jpg"
+            )
+            img_list.append(output_folder + "/" + file_name + "_" + str(idx) + ".jpg")
 
     evaluate_detect(pred_obj_num, gt_obj_num, LTP)
 
@@ -71,16 +93,16 @@ def get_xml_results(image_path, xml_dir):
 
     file_name_with_extension = os.path.basename(image_path)
     file_name = os.path.splitext(file_name_with_extension)[0]
-    xml_path = xml_dir + file_name + '.xml'
+    xml_path = xml_dir + file_name + ".xml"
     root = ET.parse(xml_path).getroot()  # 利用ET读取xml文件
-    for obj in root.iter('object'):  # 遍历所有目标框
-        name = obj.find('name').text  # 获取目标框名称，即label名
+    for obj in root.iter("object"):  # 遍历所有目标框
+        name = obj.find("name").text  # 获取目标框名称，即label名
         name_list.append(name)
-        obj_bnd = obj.find('bndbox')
-        obj_xmin = obj_bnd.find('xmin')
-        obj_ymin = obj_bnd.find('ymin')
-        obj_xmax = obj_bnd.find('xmax')
-        obj_ymax = obj_bnd.find('ymax')
+        obj_bnd = obj.find("bndbox")
+        obj_xmin = obj_bnd.find("xmin")
+        obj_ymin = obj_bnd.find("ymin")
+        obj_xmax = obj_bnd.find("xmax")
+        obj_ymax = obj_bnd.find("ymax")
         x = (float(obj_xmin.text) + float(obj_xmax.text)) / 2
         y = (float(obj_ymin.text) + float(obj_ymax.text)) / 2
         w = float(obj_xmax.text) - float(obj_xmin.text)
@@ -104,7 +126,9 @@ def get_coordinating_bbox(pred_boxes, target_boxes, label):
         idx_list.append(max_iou_index)
         label_list.append(label[max_iou_index])
 
-    combined = sorted(zip(iou_list, label_list, idx_list), key=lambda x: x[0], reverse=True)
+    combined = sorted(
+        zip(iou_list, label_list, idx_list), key=lambda x: x[0], reverse=True
+    )
     label_list = [x[1] for x in combined[:true_num]]
     idx_list = [x[2] for x in combined[:true_num]]
     iou_list = [x[0] for x in combined[:true_num]]
@@ -147,5 +171,5 @@ def calculate_iou(pred_box, target_boxes):
 
 
 def evaluate_detect(pred_obj_num, gt_obj_num, LTP):
-    print('L-P:', LTP/pred_obj_num)
-    print('L-R:', LTP/gt_obj_num)
+    print("L-P:", LTP / pred_obj_num)
+    print("L-R:", LTP / gt_obj_num)

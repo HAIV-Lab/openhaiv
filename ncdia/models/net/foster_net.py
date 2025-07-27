@@ -9,25 +9,27 @@ from ncdia.models.net.der_net import SimpleLinear
 
 from ncdia.utils import MODELS, Configs
 
+
 @MODELS.register
 class FOSTERNet(nn.Module):
-    def __init__(self,
-            network: Configs,
-            base_classes,
-            num_classes,
-            att_classes,
-            net_alice,
-            total_classes=None,
-            pretrained=True,
-            mode = "ft_cos",
+    def __init__(
+        self,
+        network: Configs,
+        base_classes,
+        num_classes,
+        att_classes,
+        net_alice,
+        total_classes=None,
+        pretrained=True,
+        mode="ft_cos",
     ) -> None:
         super().__init__()
         self.args = network.cfg
-        self.args['pretrained'] = pretrained
-        self.args['num_classes'] = 1000
+        self.args["pretrained"] = pretrained
+        self.args["num_classes"] = 1000
         self.network = network
         if "type" not in network:
-            self.args['type'] = 'resnet18'
+            self.args["type"] = "resnet18"
         self.convnets = nn.ModuleList()
         self.fc = None
         self.fe_fc = None
@@ -70,7 +72,7 @@ class FOSTERNet(nn.Module):
 
     def update_fc(self, nb_classes):
         if "type" not in self.network:
-            self.args['type'] = 'resnet18'
+            self.args["type"] = "resnet18"
         convnet_new = MODELS.build(self.args)
         self.convnets.append(convnet_new.cuda())
         out_dim = convnet_new.fc.in_features

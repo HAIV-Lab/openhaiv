@@ -4,10 +4,9 @@ from .hook import Hook
 
 @HOOKS.register
 class OptimizerHook(Hook):
-    """A hook to put optimizer to zero_grad and step during training.
-    """
+    """A hook to put optimizer to zero_grad and step during training."""
 
-    priority = 'NORMAL'
+    priority = "NORMAL"
 
     def init_trainer(self, trainer) -> None:
         """Initialize optimizer for trainer.
@@ -17,10 +16,7 @@ class OptimizerHook(Hook):
         """
         trainer.optimizer
 
-    def before_train_iter(self,
-                          trainer,
-                          batch_idx: int,
-                          data_batch = None) -> None:
+    def before_train_iter(self, trainer, batch_idx: int, data_batch=None) -> None:
         """Put optimizer to zero_grad before training iteration.
 
         Args:
@@ -30,11 +26,9 @@ class OptimizerHook(Hook):
         """
         trainer.optimizer.zero_grad()
 
-    def after_train_iter(self,
-                         trainer,
-                         batch_idx: int,
-                         data_batch = None,
-                         outputs = None) -> None:
+    def after_train_iter(
+        self, trainer, batch_idx: int, data_batch=None, outputs=None
+    ) -> None:
         """Put optimizer to step after training iteration.
 
         Args:

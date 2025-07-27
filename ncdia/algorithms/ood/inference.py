@@ -13,24 +13,23 @@ from sklearn.metrics import pairwise_distances_argmin_min
 from .metrics import ood_metrics, search_threshold
 
 
-
 def mls_inf(
-        logits,
+    logits,
 ) -> tuple:
     conf, _ = torch.max(logits, dim=1)
     return conf.cpu()
 
 
 def msp_inf(
-        logits,
+    logits,
 ) -> tuple:
     conf, _ = torch.max(torch.softmax(logits, dim=1), dim=1)
     return conf.cpu()
 
 
 def mcm_inf(
-        logits, 
-        T: int = 1,
+    logits,
+    T: int = 1,
 ) -> tuple:
     conf, _ = torch.max(torch.softmax(logits / T, dim=1), dim=1)
 
@@ -38,21 +37,22 @@ def mcm_inf(
 
 
 def glmcm_inf(
-        global_logits, 
-        local_logits,
-        lambda_local: float = 1,
-        T: int = 1,
+    global_logits,
+    local_logits,
+    lambda_local: float = 1,
+    T: int = 1,
 ) -> tuple:
     global_conf, _ = torch.max(torch.softmax(global_logits / T, dim=1), dim=1)
-    local_conf, _ = torch.max(torch.softmax(local_logits / T, dim=-1), dim=(1,2))
+    local_conf, _ = torch.max(torch.softmax(local_logits / T, dim=-1), dim=(1, 2))
     conf, _ = global_conf + lambda_local * local_conf
     return conf.cpu()
 
+
 def dpm_inf(
-        logits, 
-        train_logits,
-        T: int = 2,
-        beta: float = 0.5,
+    logits,
+    train_logits,
+    T: int = 2,
+    beta: float = 0.5,
 ) -> tuple:
     conf, _ = torch.max(torch.softmax(logits / T, dim=1), dim=1)
     kl = klm_inf(logits, train_logits)
@@ -61,18 +61,18 @@ def dpm_inf(
 
 
 def neglabel_inf(
-        positive_logits,
-        negative_logits,
-        T: int = 2,
+    positive_logits,
+    negative_logits,
+    T: int = 2,
 ) -> tuple:
     total_logits = torch.cat((positive_logits, negative_logits), dim=1)
     total_conf, _ = torch.max(torch.softmax(total_logits / T, dim=1), dim=1)
-    conf = total_conf[:, :positive_logits.shape[1]]
+    conf = total_conf[:, : positive_logits.shape[1]]
     return conf.cpu()
 
 
 def energy_inf(
-        logits,
+    logits,
 ) -> tuple:
 
     conf = logsumexp(logits.cpu(), axis=-1)
@@ -80,18 +80,17 @@ def energy_inf(
 
 
 def vim_inf(
-        logits, 
-        feat,
-        train_logits, 
-        train_feat,
+    logits,
+    feat,
+    train_logits,
+    train_feat,
 ) -> tuple:
 
     D = train_feat.shape[1] // 2
     ec = EmpiricalCovariance(assume_centered=True)
     ec.fit(train_feat.cpu())
     eig_vals, eigen_vectors = np.linalg.eig(ec.covariance_)
-    NS = np.ascontiguousarray(
-        (eigen_vectors.T[np.argsort(eig_vals * -1)[D:]]).T)
+    NS = np.ascontiguousarray((eigen_vectors.T[np.argsort(eig_vals * -1)[D:]]).T)
     vlogit_id_train = norm(np.matmul(train_feat.cpu(), NS), axis=-1)
     alpha = train_logits.max(axis=-1)[0].mean() / vlogit_id_train.mean()
 
@@ -103,13 +102,13 @@ def vim_inf(
 
 
 def dml_inf(
-        feat,
-        fc_weight: torch.Tensor,
+    feat,
+    fc_weight: torch.Tensor,
 ) -> tuple:
     w = fc_weight.detach().clone()
     w = F.normalize(w, p=2, dim=1).cpu()
     # TODO: check if this is correct
-    w = w[::2, ]  # savc使用的是两倍类别数的fc层
+    w = w[::2,]  # savc使用的是两倍类别数的fc层
 
     cosine = F.normalize(feat, p=2, dim=1) @ w.T
     mcos, _ = torch.max(cosine, dim=1, keepdim=True)
@@ -119,15 +118,15 @@ def dml_inf(
 
 
 def dmlp_inf(
-        logits, 
-        feat,
-        fc_weight, 
-        prototype,
+    logits,
+    feat,
+    fc_weight,
+    prototype,
 ) -> tuple:
     w = fc_weight.clone().detach()
     w = F.normalize(w, p=2, dim=1).cpu()
     # TODO: check if this is correct
-    w = w[::2, ]  # savc使用的是两倍类别数的fc层
+    w = w[::2,]  # savc使用的是两倍类别数的fc层
 
     cosine = F.normalize(feat, p=2, dim=1) @ w.T
     mcos, _ = torch.max(cosine, dim=1, keepdim=True)
@@ -139,14 +138,13 @@ def dmlp_inf(
     _conf = F.normalize(logits, p=2, dim=1) @ prototype.T
     _conf, _ = torch.max(_conf, dim=1)
 
-
     conf = conf.cpu() + 40 * _conf.cpu()
     return conf
 
 
 def prot_inf(
-        logits,
-        prototypes: list,
+    logits,
+    prototypes: list,
 ) -> tuple:
     L = len(prototypes)
     conf = 0
@@ -162,16 +160,17 @@ def prot_inf(
 
 
 def kl(self, p, q):
-        return scipy.stats.entropy(p, q)
+    return scipy.stats.entropy(p, q)
 
 
 def klm_inf(
-        logits, 
-        train_logits: np.ndarray,
+    logits,
+    train_logits: np.ndarray,
 ) -> tuple:
     conf = -pairwise_distances_argmin_min(
-        torch.softmax(logits, dim=1), train_logits, metric='kl')[1]
-    
+        torch.softmax(logits, dim=1), train_logits, metric="kl"
+    )[1]
+
     return conf
 
 
@@ -206,7 +205,7 @@ def klm_inf(
 #         thres: float = 0.03,
 #         chunk: int = 50,
 # ) -> tuple:
-    
+
 #     def kernel(feat, feat_t, logits, logits_t, split=2):
 #         size = math.ceil(len(feat_t) / split)
 #         rel_full = []
@@ -225,7 +224,7 @@ def klm_inf(
 
 #         rel_full = torch.cat(rel_full, dim=-1)
 #         return rel_full
-    
+
 #     def get_relation(feat, feat_t, logits, logits_t, pow=1, chunk=50, thres=0.03):
 #         n = feat.shape[0]
 #         n_chunk = math.ceil(n / chunk)
@@ -246,7 +245,7 @@ def klm_inf(
 #         score = torch.cat(score, dim=0)
 
 #         return score
-    
+
 #     # Normalize features
 #     features = F.normalize(features, dim=1)
 #     train_features = F.normalize(train_features, dim=1)

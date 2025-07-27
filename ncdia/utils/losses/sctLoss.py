@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from ncdia.utils import LOSSES
 
+
 def entropy_select_topk(p, top_k, label, num_of_local_feature, nat_probs):
     """
     Extract non-Top-K regions and calculate entropy.
@@ -28,18 +29,23 @@ def entropy_select_topk(p, top_k, label, num_of_local_feature, nat_probs):
     if selected_p.shape[0] == 0:
         return torch.tensor([0]).cuda()
 
-    return -torch.mean(torch.sum(selected_p * torch.log(selected_p+1e-5), 1) * (0.0000001 + selected_true_probs))  
+    return -torch.mean(
+        torch.sum(selected_p * torch.log(selected_p + 1e-5), 1)
+        * (0.0000001 + selected_true_probs)
+    )
+
 
 @LOSSES.register
 class SCTLoss(nn.Module):
-    '''LoCoOp Loss = CrossEntropyLoss + Local_OOD_Entropy
-    
+    """LoCoOp Loss = CrossEntropyLoss + Local_OOD_Entropy
+
     Args:
         num_classes (int): Number of classes.
         num_local_ood (int): Number of local OOD classes.
         topk (int): The number of top K classes to select.
         lambda (float): Weight for the local OOD entropy loss. .
-    '''
+    """
+
     def __init__(self, **kwargs):
         super(SCTLoss, self).__init__(**kwargs)
 
@@ -61,13 +67,17 @@ class SCTLoss(nn.Module):
         label_onehot = F.one_hot(target, num_classes=94)
         probs = F.softmax(logits_global, dim=1)
         true_probs = torch.gather(probs, 1, (target.unsqueeze(1)).long()).squeeze()
-        loss = -torch.sum(label_onehot * F.log_softmax(logits_global, dim=1), dim=1) * (1.0000001 - true_probs)
+        loss = -torch.sum(label_onehot * F.log_softmax(logits_global, dim=1), dim=1) * (
+            1.0000001 - true_probs
+        )
         loss_id = loss.mean()
 
         # calculate OOD regularization loss
         batch_size, num_of_local_feature = logits_local.shape[0], logits_local.shape[1]
-        logits_local = logits_local.view(batch_size * num_of_local_feature, -1)     
-        loss_en = - entropy_select_topk(logits_local, topk, target, num_of_local_feature, probs)
+        logits_local = logits_local.view(batch_size * num_of_local_feature, -1)
+        loss_en = -entropy_select_topk(
+            logits_local, topk, target, num_of_local_feature, probs
+        )
 
         # calculate total loss for sct
         loss = loss_id + lambda_en * loss_en

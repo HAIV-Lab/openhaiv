@@ -5,12 +5,14 @@ from ncdia.utils import ALGORITHMS
 from ncdia.utils.metrics import accuracy
 from ncdia.algorithms.base import BaseAlg
 from ncdia.algorithms.supervised.standard import StandardSL
-from ncdia.trainers.hooks import AlgHook,QuantifyHook
+from ncdia.trainers.hooks import AlgHook, QuantifyHook
 import numpy as np
 from tqdm import tqdm
 from .metrics import ood_metrics, search_threshold
 from ncdia.utils import HOOKS
 from ncdia.trainers.hooks import AlgHook
+
+
 @HOOKS.register
 class GODINHook(QuantifyHook):
     def __init__(self) -> None:
@@ -18,6 +20,8 @@ class GODINHook(QuantifyHook):
 
     def after_test(self, trainer) -> None:
         pass
+
+
 @ALGORITHMS.register
 class GODIN(StandardSL):
     """Decoupling MaxLogit.
@@ -28,11 +32,13 @@ class GODIN(StandardSL):
         - test_step(trainer, data, label, *args, **kwargs)
 
     """
+
     def __init__(self, trainer) -> None:
         super().__init__(trainer)
         hook = GODINHook()
         trainer.register_hook(hook)
         self.hyparameters = None
+
     def val_step(self, trainer, data, label, *args, **kwargs):
         """Validation step for Decoupling MaxLogit.
 
@@ -61,7 +67,6 @@ class GODIN(StandardSL):
 
         return {"loss": loss.item(), "acc": acc.item()}
 
-
     def test_step(self, trainer, data, label, *args, **kwargs):
         """Test step for Decoupling MaxLogit.
 
@@ -79,12 +84,20 @@ class GODIN(StandardSL):
         """
         return self.val_step(trainer, data, label, *args, **kwargs)
 
-
     @staticmethod
-    def eval(id_gt: torch.Tensor ,id_logits: torch.Tensor, id_feat: torch.Tensor, 
-            ood_logits: torch.Tensor, ood_feat: torch.Tensor, 
-            train_logits: torch.Tensor = None, train_feat: torch.Tensor = None, train_gt: torch.Tensor = None,
-            tpr_th: float = 0.95, prec_th: float = None, hyparameters: dict = None):
+    def eval(
+        id_gt: torch.Tensor,
+        id_logits: torch.Tensor,
+        id_feat: torch.Tensor,
+        ood_logits: torch.Tensor,
+        ood_feat: torch.Tensor,
+        train_logits: torch.Tensor = None,
+        train_feat: torch.Tensor = None,
+        train_gt: torch.Tensor = None,
+        tpr_th: float = 0.95,
+        prec_th: float = None,
+        hyparameters: dict = None,
+    ):
         """Decoupled MaxLogit+ (DML+) method for OOD detection.
 
         Decoupling MaxLogit for Out-of-Distribution Detection
@@ -105,7 +118,7 @@ class GODIN(StandardSL):
         Returns:
             fpr (float): False positive rate.
             auroc (float): Area under the ROC curve.
-            aupr_in (float): Area under the precision-recall curve 
+            aupr_in (float): Area under the precision-recall curve
                 for in-distribution samples.
             aupr_out (float): Area under the precision-recall curve
                 for out-of-distribution
@@ -115,11 +128,16 @@ class GODIN(StandardSL):
 
         id_conf, id_pred = torch.max(id_logits, dim=1)
         ood_conf, ood_pred = torch.max(ood_logits, dim=1)
-        
+
         conf = np.concatenate([id_conf.cpu(), ood_conf.cpu()])
         label = np.concatenate([id_gt.cpu(), neg_ood_gt])
-        
+
         if prec_th is None:
             return conf, label, *ood_metrics(conf, label, tpr_th), None, None, None
         else:
-            return conf, label, *ood_metrics(conf, label, tpr_th), *search_threshold(conf, label, prec_th)
+            return (
+                conf,
+                label,
+                *ood_metrics(conf, label, tpr_th),
+                *search_threshold(conf, label, prec_th),
+            )

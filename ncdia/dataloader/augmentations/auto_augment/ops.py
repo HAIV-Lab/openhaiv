@@ -26,14 +26,15 @@ class Cutout(object):
             x1 = np.clip(x - self.length // 2, 0, w)
             x2 = np.clip(x + self.length // 2, 0, w)
 
-            mask[y1: y2, x1: x2] = 0.
+            mask[y1:y2, x1:x2] = 0.0
 
         mask = torch.from_numpy(mask)
         mask = mask.expand_as(img)
         img = img * mask
 
         return img
-    
+
+
 class ShearX(object):
     def __init__(self, interpolation, fillcolor=(128, 128, 128)):
         self.fillcolor = fillcolor
@@ -43,10 +44,15 @@ class ShearX(object):
         # return x.transform(
         #     x.size, Image.AFFINE, (1, magnitude * random.choice([-1, 1]), 0, 0, 1, 0),
         #     Image.BICUBIC, fillcolor=self.fillcolor)
-        return F.affine(x, angle=0.0, translate=[0, 0], scale=1.0, 
-                        shear=[math.degrees(magnitude), 0.0], 
-                        interpolation=self.interpolation, 
-                        fill=self.fillcolor)
+        return F.affine(
+            x,
+            angle=0.0,
+            translate=[0, 0],
+            scale=1.0,
+            shear=[math.degrees(magnitude), 0.0],
+            interpolation=self.interpolation,
+            fill=self.fillcolor,
+        )
 
 
 class ShearY(object):
@@ -58,10 +64,15 @@ class ShearY(object):
         # return x.transform(
         #     x.size, Image.AFFINE, (1, 0, 0, magnitude * random.choice([-1, 1]), 1, 0),
         #     Image.BICUBIC, fillcolor=self.fillcolor)
-        return F.affine(x, angle=0.0, translate=[0, 0], scale=1.0, 
-                        shear=[0.0, math.degrees(magnitude)], 
-                        interpolation=self.interpolation, 
-                        fill=self.fillcolor)
+        return F.affine(
+            x,
+            angle=0.0,
+            translate=[0, 0],
+            scale=1.0,
+            shear=[0.0, math.degrees(magnitude)],
+            interpolation=self.interpolation,
+            fill=self.fillcolor,
+        )
 
 
 class TranslateX(object):
@@ -73,8 +84,15 @@ class TranslateX(object):
         # return x.transform(
         #     x.size, Image.AFFINE, (1, 0, magnitude * x.size[0] * random.choice([-1, 1]), 0, 1, 0),
         #     fillcolor=self.fillcolor)
-        return F.affine(x, angle=0.0, translate=[int(F._get_image_size(x)[0] * magnitude), 0], scale=1.0, 
-                        interpolation=self.interpolation, shear=[0.0, 0.0], fill=self.fillcolor)
+        return F.affine(
+            x,
+            angle=0.0,
+            translate=[int(F._get_image_size(x)[0] * magnitude), 0],
+            scale=1.0,
+            interpolation=self.interpolation,
+            shear=[0.0, 0.0],
+            fill=self.fillcolor,
+        )
 
 
 class TranslateY(object):
@@ -86,8 +104,15 @@ class TranslateY(object):
         # return x.transform(
         #     x.size, Image.AFFINE, (1, 0, 0, 0, 1, magnitude * x.size[1] * random.choice([-1, 1])),
         #     fillcolor=self.fillcolor)
-        return F.affine(x, angle=0.0, translate=[0, int(F._get_image_size(x)[1] * magnitude)], scale=1.0, 
-                        interpolation=self.interpolation, shear=[0.0, 0.0], fill=self.fillcolor)
+        return F.affine(
+            x,
+            angle=0.0,
+            translate=[0, int(F._get_image_size(x)[1] * magnitude)],
+            scale=1.0,
+            interpolation=self.interpolation,
+            shear=[0.0, 0.0],
+            fill=self.fillcolor,
+        )
 
 
 class Rotate(object):
@@ -98,7 +123,9 @@ class Rotate(object):
     def __call__(self, x, magnitude):
         # rot = x.convert("RGBA").rotate(magnitude * random.choice([-1, 1]))
         # return Image.composite(rot, Image.new("RGBA", rot.size, (128,) * 4), rot).convert(x.mode)
-        return F.rotate(x, magnitude, interpolation=self.interpolation, fill=self.fillcolor)
+        return F.rotate(
+            x, magnitude, interpolation=self.interpolation, fill=self.fillcolor
+        )
 
 
 class Posterize(object):

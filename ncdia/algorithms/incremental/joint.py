@@ -9,6 +9,7 @@ from ncdia.trainers.hooks import AlgHook
 from ncdia.dataloader import MergedDataset
 from ncdia.utils.metrics import accuracy, per_class_accuracy
 
+
 @HOOKS.register
 class ExpHook(AlgHook):
     def __init__(self) -> None:
@@ -19,16 +20,17 @@ class ExpHook(AlgHook):
         在进入for epoch in range(max_epochs)循环之前，对训练数据集进行处理。
         """
         trainer.train_loader
-        
+
         # 获取IncTrainer上一个session保存的历史数据集
         _hist_trainset = MergedDataset([trainer.hist_trainset], replace_transform=True)
-        
+
         # 将历史数据集与当前数据集合并
         _hist_trainset.merge([trainer.train_loader.dataset], replace_transform=True)
-        
-        # 重新设置IncTrainer的数据加载器
-        trainer._train_loader = DataLoader(_hist_trainset, **trainer._train_loader_kwargs)
 
+        # 重新设置IncTrainer的数据加载器
+        trainer._train_loader = DataLoader(
+            _hist_trainset, **trainer._train_loader_kwargs
+        )
 
         trainer.val_loader
         _hist_valset = MergedDataset([trainer.hist_valset], replace_transform=True)
@@ -42,35 +44,28 @@ class ExpHook(AlgHook):
 
         # 将inplace设置为True，直接替换hist_trainset
         trainer.update_hist_trainset(
-            trainer.train_loader.dataset,
-            replace_transform=True,
-            inplace=True
+            trainer.train_loader.dataset, replace_transform=True, inplace=True
         )
 
         trainer.update_hist_valset(
-            trainer.val_loader.dataset,
-            replace_transform=True,
-            inplace=True
+            trainer.val_loader.dataset, replace_transform=True, inplace=True
         )
 
         algorithm = trainer.algorithm
-        filename = 'task_' + str(trainer.session) + '.pth'
+        filename = "task_" + str(trainer.session) + ".pth"
         trainer.save_ckpt(os.path.join(trainer.work_dir, filename))
-    
+
     def before_val(self, trainer) -> None:
         """
         在进入for epoch in range(max_epochs)循环之前，对验证数据集进行处理。
         """
         pass
-            
-            
 
     def after_val(self, trainer) -> None:
         """
         在验证结束后，将当前session中需要保存的数据保存到hist_valset中。
         """
         pass
-            
 
     def before_test(self, trainer) -> None:
         """
@@ -86,9 +81,7 @@ class ExpHook(AlgHook):
         在测试结束后，将当前session中需要保存的数据保存到hist_testset中。
         """
         trainer.update_hist_testset(
-            trainer.test_loader.dataset,
-            replace_transform=True,
-            inplace=True
+            trainer.test_loader.dataset, replace_transform=True, inplace=True
         )
 
 
@@ -103,8 +96,7 @@ class Joint(BaseAlg):
         self._network = None
         self.loss = torch.nn.CrossEntropyLoss().cuda()
         session = trainer.session
-    
-    
+
     def train_step(self, trainer, data, label, attribute, imgpath):
         """
         base train for fact method
@@ -129,9 +121,9 @@ class Joint(BaseAlg):
         loss.backward()
 
         ret = {}
-        ret['loss'] = loss
-        ret['acc'] = acc
-        ret['per_class_acc'] = per_acc
+        ret["loss"] = loss
+        ret["acc"] = acc
+        ret["per_class_acc"] = per_acc
 
         return ret
 
@@ -156,7 +148,7 @@ class Joint(BaseAlg):
                 - "acc": Accuracy value.
         """
         session = self.trainer.session
-        test_class = self.args.CIL.base_classes + session  * self.args.CIL.way
+        test_class = self.args.CIL.base_classes + session * self.args.CIL.way
         self._network = trainer.model
         self._network.eval()
         data = data.cuda()
@@ -166,16 +158,16 @@ class Joint(BaseAlg):
         acc = accuracy(logits_, labels)[0]
         loss = self.loss(logits_, labels)
         per_acc = str(per_class_accuracy(logits_, labels))
-        
+
         ret = {}
-        ret['loss'] = loss.item()
-        ret['acc'] = acc.item()
-        ret['per_class_acc'] = per_acc
-        
+        ret["loss"] = loss.item()
+        ret["acc"] = acc.item()
+        ret["per_class_acc"] = per_acc
+
         return ret
-    
+
     def test_step(self, trainer, data, label, *args, **kwargs):
         return self.val_step(trainer, data, label, *args, **kwargs)
-    
+
     def get_net(self):
-            return self._network
+        return self._network

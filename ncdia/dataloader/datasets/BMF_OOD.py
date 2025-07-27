@@ -18,22 +18,46 @@ class BMF_OOD(BaseDataset):
         transform (list | str): transform to apply on the dataset.
             If str, it should be one of 'train', 'test' for predefined transforms.
     """
-    
-    # CLIP transform
-    train_transform = transforms.Compose([
-        transforms.Resize((224, 224), interpolation=transforms.InterpolationMode.BICUBIC, max_size=None, antialias=True),
-        transforms.Lambda(lambda image: image.convert("RGB") if image.mode != "RGB" else image),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.48145466, 0.4578275, 0.40821073], std=[0.26862954, 0.26130258, 0.27577711])
-    ])
 
-    test_transform = transforms.Compose([
-        transforms.Resize(224, interpolation=transforms.InterpolationMode.BICUBIC, max_size=None, antialias=True),
-        transforms.CenterCrop((224, 224)),
-        transforms.Lambda(lambda image: image.convert("RGB") if image.mode != "RGB" else image),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.48145466, 0.4578275, 0.40821073], std=[0.26862954, 0.26130258, 0.27577711])
-    ])
+    # CLIP transform
+    train_transform = transforms.Compose(
+        [
+            transforms.Resize(
+                (224, 224),
+                interpolation=transforms.InterpolationMode.BICUBIC,
+                max_size=None,
+                antialias=True,
+            ),
+            transforms.Lambda(
+                lambda image: image.convert("RGB") if image.mode != "RGB" else image
+            ),
+            transforms.ToTensor(),
+            transforms.Normalize(
+                mean=[0.48145466, 0.4578275, 0.40821073],
+                std=[0.26862954, 0.26130258, 0.27577711],
+            ),
+        ]
+    )
+
+    test_transform = transforms.Compose(
+        [
+            transforms.Resize(
+                224,
+                interpolation=transforms.InterpolationMode.BICUBIC,
+                max_size=None,
+                antialias=True,
+            ),
+            transforms.CenterCrop((224, 224)),
+            transforms.Lambda(
+                lambda image: image.convert("RGB") if image.mode != "RGB" else image
+            ),
+            transforms.ToTensor(),
+            transforms.Normalize(
+                mean=[0.48145466, 0.4578275, 0.40821073],
+                std=[0.26862954, 0.26130258, 0.27577711],
+            ),
+        ]
+    )
     # # ResNet transform
     # train_transform = transforms.Compose([
     #     transforms.Resize((256, 256), interpolation=transforms.InterpolationMode.BILINEAR),
@@ -52,13 +76,13 @@ class BMF_OOD(BaseDataset):
     # ])
 
     def __init__(
-            self,
-            root: str,
-            split: str = 'train',
-            subset_labels: list = None,
-            subset_file: str = None,
-            transform: list | str = None,
-            **kwargs,
+        self,
+        root: str,
+        split: str = "train",
+        subset_labels: list = None,
+        subset_file: str = None,
+        transform: list | str = None,
+        **kwargs,
     ) -> None:
         super().__init__()
         self.root = root
@@ -66,13 +90,12 @@ class BMF_OOD(BaseDataset):
 
         self.images, self.labels = self._load_data(root)
 
-        if split == 'train':
+        if split == "train":
             self.transform = self.train_transform
-        elif split in ['test','val','ood']:
+        elif split in ["test", "val", "ood"]:
             self.transform = self.test_transform
         else:
             raise ValueError(f"Unknown transform: {transform}")
-
 
     def _load_data(self, img_dir: str):
         """Load data from root folder
@@ -84,7 +107,7 @@ class BMF_OOD(BaseDataset):
             list: list of image paths
             list: list of labels
         """
-        id_folder ="/new_data/datasets/OES/sub-dataset1-RGB-domain1/ID/test/"
+        id_folder = "/new_data/datasets/OES/sub-dataset1-RGB-domain1/ID/test/"
         subfolders = [f.name for f in os.scandir(id_folder) if f.is_dir()]
         subfolders_sorted = sorted(subfolders, key=lambda x: x.lower())
         folder_dict = {name: idx for idx, name in enumerate(subfolders_sorted)}
@@ -95,7 +118,7 @@ class BMF_OOD(BaseDataset):
             for k in range(len(images)):
                 image_path = os.path.join(img_dir, file_name, images[k])
                 imgpaths.append(image_path)
-                if self.split == 'test':
+                if self.split == "test":
                     labels.append(folder_dict[file_name])
                 else:
                     labels.append(index)
@@ -113,10 +136,10 @@ class BMF_OOD(BaseDataset):
             img = self.transform(img)
 
         return {
-            'data': img,
-            'label': label,
-            'attribute': [],
-            'imgpath': imgpath,
+            "data": img,
+            "label": label,
+            "attribute": [],
+            "imgpath": imgpath,
         }
 
     def _select_from_label(self, images: list, labels: list, subset_labels: list | int):
@@ -153,7 +176,7 @@ class BMF_OOD(BaseDataset):
             list: list of labels
         """
         selected_images, selected_labels = [], []
-        with open(file, 'r') as f:
+        with open(file, "r") as f:
             for line in f:
                 img = os.path.abspath(line.strip())
                 if img in images:

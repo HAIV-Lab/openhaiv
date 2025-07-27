@@ -5,154 +5,172 @@ import torch.nn as nn
 from timm.models.layers import trunc_normal_
 from .clip import clip
 from .clip_locoop import clip_locoop
+
 # from .clip_maple import clip_maple
 from .clip_dpm import clip_dpm
-from .promptlearner import PromptLearner, MLCPromptLearner #, NegPromptLearner, MultiModalPromptLearner
-from .clip_utils import load_clip_to_cpu, load_clip_to_cpu_locoop, load_clip_to_cpu_dpm, get_text_features
+from .promptlearner import (
+    PromptLearner,
+    MLCPromptLearner,
+)  # , NegPromptLearner, MultiModalPromptLearner
+from .clip_utils import (
+    load_clip_to_cpu,
+    load_clip_to_cpu_locoop,
+    load_clip_to_cpu_dpm,
+    get_text_features,
+)
 from ncdia.utils import MODELS, Configs
 
 classnames = [
-    'Abies alba',
-    'Airport',
-    'Airport hangar',
-    'Airport terminal',
-    'Apartment',
-    'Aquaculture',
-    'Archaeological site',
-    'Artificial dense forest land',
-    'Artificial grassland',
-    'Artificial sparse forest land',
-    'Avenue',
-    'BareLand',
-    'Barn',
-    'Basketball court',
-    'Blue structured factory building',
-    'Bridge',
-    'Burial site',
-    'Car dealership',
-    'Center',
-    'Chaparral',
-    'Church',
-    'Circular farmland',
-    'Cloud',
-    'Coast',
-    'Construction site',
-    'Container',
-    'Crop field',
-    'Crossroads',
-    'Desert',
-    'Detached house',
-    'Dock',
-    'Eroded farmland',
-    'Freeway',
-    'Golf course',
-    'Harbor',
-    'Hirst',
-    'Ice land',
-    'Impoverished settlement',
-    'Interchange',
-    'Lake',
-    'Lakeshore',
-    'Larix decidua',
-    'Lighthouse',
-    'Low scattered building',
-    'Mangrove',
-    'Meadow',
-    'Medium density scattered building',
-    'Medium residential',
-    'Mountain',
-    'Natural dense forest land',
-    'Natural sparse forest land',
-    'Nuclear powerplant',
-    'Palace',
-    'Picea abies',
-    'Pier',
-    'Pinus nigra',
-    'Pinus strobus',
-    'Pinus sylvestris',
-    'Prison',
-    'Pseudotsuga menziesii',
-    'Race track',
-    'Rectangular farmland',
-    'Red structured factory building',
-    'River',
-    'Road',
-    'Rock land',
-    'Roundabout',
-    'Runway',
-    'Runway close',
-    'Salt marshes',
-    'Sandbeach',
-    'Scattered blue roof factory building',
-    'School',
-    'Shrubwood',
-    'Single transmission tower',
-    'Smokestack',
-    'Snowberg',
-    'Solar farm',
-    'Sparse residential',
-    'Sparse shrub land',
-    'Square',
-    'Stadium',
-    'Storage tank',
-    'Storage tank area',
-    'Stream',
-    'Surface mine',
-    'Swimming pool',
-    'Toll booth',
-    'Tunnel opening',
-    'Vegetable plot',
-    'Water treatment facility',
-    'Wind farm',
-    'Wind turbine',
-    'Zoo'
+    "Abies alba",
+    "Airport",
+    "Airport hangar",
+    "Airport terminal",
+    "Apartment",
+    "Aquaculture",
+    "Archaeological site",
+    "Artificial dense forest land",
+    "Artificial grassland",
+    "Artificial sparse forest land",
+    "Avenue",
+    "BareLand",
+    "Barn",
+    "Basketball court",
+    "Blue structured factory building",
+    "Bridge",
+    "Burial site",
+    "Car dealership",
+    "Center",
+    "Chaparral",
+    "Church",
+    "Circular farmland",
+    "Cloud",
+    "Coast",
+    "Construction site",
+    "Container",
+    "Crop field",
+    "Crossroads",
+    "Desert",
+    "Detached house",
+    "Dock",
+    "Eroded farmland",
+    "Freeway",
+    "Golf course",
+    "Harbor",
+    "Hirst",
+    "Ice land",
+    "Impoverished settlement",
+    "Interchange",
+    "Lake",
+    "Lakeshore",
+    "Larix decidua",
+    "Lighthouse",
+    "Low scattered building",
+    "Mangrove",
+    "Meadow",
+    "Medium density scattered building",
+    "Medium residential",
+    "Mountain",
+    "Natural dense forest land",
+    "Natural sparse forest land",
+    "Nuclear powerplant",
+    "Palace",
+    "Picea abies",
+    "Pier",
+    "Pinus nigra",
+    "Pinus strobus",
+    "Pinus sylvestris",
+    "Prison",
+    "Pseudotsuga menziesii",
+    "Race track",
+    "Rectangular farmland",
+    "Red structured factory building",
+    "River",
+    "Road",
+    "Rock land",
+    "Roundabout",
+    "Runway",
+    "Runway close",
+    "Salt marshes",
+    "Sandbeach",
+    "Scattered blue roof factory building",
+    "School",
+    "Shrubwood",
+    "Single transmission tower",
+    "Smokestack",
+    "Snowberg",
+    "Solar farm",
+    "Sparse residential",
+    "Sparse shrub land",
+    "Square",
+    "Stadium",
+    "Storage tank",
+    "Storage tank area",
+    "Stream",
+    "Surface mine",
+    "Swimming pool",
+    "Toll booth",
+    "Tunnel opening",
+    "Vegetable plot",
+    "Water treatment facility",
+    "Wind farm",
+    "Wind turbine",
+    "Zoo",
 ]
+
 
 @MODELS.register
 class TextEncoder(nn.Module):
     def __init__(self, clip_model):
         super().__init__()
         self.transformer = clip_model.transformer
-        self.positional_embedding = clip_model.positional_embedding 
+        self.positional_embedding = clip_model.positional_embedding
         self.ln_final = clip_model.ln_final
-        self.text_projection = clip_model.text_projection 
+        self.text_projection = clip_model.text_projection
         self.dtype = clip_model.dtype
-        
+
     def forward(self, prompts, tokenized_prompts):
         x = prompts + self.positional_embedding.type(self.dtype)
         x = x.permute(1, 0, 2)  # NLD -> LND
         x = self.transformer(x)
         x = x.permute(1, 0, 2)  # LND -> NLD
-        x = self.ln_final(x).type(self.dtype) 
+        x = self.ln_final(x).type(self.dtype)
 
         # x.shape = [batch_size, n_ctx, transformer.width]
         # take features from the eot embedding (eot_token is the highest number in each sequence)
-        x = x[torch.arange(x.shape[0]), tokenized_prompts.argmax(dim=-1)] @ self.text_projection
-        
+        x = (
+            x[torch.arange(x.shape[0]), tokenized_prompts.argmax(dim=-1)]
+            @ self.text_projection
+        )
+
         return x
+
 
 @MODELS.register
 class TextEncoder_LoCoOp(nn.Module):
     def __init__(self, clip_model):
         super().__init__()
         self.transformer = clip_model.transformer
-        self.positional_embedding = clip_model.positional_embedding 
+        self.positional_embedding = clip_model.positional_embedding
         self.ln_final = clip_model.ln_final
-        self.text_projection = clip_model.text_projection 
+        self.text_projection = clip_model.text_projection
         self.dtype = clip_model.dtype
-        
+
     def forward(self, prompts, tokenized_prompts):
         x = prompts + self.positional_embedding.type(self.dtype)
         x = x.permute(1, 0, 2)  # NLD -> LND
         x, _, _, _ = self.transformer(x)
         x = x.permute(1, 0, 2)  # LND -> NLD
-        x = self.ln_final(x).type(self.dtype) 
+        x = self.ln_final(x).type(self.dtype)
 
         # x.shape = [batch_size, n_ctx, transformer.width]
         # take features from the eot embedding (eot_token is the highest number in each sequence)
-        x = x[torch.arange(x.shape[0]), tokenized_prompts.argmax(dim=-1)] @ self.text_projection
-        
+        x = (
+            x[torch.arange(x.shape[0]), tokenized_prompts.argmax(dim=-1)]
+            @ self.text_projection
+        )
+
         return x
+
 
 @MODELS.register
 class TextEncoder_Maple(nn.Module):
@@ -168,7 +186,11 @@ class TextEncoder_Maple(nn.Module):
         x = prompts + self.positional_embedding.type(self.dtype)
         x = x.permute(1, 0, 2)  # NLD -> LND
         # Pass as the list, as nn.sequential cannot process multiple arguments in the forward pass
-        combined = [x, compound_prompts_deeper_text, 0]  # third argument is the counter which denotes depth of prompt
+        combined = [
+            x,
+            compound_prompts_deeper_text,
+            0,
+        ]  # third argument is the counter which denotes depth of prompt
         outputs = self.transformer(combined)
         x = outputs[0]  # extract the x back from here
         x = x.permute(1, 0, 2)  # LND -> NLD
@@ -176,23 +198,20 @@ class TextEncoder_Maple(nn.Module):
 
         # x.shape = [batch_size, n_ctx, transformer.width]
         # take features from the eot embedding (eot_token is the highest number in each sequence)
-        x = x[torch.arange(x.shape[0]), tokenized_prompts.argmax(dim=-1)] @ self.text_projection
+        x = (
+            x[torch.arange(x.shape[0]), tokenized_prompts.argmax(dim=-1)]
+            @ self.text_projection
+        )
 
         return x
+
 
 # custom CLIP for zero-shot classification
 @MODELS.register
 class CustomCLIP_ZeroShot(nn.Module):
-    def __init__(
-        self, 
-        backbone,
-        local_path,
-        dataset,
-        text_prompt,
-        **kwargs
-    ) -> None:
+    def __init__(self, backbone, local_path, dataset, text_prompt, **kwargs) -> None:
         super().__init__()
-        backbone = backbone # 'ViT-B/16'
+        backbone = backbone  # 'ViT-B/16'
         assert backbone in clip.available_models()
         if local_path == "":
             local_path = None
@@ -207,22 +226,28 @@ class CustomCLIP_ZeroShot(nn.Module):
         self.logit_scale = clip_model.logit_scale.data
         print("Turning off gradients in both the image and the text encoder")
         for name, param in clip_model.named_parameters():
-            param.requires_grad_(False) 
+            param.requires_grad_(False)
         # self.text_features = get_text_features(self.model, dataset, text_prompt)
-        prompt_text = ['a photo of a '+name.replace("_", " ") for name in classnames]
-        self.tokenized_prompts = torch.cat([clip.tokenize(p) for p in prompt_text]).cuda()
-        self.embedding = clip_model.token_embedding(self.tokenized_prompts).type(self.dtype)
-        prompts =  self.embedding.type(self.dtype)
+        prompt_text = ["a photo of a " + name.replace("_", " ") for name in classnames]
+        self.tokenized_prompts = torch.cat(
+            [clip.tokenize(p) for p in prompt_text]
+        ).cuda()
+        self.embedding = clip_model.token_embedding(self.tokenized_prompts).type(
+            self.dtype
+        )
+        prompts = self.embedding.type(self.dtype)
         tokenized_prompts = self.tokenized_prompts
         self.text_features = self.text_encoder(prompts, tokenized_prompts)
-        self.text_features = self.text_features / self.text_features.norm(dim=-1, keepdim=True)
+        self.text_features = self.text_features / self.text_features.norm(
+            dim=-1, keepdim=True
+        )
 
     def forward(self, x):
         image_features = self.model.encode_image(x.type(self.model.dtype))
         image_features /= image_features.norm(dim=-1, keepdim=True)
         logit_scale = self.logit_scale.exp()
 
-        logits = logit_scale * image_features @ self.text_features.T 
+        logits = logit_scale * image_features @ self.text_features.T
         return logits
 
     def get_features(self, x):
@@ -230,18 +255,12 @@ class CustomCLIP_ZeroShot(nn.Module):
         image_features /= image_features.norm(dim=-1, keepdim=True)
         return image_features
 
+
 @MODELS.register
 class CustomCLIP_ZeroShot_w_local(nn.Module):
-    def __init__(
-        self, 
-        backbone,
-        local_path,
-        dataset,
-        text_prompt,
-        **kwargs
-    ) -> None:
+    def __init__(self, backbone, local_path, dataset, text_prompt, **kwargs) -> None:
         super().__init__()
-        backbone = backbone # 'ViT-B/16'
+        backbone = backbone  # 'ViT-B/16'
         assert backbone in clip.available_models()
         if local_path == "":
             local_path = None
@@ -256,25 +275,30 @@ class CustomCLIP_ZeroShot_w_local(nn.Module):
         self.logit_scale = clip_model.logit_scale.data
         print("Turning off gradients in both the image and the text encoder")
         for name, param in clip_model.named_parameters():
-            param.requires_grad_(False) 
+            param.requires_grad_(False)
         # self.text_features = get_text_features(self.model, dataset, text_prompt)
-        prompt_text = ['a photo of a '+name.replace("_", " ") for name in classnames]
-        self.tokenized_prompts = torch.cat([clip.tokenize(p) for p in prompt_text]).cuda()
-        self.embedding = clip_model.token_embedding(self.tokenized_prompts).type(self.dtype)
-        prompts =  self.embedding.type(self.dtype)
+        prompt_text = ["a photo of a " + name.replace("_", " ") for name in classnames]
+        self.tokenized_prompts = torch.cat(
+            [clip.tokenize(p) for p in prompt_text]
+        ).cuda()
+        self.embedding = clip_model.token_embedding(self.tokenized_prompts).type(
+            self.dtype
+        )
+        prompts = self.embedding.type(self.dtype)
         tokenized_prompts = self.tokenized_prompts
         self.text_features = self.text_encoder(prompts, tokenized_prompts)
-        self.text_features = self.text_features / self.text_features.norm(dim=-1, keepdim=True)
-
+        self.text_features = self.text_features / self.text_features.norm(
+            dim=-1, keepdim=True
+        )
 
     def forward(self, x):
         image_features, local_image_features = self.model.encode_image(x)
         image_features /= image_features.norm(dim=-1, keepdim=True)
         local_image_features /= local_image_features.norm(dim=-1, keepdim=True)
         logit_scale = self.logit_scale.exp()
-        # text_features = self.text_features.squeeze(1) 
+        # text_features = self.text_features.squeeze(1)
 
-        logits = logit_scale * image_features @ self.text_features.T 
+        logits = logit_scale * image_features @ self.text_features.T
         local_logits = logit_scale * local_image_features @ self.text_features.T
         return logits, local_logits
 
@@ -284,12 +308,14 @@ class CustomCLIP_ZeroShot_w_local(nn.Module):
         local_image_features /= local_image_features.norm(dim=-1, keepdim=True)
 
         return image_features, local_image_features
-        
-'''
+
+
+"""
 custom CLIP for prepross NegLabel text features
 Negative Label Guided OOD Detection with Pretrained Vision-Language Models
 ICLR 2024 spotlight, https://arxiv.org/abs/2403.20078
-'''
+"""
+
 
 @MODELS.register
 class CLIP_scoring(nn.Module):
@@ -305,7 +331,7 @@ class CLIP_scoring(nn.Module):
         print("Turning off gradients in both the image and the text encoder")
         for name, param in clip_model.named_parameters():
             param.requires_grad_(False)
-    
+
     def prepare_id(self, tokenized_prompts_id):
         with torch.no_grad():
             text_features = self.text_encoder(tokenized_prompts_id)
@@ -318,28 +344,39 @@ class CLIP_scoring(nn.Module):
         with torch.no_grad():
             text_features_wordnet = self.text_encoder(tokenized_prompts_wordnet)
 
-            text_features_wordnet = text_features_wordnet / text_features_wordnet.norm(dim=-1, keepdim=True)
+            text_features_wordnet = text_features_wordnet / text_features_wordnet.norm(
+                dim=-1, keepdim=True
+            )
 
             cos_sim = text_features_wordnet @ self.text_features.t()
 
         return cos_sim
 
+
 # custom CLIP for vanilla prompt learning
 @MODELS.register
 class CustomCLIP(nn.Module):
     def __init__(
-        self, 
-        # backbone, 
-        classnames, 
+        self,
+        # backbone,
+        classnames,
         clip_model,
         N_CTX,
         CTX_INIT,
         image_size,
         CSC,
-        CLASS_TOKEN_POSITION
+        CLASS_TOKEN_POSITION,
     ) -> None:
         super().__init__()
-        self.prompt_learner = PromptLearner(classnames, clip_model, N_CTX, CTX_INIT, image_size, CSC, CLASS_TOKEN_POSITION)
+        self.prompt_learner = PromptLearner(
+            classnames,
+            clip_model,
+            N_CTX,
+            CTX_INIT,
+            image_size,
+            CSC,
+            CLASS_TOKEN_POSITION,
+        )
         self.tokenized_prompts = self.prompt_learner.tokenized_prompts
         self.image_encoder = clip_model.visual
         self.text_encoder = TextEncoder(clip_model)
@@ -362,28 +399,39 @@ class CustomCLIP(nn.Module):
             logits = logit_scale * image_features @ text_features.t()
             return logits
 
-'''
+
+"""
 custom CLIP with global_image_feature and local_image_features, which can be used for LoCoOp and SCT etc.   
 LoCoOp: Few-Shot Out-of-Distribution Detection via Prompt Learning 
 NeurIPS 2023 https://arxiv.org/abs/2306.01293
 SCT: Self-Calibrated Tuning of Vision-Language Models for Out-of-Distribution Detection 
 NeurIPS 2024 https://arxiv.org/abs/2411.03359
-'''
+"""
+
+
 @MODELS.register
 class CustomCLIP_LoCoOp(nn.Module):
     def __init__(
-        self, 
-        # backbone, 
-        classnames, 
+        self,
+        # backbone,
+        classnames,
         clip_model,
         N_CTX,
         CTX_INIT,
         image_size,
         CSC,
-        CLASS_TOKEN_POSITION
+        CLASS_TOKEN_POSITION,
     ):
         super().__init__()
-        self.prompt_learner = PromptLearner(classnames, clip_model, N_CTX, CTX_INIT, image_size, CSC, CLASS_TOKEN_POSITION)
+        self.prompt_learner = PromptLearner(
+            classnames,
+            clip_model,
+            N_CTX,
+            CTX_INIT,
+            image_size,
+            CSC,
+            CLASS_TOKEN_POSITION,
+        )
         self.tokenized_prompts = self.prompt_learner.tokenized_prompts
         self.image_encoder = clip_model.visual
         self.text_encoder = TextEncoder_LoCoOp(clip_model)
@@ -391,14 +439,18 @@ class CustomCLIP_LoCoOp(nn.Module):
         self.dtype = clip_model.dtype
 
     def forward(self, image, return_feat):
-        image_features, local_image_features = self.image_encoder(image.type(self.dtype))
+        image_features, local_image_features = self.image_encoder(
+            image.type(self.dtype)
+        )
 
         prompts = self.prompt_learner()
         tokenized_prompts = self.tokenized_prompts
         text_features = self.text_encoder(prompts, tokenized_prompts)
 
         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
-        local_image_features = local_image_features / local_image_features.norm(dim=-1, keepdim=True)
+        local_image_features = local_image_features / local_image_features.norm(
+            dim=-1, keepdim=True
+        )
         text_features = text_features / text_features.norm(dim=-1, keepdim=True)
 
         logit_scale = self.logit_scale.exp()
@@ -413,24 +465,25 @@ class CustomCLIP_LoCoOp(nn.Module):
             return logits, logits_local
 
 
-        
-'''
+"""
 custom CLIP for Dual-pattern Matching
 Vision-Language Dual-Pattern Matching for Out-of-Distribution Detection
 ECCV 2024 https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/11399.pdf
-'''
+"""
+
+
 @MODELS.register
 class CustomCLIP_DPM(nn.Module):
     def __init__(
-        self, 
-        # backbone, 
-        classnames, 
+        self,
+        # backbone,
+        classnames,
         clip_model,
         N_CTX,
         CTX_INIT,
         image_size,
         CSC,
-        CLASS_TOKEN_POSITION
+        CLASS_TOKEN_POSITION,
     ):
         super().__init__()
         self.image_encoder = clip_model.visual
@@ -439,7 +492,15 @@ class CustomCLIP_DPM(nn.Module):
         self.dtype = clip_model.dtype
         self.classnames = classnames
         # self.prompt_learner = MLCPromptLearner(cfg, classnames, clip_model)
-        self.prompt_learner = PromptLearner(classnames, clip_model, N_CTX, CTX_INIT, image_size, CSC, CLASS_TOKEN_POSITION)
+        self.prompt_learner = PromptLearner(
+            classnames,
+            clip_model,
+            N_CTX,
+            CTX_INIT,
+            image_size,
+            CSC,
+            CLASS_TOKEN_POSITION,
+        )
         for _, param in clip_model.named_parameters():
             param.requires_grad = False
         with torch.no_grad():
@@ -453,51 +514,77 @@ class CustomCLIP_DPM(nn.Module):
 
     def forward(self, image, label, cls_id=None):
         image_features, local_features = self.image_encoder(
-            image.type(self.dtype))  # image_features, [B, C], local [B, 49, C]
+            image.type(self.dtype)
+        )  # image_features, [B, C], local [B, 49, C]
         # prompts, tokenized_prompts = self.prompt_learner(cls_id)  # prompts [2*L, 77, D]  tokenized_prompts  [2*L, 77]
-        prompts = self.prompt_learner()  
+        prompts = self.prompt_learner()
         tokenized_prompts = self.tokenized_prompts
-        text_features = self.text_encoder(prompts, tokenized_prompts)  # text_features [2*L, 512]
-        text_features = text_features / text_features.norm(dim=-1, keepdim=True)  # [2*L, 512]
-        image_features = image_features / image_features.norm(dim=-1, keepdim=True)  # image_f [B, C]
-        local_features = local_features / local_features.norm(dim=-1, keepdim=True)  # local [B, 49, C]
-        logits1, logits2, logits3 = self.dpmt(Fs=local_features, Ft=text_features, Fv=image_features,
-                                              label=label)  # .squeeze()
+        text_features = self.text_encoder(
+            prompts, tokenized_prompts
+        )  # text_features [2*L, 512]
+        text_features = text_features / text_features.norm(
+            dim=-1, keepdim=True
+        )  # [2*L, 512]
+        image_features = image_features / image_features.norm(
+            dim=-1, keepdim=True
+        )  # image_f [B, C]
+        local_features = local_features / local_features.norm(
+            dim=-1, keepdim=True
+        )  # local [B, 49, C]
+        logits1, logits2, logits3 = self.dpmt(
+            Fs=local_features, Ft=text_features, Fv=image_features, label=label
+        )  # .squeeze()
         return logits1, logits2, logits3
 
     def evaluate(self, image, cls_id=None, return_feature=False):
         image_features, local_features = self.image_encoder(
-            image.type(self.dtype))  # image_features, [B, C], local [B, 49, C]
+            image.type(self.dtype)
+        )  # image_features, [B, C], local [B, 49, C]
         # prompts, tokenized_prompts = self.prompt_learner(
-            # cls_id)  # prompts [2*L, 77, D]  tokenized_prompts  [2*L, 77]
-        prompts = self.prompt_learner()  
+        # cls_id)  # prompts [2*L, 77, D]  tokenized_prompts  [2*L, 77]
+        prompts = self.prompt_learner()
         tokenized_prompts = self.tokenized_prompts
-        text_features = self.text_encoder(prompts, tokenized_prompts)  # text_features [2*L, 512]
-        text_features = text_features / text_features.norm(dim=-1, keepdim=True)  # [2*L, 512]
-        image_features = image_features / image_features.norm(dim=-1, keepdim=True)  # image_f [B, C]
-        local_features = local_features / local_features.norm(dim=-1, keepdim=True)  # local [B, 49, C]
-        logits1, logits2, logits3 = self.dpmt.evaluate(Fs=local_features, Ft=text_features,
-                                                       Fv=image_features)  # .squeeze()
+        text_features = self.text_encoder(
+            prompts, tokenized_prompts
+        )  # text_features [2*L, 512]
+        text_features = text_features / text_features.norm(
+            dim=-1, keepdim=True
+        )  # [2*L, 512]
+        image_features = image_features / image_features.norm(
+            dim=-1, keepdim=True
+        )  # image_f [B, C]
+        local_features = local_features / local_features.norm(
+            dim=-1, keepdim=True
+        )  # local [B, 49, C]
+        logits1, logits2, logits3 = self.dpmt.evaluate(
+            Fs=local_features, Ft=text_features, Fv=image_features
+        )  # .squeeze()
         if return_feature:
             return image_features
 
         return logits1, logits2, logits3
-    
+
+
 @MODELS.register
 class DPM_Block(nn.Module):
-    def __init__(self, text_features,
-                 input_dim):  # input_dim=512
+    def __init__(self, text_features, input_dim):  # input_dim=512
         super().__init__()
         self.softmax = nn.Softmax(-1)
         # self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
         self.pre_project_s = DPM_Proj2()  # (B, D)
         self.pre_project_t = DPM_Proj1()
         self.pre_project_vv = DPM_Proj1()
-        self.scale = input_dim ** -0.5
-        self.logit_scale = nn.Parameter(torch.ones([]) * 30., requires_grad=False)
-        self.vis_gamma_p = nn.Parameter(torch.ones([]) * 0.99)  # 1e-3)  # for updating visual embedding diff
-        self.vis_gamma_n = nn.Parameter(torch.ones([]) * 0.99)  # 1e-3)  # for updating visual embedding diff
-        self.visual_prototype = nn.Parameter(text_features.clone().detach())  # , requires_grad=False)
+        self.scale = input_dim**-0.5
+        self.logit_scale = nn.Parameter(torch.ones([]) * 30.0, requires_grad=False)
+        self.vis_gamma_p = nn.Parameter(
+            torch.ones([]) * 0.99
+        )  # 1e-3)  # for updating visual embedding diff
+        self.vis_gamma_n = nn.Parameter(
+            torch.ones([]) * 0.99
+        )  # 1e-3)  # for updating visual embedding diff
+        self.visual_prototype = nn.Parameter(
+            text_features.clone().detach()
+        )  # , requires_grad=False)
 
     def forward(self, Fs, Ft, Fv, label):
         L, D = Ft.shape
@@ -512,7 +599,9 @@ class DPM_Block(nn.Module):
         Fv = Fv.unsqueeze(1)
         Fv = Fv.expand(-1, L, -1)
         feat_v = self.vis_gamma_p * feat_v_a + Fv  # [B, L, C] + Fv
-        A_weightv = F.conv1d(Fs.permute(0, 2, 1), self.visual_prototype[:, :, None])  # [B, 2L, 49]
+        A_weightv = F.conv1d(
+            Fs.permute(0, 2, 1), self.visual_prototype[:, :, None]
+        )  # [B, 2L, 49]
         A_weight1v = F.softmax(A_weightv, dim=-1)  # [B, 2L, 49]
         feat_v_av = A_weight1v @ Fs  # [B, L, C]
         feat_vv = self.vis_gamma_n * feat_v_av + Fv  # [B, L, C] + Fv
@@ -552,7 +641,9 @@ class DPM_Block(nn.Module):
         Fv = Fv.unsqueeze(1)
         Fv = Fv.expand(-1, L, -1)
         feat_v = self.vis_gamma_p * feat_v_a + Fv  # [B, L, C] + Fv
-        A_weightv = F.conv1d(Fs.permute(0, 2, 1), self.visual_prototype[:, :, None])  # [B, 2L, 49]
+        A_weightv = F.conv1d(
+            Fs.permute(0, 2, 1), self.visual_prototype[:, :, None]
+        )  # [B, 2L, 49]
         A_weight1v = F.softmax(A_weightv, dim=-1)  # [B, 2L, 49]
         feat_v_av = A_weight1v @ Fs  # [B, L, C]
         feat_vv = self.vis_gamma_n * feat_v_av + Fv  # [B, L, C] + Fv
@@ -565,14 +656,11 @@ class DPM_Block(nn.Module):
         logits2 = self.logit_scale * torch.mul(feat_v, Ft).sum(-1)
         logits3 = self.logit_scale * torch.mul(feat_vv, visual_prototype).sum(-1)
         return logits1, logits2, logits3
-    
-@MODELS.register   
+
+
+@MODELS.register
 class DPM_Proj1(nn.Module):
-    def __init__(self,
-                 visual_dim=512,
-                 token_embed_dim=512,
-                 **kwargs
-                 ):
+    def __init__(self, visual_dim=512, token_embed_dim=512, **kwargs):
         super(DPM_Proj1, self).__init__()
 
         self.prompt_proj = nn.Sequential(
@@ -580,7 +668,7 @@ class DPM_Proj1(nn.Module):
             nn.Linear(visual_dim, visual_dim),
             nn.ReLU(),
             nn.LayerNorm(visual_dim),
-            nn.Linear(visual_dim, token_embed_dim)
+            nn.Linear(visual_dim, token_embed_dim),
         )
 
         self.apply(self._init_weights)
@@ -591,20 +679,17 @@ class DPM_Proj1(nn.Module):
 
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
-            trunc_normal_(m.weight, std=.02).half()
+            trunc_normal_(m.weight, std=0.02).half()
             if isinstance(m, nn.Linear) and m.bias is not None:
                 nn.init.constant_(m.bias, 0).half()
         elif isinstance(m, nn.LayerNorm):
             nn.init.constant_(m.bias, 0).half()
             nn.init.constant_(m.weight, 1.0).half()
 
+
 @MODELS.register
 class DPM_Proj2(nn.Module):
-    def __init__(self,
-                 visual_dim=512,
-                 token_embed_dim=512,
-                 **kwargs
-                 ):
+    def __init__(self, visual_dim=512, token_embed_dim=512, **kwargs):
         super(DPM_Proj2, self).__init__()
 
         self.prompt_proj = nn.Sequential(
@@ -612,7 +697,7 @@ class DPM_Proj2(nn.Module):
             nn.Conv1d(visual_dim, visual_dim, 1),
             nn.ReLU(),
             nn.GroupNorm(1, visual_dim),  # Use GroupNorm instead of LayerNorm
-            nn.Conv1d(visual_dim, token_embed_dim, 1)
+            nn.Conv1d(visual_dim, token_embed_dim, 1),
         )
 
         self.apply(self._init_weights)
@@ -625,18 +710,19 @@ class DPM_Proj2(nn.Module):
 
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
-            trunc_normal_(m.weight, std=.02).half()
+            trunc_normal_(m.weight, std=0.02).half()
             if isinstance(m, nn.Linear) and m.bias is not None:
                 nn.init.constant_(m.bias, 0).half()
         elif isinstance(m, nn.LayerNorm):
             nn.init.constant_(m.bias, 0).half()
             nn.init.constant_(m.weight, 1.0).half()
 
+
 # '''
-# custom CLIP for NegPrompt 
+# custom CLIP for NegPrompt
 # Learning Transferable Negative Prompts for Out-of-Distribution Detection
 # CVPR 2024 https://arxiv.org/abs/2404.03248
-# '''   
+# '''
 # @MODELS.register
 # class CustomCLIP_NegPrompt(nn.Module):
 #     def __init__(self, cfg, classnames, clip_model):
@@ -653,14 +739,14 @@ class DPM_Proj2(nn.Module):
 #     def forward(self, image, return_feat):
 #         image_features = self.image_encoder(image.type(self.dtype)) ##128*512
 #         if not self.training and self.text_features is not None:
-#                 text_features = self.text_features  ## accrelating testing. 
+#                 text_features = self.text_features  ## accrelating testing.
 #         else:
 #             print('re-calculate the text feature with learned prompts.')
 #             prompts = self.prompt_learner() # torch.Size([1000, 77, 512])
 #             tokenized_prompts = self.tokenized_prompts  ## 1000*77
 #             text_features = self.text_encoder(prompts, tokenized_prompts) # 1000*512
 #             self.text_features = text_features
-            
+
 #         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
 #         text_features = text_features / text_features.norm(dim=-1, keepdim=True)
 #         logit_scale = self.logit_scale.exp()
@@ -688,7 +774,7 @@ class DPM_Proj2(nn.Module):
 #         self.logit_scale = clip_model.logit_scale.data
 #         print("Turning off gradients in both the image and the text encoder")
 #         for name, param in clip_model.named_parameters():
-#             param.requires_grad_(False) 
+#             param.requires_grad_(False)
 #         self.text_features = get_text_features(self.model, cfg.backbone.dataset, cfg.backbone.text_prompt)
 
 
@@ -701,16 +787,16 @@ class DPM_Proj2(nn.Module):
 #         image_global_features, image_spatial_features = self.model.encode_image(x)
 #         image_global_features /= image_global_features.norm(dim=-1, keepdim=True)
 #         image_spatial_features /= image_spatial_features.norm(dim=-1, keepdim=True)
-        
+
 #         logit_scale = self.logit_scale.exp()
-#         logits1 = logit_scale * image_global_features @ self.text_features 
-        
+#         logits1 = logit_scale * image_global_features @ self.text_features
+
 #         A_weight = torch.matmul(image_spatial_features, self.text_features.t())  # [B,P,D]x[D,N] -> [B,P,N]
 #         A_weight1 = F.softmax(A_weight, dim=0) # softmax along the spatial dimension
 #         A_weight2 = F.softmax(A_weight, dim=1) # softmax along the text dimension
-        
+
 #         feat_t_a = torch.matmul(image_global_features, A_weight1) # [B,1,D][B,P,N]
-#         feat_v_a = torch.matmul(A_weight2, self.text_features.permute(1, 0)) 
+#         feat_v_a = torch.matmul(A_weight2, self.text_features.permute(1, 0))
 #         feat_v_a = feat_v_a.mean(0)+feat_v_a.max(0)[0]
 #         logits2 = image_global_features @ feat_t_a
 #         logits3 = feat_v_a @ self.text_features

@@ -5,6 +5,7 @@ import torch.nn.functional as F
 
 from ncdia.utils import MODELS, Configs
 
+
 @MODELS.register
 class BEEFISONet(nn.Module):
     def __init__(self, args, pretrained):
@@ -35,34 +36,78 @@ class BEEFISONet(nn.Module):
     def forward(self, x):
         features = [convnet(x)["features"] for convnet in self.convnets]
         features = torch.cat(features, 1)
-        
+
         if self.old_fc is None:
             fc = self.new_fc
             out = fc(features)
         else:
-            '''
+            """
             merge the weights
-            '''
+            """
             new_task_size = self.task_sizes[-1]
-            fc_weight = torch.cat([self.old_fc.weight,torch.zeros((new_task_size,self.feature_dim-self.out_dim)).cuda()],dim=0)             
+            fc_weight = torch.cat(
+                [
+                    self.old_fc.weight,
+                    torch.zeros(
+                        (new_task_size, self.feature_dim - self.out_dim)
+                    ).cuda(),
+                ],
+                dim=0,
+            )
             new_fc_weight = self.new_fc.weight
             new_fc_bias = self.new_fc.bias
-            for i in range(len(self.task_sizes)-2,-1,-1):
-                new_fc_weight = torch.cat([*[self.biases[i](self.backward_prototypes.weight[i].unsqueeze(0),bias=False) for _ in range(self.task_sizes[i])],new_fc_weight],dim=0)
-                new_fc_bias = torch.cat([*[self.biases[i](self.backward_prototypes.bias[i].unsqueeze(0),bias=True) for _ in range(self.task_sizes[i])], new_fc_bias])
-            fc_weight = torch.cat([fc_weight,new_fc_weight],dim=1)
-            fc_bias = torch.cat([self.old_fc.bias,torch.zeros(new_task_size).cuda()])
-            fc_bias=+new_fc_bias
-            logits = features@fc_weight.permute(1,0)+fc_bias
-            out = {"logits":logits}        
+            for i in range(len(self.task_sizes) - 2, -1, -1):
+                new_fc_weight = torch.cat(
+                    [
+                        *[
+                            self.biases[i](
+                                self.backward_prototypes.weight[i].unsqueeze(0),
+                                bias=False,
+                            )
+                            for _ in range(self.task_sizes[i])
+                        ],
+                        new_fc_weight,
+                    ],
+                    dim=0,
+                )
+                new_fc_bias = torch.cat(
+                    [
+                        *[
+                            self.biases[i](
+                                self.backward_prototypes.bias[i].unsqueeze(0), bias=True
+                            )
+                            for _ in range(self.task_sizes[i])
+                        ],
+                        new_fc_bias,
+                    ]
+                )
+            fc_weight = torch.cat([fc_weight, new_fc_weight], dim=1)
+            fc_bias = torch.cat([self.old_fc.bias, torch.zeros(new_task_size).cuda()])
+            fc_bias = +new_fc_bias
+            logits = features @ fc_weight.permute(1, 0) + fc_bias
+            out = {"logits": logits}
 
             new_fc_weight = self.new_fc.weight
             new_fc_bias = self.new_fc.bias
-            for i in range(len(self.task_sizes)-2,-1,-1):
-                new_fc_weight = torch.cat([self.backward_prototypes.weight[i].unsqueeze(0),new_fc_weight],dim=0)
-                new_fc_bias = torch.cat([self.backward_prototypes.bias[i].unsqueeze(0), new_fc_bias])
-            out["train_logits"] = features[:,-self.out_dim:]@new_fc_weight.permute(1,0)+new_fc_bias 
-        out.update({"eval_logits": out["logits"],"energy_logits":self.forward_prototypes(features[:,-self.out_dim:])["logits"]})
+            for i in range(len(self.task_sizes) - 2, -1, -1):
+                new_fc_weight = torch.cat(
+                    [self.backward_prototypes.weight[i].unsqueeze(0), new_fc_weight],
+                    dim=0,
+                )
+                new_fc_bias = torch.cat(
+                    [self.backward_prototypes.bias[i].unsqueeze(0), new_fc_bias]
+                )
+            out["train_logits"] = (
+                features[:, -self.out_dim :] @ new_fc_weight.permute(1, 0) + new_fc_bias
+            )
+        out.update(
+            {
+                "eval_logits": out["logits"],
+                "energy_logits": self.forward_prototypes(features[:, -self.out_dim :])[
+                    "logits"
+                ],
+            }
+        )
         return out
 
     def update_fc_before(self, nb_classes):
@@ -73,31 +118,67 @@ class BEEFISONet(nn.Module):
             self.out_dim = self.convnets[-1].out_dim
         if self.new_fc is not None:
             self.fe_fc = self.generate_fc(self.out_dim, nb_classes)
-            self.backward_prototypes = self.generate_fc(self.out_dim,len(self.task_sizes))
+            self.backward_prototypes = self.generate_fc(
+                self.out_dim, len(self.task_sizes)
+            )
             self.convnets[-1].load_state_dict(self.convnets[0].state_dict())
         self.forward_prototypes = self.generate_fc(self.out_dim, nb_classes)
-        self.new_fc = self.generate_fc(self.out_dim,new_task_size)
+        self.new_fc = self.generate_fc(self.out_dim, new_task_size)
         self.task_sizes.append(new_task_size)
+
     def generate_fc(self, in_dim, out_dim):
         fc = SimpleLinear(in_dim, out_dim)
         return fc
-    
+
     def update_fc_after(self):
         if self.old_fc is not None:
             old_fc = self.generate_fc(self.feature_dim, sum(self.task_sizes))
             new_task_size = self.task_sizes[-1]
-            old_fc.weight.data = torch.cat([self.old_fc.weight.data,torch.zeros((new_task_size,self.feature_dim-self.out_dim)).cuda()],dim=0)             
+            old_fc.weight.data = torch.cat(
+                [
+                    self.old_fc.weight.data,
+                    torch.zeros(
+                        (new_task_size, self.feature_dim - self.out_dim)
+                    ).cuda(),
+                ],
+                dim=0,
+            )
             new_fc_weight = self.new_fc.weight.data
             new_fc_bias = self.new_fc.bias.data
-            for i in range(len(self.task_sizes)-2,-1,-1):
-                new_fc_weight = torch.cat([*[self.biases[i](self.backward_prototypes.weight.data[i].unsqueeze(0),bias=False) for _ in range(self.task_sizes[i])], new_fc_weight],dim=0)
-                new_fc_bias = torch.cat([*[self.biases[i](self.backward_prototypes.bias.data[i].unsqueeze(0),bias=True) for _ in range(self.task_sizes[i])], new_fc_bias])
-            old_fc.weight.data = torch.cat([old_fc.weight.data,new_fc_weight],dim=1)
-            old_fc.bias.data = torch.cat([self.old_fc.bias.data,torch.zeros(new_task_size).cuda()])
-            old_fc.bias.data+=new_fc_bias
+            for i in range(len(self.task_sizes) - 2, -1, -1):
+                new_fc_weight = torch.cat(
+                    [
+                        *[
+                            self.biases[i](
+                                self.backward_prototypes.weight.data[i].unsqueeze(0),
+                                bias=False,
+                            )
+                            for _ in range(self.task_sizes[i])
+                        ],
+                        new_fc_weight,
+                    ],
+                    dim=0,
+                )
+                new_fc_bias = torch.cat(
+                    [
+                        *[
+                            self.biases[i](
+                                self.backward_prototypes.bias.data[i].unsqueeze(0),
+                                bias=True,
+                            )
+                            for _ in range(self.task_sizes[i])
+                        ],
+                        new_fc_bias,
+                    ]
+                )
+            old_fc.weight.data = torch.cat([old_fc.weight.data, new_fc_weight], dim=1)
+            old_fc.bias.data = torch.cat(
+                [self.old_fc.bias.data, torch.zeros(new_task_size).cuda()]
+            )
+            old_fc.bias.data += new_fc_bias
             self.old_fc = old_fc
         else:
-            self.old_fc  = self.new_fc
+            self.old_fc = self.new_fc
 
     def copy(self):
         return copy.deepcopy(self)

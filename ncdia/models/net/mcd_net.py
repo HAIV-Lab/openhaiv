@@ -1,6 +1,7 @@
 import torch.nn as nn
 from ncdia.utils import MODELS, Configs
 
+
 @MODELS.registe
 class MCDNet(nn.Module):
     def __init__(self, backbone, num_classes):

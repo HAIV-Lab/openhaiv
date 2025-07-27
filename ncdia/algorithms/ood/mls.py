@@ -12,9 +12,11 @@ from sklearn.covariance import EmpiricalCovariance
 from scipy.special import logsumexp
 from tqdm import tqdm
 from .metrics import ood_metrics, search_threshold
-from ncdia.trainers.hooks import AlgHook,QuantifyHook
+from ncdia.trainers.hooks import AlgHook, QuantifyHook
 from ncdia.utils import HOOKS
 from ncdia.trainers.hooks import AlgHook
+
+
 @HOOKS.register
 class MLSHook(QuantifyHook):
     def __init__(self) -> None:
@@ -22,7 +24,8 @@ class MLSHook(QuantifyHook):
 
     def after_test(self, trainer) -> None:
         pass
-        
+
+
 @ALGORITHMS.register
 class MLS(BaseAlg):
     """Decoupling MaxLogit.
@@ -33,12 +36,13 @@ class MLS(BaseAlg):
         - test_step(trainer, data, label, *args, **kwargs)
 
     """
+
     def __init__(self, trainer) -> None:
         super().__init__(trainer)
         hook = MLSHook()
         trainer.register_hook(hook)
         self.hyparameters = None
-        
+
     def val_step(self, trainer, data, label, *args, **kwargs):
         """Validation step for Decoupling MaxLogit.
 
@@ -67,7 +71,6 @@ class MLS(BaseAlg):
 
         return {"loss": loss.item(), "acc": acc.item()}
 
-
     def test_step(self, trainer, data, label, *args, **kwargs):
         """Test step for Decoupling MaxLogit.
 
@@ -86,14 +89,28 @@ class MLS(BaseAlg):
         return self.val_step(trainer, data, label, *args, **kwargs)
 
     @staticmethod
-    def eval(id_gt: torch.Tensor ,id_logits: torch.Tensor, id_feat: torch.Tensor, 
-            ood_logits: torch.Tensor, ood_feat: torch.Tensor, 
-            train_logits: torch.Tensor = None, train_feat: torch.Tensor = None,  train_gt: torch.Tensor = None, 
-            tpr_th: float = 0.95, prec_th: float = None, hyparameters: dict = None,
-            id_local_logits = None, id_local_feat = None, ood_local_logits = None,
-            ood_local_feat = None, train_local_logits = None, train_local_feat = None,
-            prototypes = None, s_prototypes = None, hyperparameters = None
-            ):
+    def eval(
+        id_gt: torch.Tensor,
+        id_logits: torch.Tensor,
+        id_feat: torch.Tensor,
+        ood_logits: torch.Tensor,
+        ood_feat: torch.Tensor,
+        train_logits: torch.Tensor = None,
+        train_feat: torch.Tensor = None,
+        train_gt: torch.Tensor = None,
+        tpr_th: float = 0.95,
+        prec_th: float = None,
+        hyparameters: dict = None,
+        id_local_logits=None,
+        id_local_feat=None,
+        ood_local_logits=None,
+        ood_local_feat=None,
+        train_local_logits=None,
+        train_local_feat=None,
+        prototypes=None,
+        s_prototypes=None,
+        hyperparameters=None,
+    ):
         """Decoupled MaxLogit+ (DML+) method for OOD detection.
 
         Decoupling MaxLogit for Out-of-Distribution Detection
@@ -114,7 +131,7 @@ class MLS(BaseAlg):
         Returns:
             fpr (float): False positive rate.
             auroc (float): Area under the ROC curve.
-            aupr_in (float): Area under the precision-recall curve 
+            aupr_in (float): Area under the precision-recall curve
                 for in-distribution samples.
             aupr_out (float): Area under the precision-recall curve
                 for out-of-distribution
@@ -125,11 +142,13 @@ class MLS(BaseAlg):
         conf = np.concatenate([id_conf.data.cpu().numpy(), ood_conf.data.cpu().numpy()])
         ood_gt = -1 * np.ones(ood_logits.shape[0])
         label = np.concatenate([id_gt.cpu(), ood_gt])
-        
+
         if prec_th is None:
             # return conf, label, *ood_metrics(conf, label, tpr_th), None, None, None
             return ood_metrics(conf, label, tpr_th), None
             # return get_measures(id_conf, ood_conf, tpr_th), None
         else:
             # return conf, label, *ood_metrics(conf, label, tpr_th), *search_threshold(conf, label, prec_th)
-            return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
+            return ood_metrics(conf, label, tpr_th), search_threshold(
+                conf, label, prec_th
+            )

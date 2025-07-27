@@ -13,10 +13,11 @@ class BaseDataset(Dataset):
         transform (callable): A function/transform to apply to the image.
 
     """
+
     def __init__(
-            self,
-            loader = default_loader,
-            transform = None,
+        self,
+        loader=default_loader,
+        transform=None,
     ) -> None:
         super().__init__()
         self.images = []
@@ -25,11 +26,11 @@ class BaseDataset(Dataset):
 
         self.loader = loader
         self.transform = transform
-    
+
     @property
     def num_classes(self) -> int:
         """Get number of classes based on the labels
-        
+
         Returns:
             int: number of classes
         """
@@ -57,8 +58,8 @@ class BaseDataset(Dataset):
                 - 'imgpath': image path of the item
         """
         return {
-            'data': self.images[index],
-            'label': self.labels[index],
-            'attribute': self.attributes[index],
-            'imgpath': self.images[index],
+            "data": self.images[index],
+            "label": self.labels[index],
+            "attribute": self.attributes[index],
+            "imgpath": self.images[index],
         }

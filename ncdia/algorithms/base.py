@@ -14,6 +14,7 @@ class BaseAlg(object):
         - test_step(trainer, data, label, *args, **kwargs)
 
     """
+
     def __init__(self, trainer):
         super(BaseAlg, self).__init__()
         self.trainer = trainer
@@ -55,7 +56,7 @@ class BaseAlg(object):
                 - other `key:value` pairs.
         """
         raise NotImplementedError
-    
+
     def test_step(self, trainer, data, label, *args, **kwargs):
         """Test step.
 

@@ -4,10 +4,9 @@ from .hook import Hook
 
 @HOOKS.register
 class SchedulerHook(Hook):
-    """A hook to change learning rate during training.
-    """
+    """A hook to change learning rate during training."""
 
-    priority = 'NORMAL'
+    priority = "NORMAL"
 
     def init_trainer(self, trainer) -> None:
         """Initialize scheduler for trainer.

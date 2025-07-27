@@ -15,25 +15,26 @@ from ncdia.models.net.inc_net import IncrementalNet
 from ncdia.dataloader import MergedDataset
 from ncdia.dataloader import BaseDataset
 
+
 class FACTHook(QuantifyHook):
     def __init__(self) -> None:
         super().__init__()
-    
+
     def after_train(self, trainer) -> None:
         algorithm = trainer.algorithm
         algorithm.replace_fc()
-        filename = 'task_' + str(trainer.session) + '.pth'
+        filename = "task_" + str(trainer.session) + ".pth"
         trainer.save_ckpt(os.path.join(trainer.work_dir, filename))
         if trainer.session == 0:
             self.save_train_static(trainer)
-    
+
     def save_train_static(self, trainer):
         all_class = trainer.train_loader.dataset.num_classes
         features, logits, labels = [], [], []
         tbar = tqdm(trainer.train_loader, dynamic_ncols=True, disable=True)
         for batch in tbar:
-            data = batch['data'].to(trainer.device)
-            label = batch['label'].to(trainer.device)
+            data = batch["data"].to(trainer.device)
+            label = batch["label"].to(trainer.device)
             joint_preds = trainer.model(data)
             joint_preds = joint_preds[:, :all_class]
             feats = trainer.model.get_features(data)
@@ -52,8 +53,15 @@ class FACTHook(QuantifyHook):
             cls_indices = torch.where(labels == cls)
             cls_preds = logits[cls_indices]
             prototype_cls.append(torch.mean(cls_preds, dim=0))
-        filename = 'train_static.pt'
-        torch.save({'train_features': features, 'train_logits': logits, 'prototype': torch.stack(prototype_cls)}, os.path.join(trainer.work_dir, filename))
+        filename = "train_static.pt"
+        torch.save(
+            {
+                "train_features": features,
+                "train_logits": logits,
+                "prototype": torch.stack(prototype_cls),
+            },
+            os.path.join(trainer.work_dir, filename),
+        )
 
 
 @ALGORITHMS.register
@@ -69,22 +77,27 @@ class FACT(BaseAlg):
         self.beta = 0.5
         self.hook = FACTHook()
         trainer.register_hook(self.hook)
-        
+
         session = trainer.session
-        if session>=1:
+        if session >= 1:
             self._network = trainer.model
             self._network.eval()
             self._network.mode = self.args.CIL.new_mode
             trainloader = trainer.train_loader
             tsfm = trainer.val_loader.dataset.transform
             trainloader.dataset.transform = tsfm
-            class_list = list(range(self.args.CIL.base_class+ (session-1)*self.args.CIL.way, self.args.CIL.base_class + self.args.CIL.way * session))
+            class_list = list(
+                range(
+                    self.args.CIL.base_class + (session - 1) * self.args.CIL.way,
+                    self.args.CIL.base_class + self.args.CIL.way * session,
+                )
+            )
             self._network.update_fc(trainloader, class_list, session)
             # print("network_fc: ",self._network.fc.weight.data[12])
 
     def replace_fc(self):
         session = self.trainer.session
-        if not self.args.CIL.not_data_init and session==0:
+        if not self.args.CIL.not_data_init and session == 0:
             train_loader = self.trainer.train_loader
             val_loader = self.trainer.val_loader
             train_loader.dataset.multi_train = False
@@ -95,12 +108,14 @@ class FACT(BaseAlg):
             label_list = []
             with torch.no_grad():
                 for i, batch in enumerate(train_loader):
-                    data = batch['data'].cuda()
-                    label = batch['label'].cuda()
-    
+                    data = batch["data"].cuda()
+                    label = batch["label"].cuda()
+
                     b = data.size()[0]
                     m = data.size()[0] // b
-                    labels = torch.stack([label*m+ii for ii in range(m)], 1).view(-1)
+                    labels = torch.stack([label * m + ii for ii in range(m)], 1).view(
+                        -1
+                    )
                     embedding = self._network.get_features(data)
 
                     embedding_list.append(embedding.cpu())
@@ -109,7 +124,7 @@ class FACT(BaseAlg):
             label_list = torch.cat(label_list, dim=0)
 
             proto_list = []
-            for class_index in range(self.args.CIL.base_class*m):
+            for class_index in range(self.args.CIL.base_class * m):
                 data_index = (label_list == class_index).nonzero()
                 embedding_this = embedding_list[data_index.squeeze(-1)]
                 embedding_this = embedding_this.mean(0)
@@ -117,7 +132,7 @@ class FACT(BaseAlg):
 
             proto_list = torch.stack(proto_list, dim=0)
 
-            self._network.fc.weight.data[:self.args.CIL.base_class*m] = proto_list
+            self._network.fc.weight.data[: self.args.CIL.base_class * m] = proto_list
 
             # return self.net
             # class_list = list(range(self.args.CIL.base_class))
@@ -134,38 +149,37 @@ class FACT(BaseAlg):
             imgpath: imgpath in batch
         """
         session = self.trainer.session
-        if session==0:
+        if session == 0:
             self._network = trainer.model
             self._network.train()
-            
-            masknum = 3
-            mask=np.zeros((self.args.CIL.base_class,self.args.CIL.num_classes))
-            for i in range(self.args.CIL.num_classes-self.args.CIL.base_class):
-                picked_dummy=np.random.choice(self.args.CIL.base_class,masknum,replace=False)
-                mask[:,i+self.args.CIL.base_class][picked_dummy]=1
-            mask=torch.tensor(mask).cuda()
 
+            masknum = 3
+            mask = np.zeros((self.args.CIL.base_class, self.args.CIL.num_classes))
+            for i in range(self.args.CIL.num_classes - self.args.CIL.base_class):
+                picked_dummy = np.random.choice(
+                    self.args.CIL.base_class, masknum, replace=False
+                )
+                mask[:, i + self.args.CIL.base_class][picked_dummy] = 1
+            mask = torch.tensor(mask).cuda()
 
             data = data.cuda()
             labels = label.cuda()
 
-
             logits = self._network(data)
-            logits_ = logits[:, :self.args.CIL.base_class]
+            logits_ = logits[:, : self.args.CIL.base_class]
             # _, pred = torch.max(logits_, dim=1)
             # acc = self._accuracy(labels, pred)
             acc = accuracy(logits_, labels)[0]
             loss = self.loss(logits_, labels)
             loss.backward()
-            
+
             ret = {}
-            ret['loss'] = loss.item()
-            ret['acc'] = acc.item()
+            ret["loss"] = loss.item()
+            ret["acc"] = acc.item()
             # print(ret)
         else:
             ret = {}
         return ret
-
 
     def val_step(self, trainer, data, label, *args, **kwargs):
         """Validation step for standard supervised learning.
@@ -187,7 +201,7 @@ class FACT(BaseAlg):
                 - "loss": Loss value.
                 - "acc": Accuracy value.
         """
-        
+
         """
         base train for fact method
         Args:
@@ -197,32 +211,34 @@ class FACT(BaseAlg):
             imgpath: imgpath in batch
         """
         session = self.trainer.session
-        if session ==0:
+        if session == 0:
             self._network = trainer.model
             self._network.eval()
-            
+
             masknum = 3
-            mask=np.zeros((self.args.CIL.base_class,self.args.CIL.num_classes))
-            for i in range(self.args.CIL.num_classes-self.args.CIL.base_class):
-                picked_dummy=np.random.choice(self.args.CIL.base_class,masknum,replace=False)
-                mask[:,i+self.args.CIL.base_class][picked_dummy]=1
-            mask=torch.tensor(mask).cuda()
+            mask = np.zeros((self.args.CIL.base_class, self.args.CIL.num_classes))
+            for i in range(self.args.CIL.num_classes - self.args.CIL.base_class):
+                picked_dummy = np.random.choice(
+                    self.args.CIL.base_class, masknum, replace=False
+                )
+                mask[:, i + self.args.CIL.base_class][picked_dummy] = 1
+            mask = torch.tensor(mask).cuda()
 
             with torch.no_grad():
                 data = data.cuda()
                 labels = label.cuda()
 
                 logits = self._network(data)
-                logits_ = logits[:, :self.args.CIL.base_class]
+                logits_ = logits[:, : self.args.CIL.base_class]
                 # _, pred = torch.max(logits_, dim=1)
                 # acc = self._accuracy(labels, pred)
                 acc = accuracy(logits_, labels)[0]
                 loss = self.loss(logits_, labels)
-                
+
                 ret = {}
-                ret['loss'] = loss.item()
-                ret['acc'] = acc.item()
-        else: 
+                ret["loss"] = loss.item()
+                ret["acc"] = acc.item()
+        else:
             test_classes = self.args.CIL.base_class + session * self.args.CIL.way
             # self._network = trainer.model
             # self._network.eval()
@@ -232,14 +248,14 @@ class FACT(BaseAlg):
                 labels = label.cuda()
 
                 b = data.size()[0]
-                # 20240711 
+                # 20240711
                 if self.transform is not None:
                     data = self.transform(data)
                 m = data.size()[0] // b
                 joint_preds = self._network(data)
                 feat = self._network.get_features(data)
-                joint_preds = joint_preds[:, :test_classes*m]
-                
+                joint_preds = joint_preds[:, : test_classes * m]
+
                 agg_preds = 0
                 agg_feat = feat.view(-1, m, feat.size(1)).mean(dim=1)
                 for j in range(m):
@@ -250,10 +266,10 @@ class FACT(BaseAlg):
                 # logits_ = logits[:, :self.args.CIL.base_class+self.args.CIL.base_class*session]
                 # acc = accuracy(logits_, labels)[0]
                 loss = self.loss(agg_preds, labels)
-                
+
                 ret = {}
-                ret['loss'] = loss.item()
-                ret['acc'] = acc.item()
+                ret["loss"] = loss.item()
+                ret["acc"] = acc.item()
         return ret
 
     def test_step(self, trainer, data, label, *args, **kwargs):
@@ -275,7 +291,7 @@ class FACT(BaseAlg):
 
     def _accuracy(self, labels, preds):
         """
-        compute accuracy 
+        compute accuracy
         Args:
             labels: true label
             preds: predict label
@@ -290,5 +306,3 @@ class FACT(BaseAlg):
 
     def get_net(self):
         return self._network
-
-

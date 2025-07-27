@@ -20,19 +20,23 @@ class Logger(object):
         >>> log_name = 'train.log'
         >>> sys.stdout = Logger(osp.join(save_dir, log_name))
     """
+
     def __init__(self, fpath: str | None = None):
         if fpath is not None:
             # 使用时间戳生成唯一的日志文件名
             timestamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())
-            fpath = osp.join(osp.dirname(fpath), f"{osp.basename(fpath).split('.')[0]}_{timestamp}.log") 
-        
+            fpath = osp.join(
+                osp.dirname(fpath),
+                f"{osp.basename(fpath).split('.')[0]}_{timestamp}.log",
+            )
+
         self.fpath = fpath
         self.fdir = osp.dirname(fpath) if fpath is not None else None
 
         self.file = None
         if fpath is not None:
             mkdir_if_missing(self.fdir)
-            self.file = open(fpath, 'a')
+            self.file = open(fpath, "a")
 
     def __del__(self):
         self.close()
@@ -43,7 +47,7 @@ class Logger(object):
     def __exit__(self, *args):
         self.close()
 
-    def write(self, msg: str, timestamp: bool = False, end: str = '\n'):
+    def write(self, msg: str, timestamp: bool = False, end: str = "\n"):
         """Write message to console and file
 
         Args:
@@ -55,20 +59,18 @@ class Logger(object):
             >>> logger.write('Hello, world!')
         """
         msg = str(msg)
-        
+
         if timestamp:
-            time_stamp = time.strftime(
-                "%Y-%m-%d %H:%M:%S", 
-                time.localtime())
-            msg = f'[{time_stamp}] {msg}'
+            time_stamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+            msg = f"[{time_stamp}] {msg}"
 
         msg += end
-        print(msg, end='')
+        print(msg, end="")
         if self.file is not None:
             self.file.write(msg)
         self.flush()
 
-    def info(self, msg: str, end: str = '\n'):
+    def info(self, msg: str, end: str = "\n"):
         """Write message to console and file with timestamp
 
         Args:
@@ -86,9 +88,9 @@ class Logger(object):
         Args:
             cfg (dict): arguments to be wrote
         """
-        fpath = osp.join(self.fdir, 'cfg.yaml')
+        fpath = osp.join(self.fdir, "cfg.yaml")
 
-        with open(fpath, 'w', encoding='utf-8') as f:
+        with open(fpath, "w", encoding="utf-8") as f:
             yaml.dump(cfg, f, allow_unicode=True)
 
     def flush(self):

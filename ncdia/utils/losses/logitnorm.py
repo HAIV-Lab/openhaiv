@@ -3,12 +3,13 @@ import torch
 import torch.nn.functional as F
 from ncdia.utils import LOSSES
 
+
 @LOSSES.register
 class LogitNormLoss(nn.Module):
-    ''' LogitNormLoss
+    """LogitNormLoss
     Args:
         t (float): The temperature. Default: 1.0.
-    '''
+    """
 
     def __init__(self, t=1.0):
         super(LogitNormLoss, self).__init__()

@@ -4,8 +4,9 @@ from typing import Dict, Optional, Sequence, Union, Any
 DATA_BATCH = Optional[Union[dict, tuple, list]]
 
 
-def is_method_overridden(method: str, base_class: type,
-                         derived_class: Union[type, Any]) -> bool:
+def is_method_overridden(
+    method: str, base_class: type, derived_class: Union[type, Any]
+) -> bool:
     """Check if a method of base class is overridden in derived class.
 
     Args:
@@ -13,8 +14,9 @@ def is_method_overridden(method: str, base_class: type,
         base_class (type): the class of the base class.
         derived_class (type | Any): the class or instance of the derived class.
     """
-    assert isinstance(base_class, type), \
-        "base_class doesn't accept instance, Please pass class instead."
+    assert isinstance(
+        base_class, type
+    ), "base_class doesn't accept instance, Please pass class instead."
 
     if not isinstance(derived_class, type):
         derived_class = derived_class.__class__
@@ -31,15 +33,33 @@ class Hook(object):
     All hooks should inherit from this class.
     """
 
-    priority = 'NORMAL'
-    stages = ('init_trainer', 'before_run', 'after_load_checkpoint', 'before_train',
-              'before_train_epoch', 'before_train_iter', 'after_train_iter',
-              'after_train_epoch', 'before_val', 'before_val_epoch',
-              'before_val_iter', 'after_val_iter', 'after_val_epoch',
-              'after_val', 'before_save_checkpoint', 'after_train',
-              'before_test', 'before_test_epoch', 'before_test_iter',
-              'after_test_iter', 'after_test_epoch', 'after_test', 'after_run')
-    
+    priority = "NORMAL"
+    stages = (
+        "init_trainer",
+        "before_run",
+        "after_load_checkpoint",
+        "before_train",
+        "before_train_epoch",
+        "before_train_iter",
+        "after_train_iter",
+        "after_train_epoch",
+        "before_val",
+        "before_val_epoch",
+        "before_val_iter",
+        "after_val_iter",
+        "after_val_epoch",
+        "after_val",
+        "before_save_checkpoint",
+        "after_train",
+        "before_test",
+        "before_test_epoch",
+        "before_test_iter",
+        "after_test_iter",
+        "after_test_epoch",
+        "after_test",
+        "after_run",
+    )
+
     def __init__(self):
         super(Hook, self).__init__()
 
@@ -145,7 +165,7 @@ class Hook(object):
         Args:
             trainer (BaseTrainer): The trainer of the training process.
         """
-        self._before_epoch(trainer, mode='train')
+        self._before_epoch(trainer, mode="train")
 
     def before_val_epoch(self, trainer) -> None:
         """All subclasses should override this method, if they need any
@@ -154,7 +174,7 @@ class Hook(object):
         Args:
             trainer (BaseTrainer): The trainer of the validation process.
         """
-        self._before_epoch(trainer, mode='val')
+        self._before_epoch(trainer, mode="val")
 
     def before_test_epoch(self, trainer) -> None:
         """All subclasses should override this method, if they need any
@@ -163,7 +183,7 @@ class Hook(object):
         Args:
             trainer (BaseTrainer): The trainer of the testing process.
         """
-        self._before_epoch(trainer, mode='test')
+        self._before_epoch(trainer, mode="test")
 
     def after_train_epoch(self, trainer) -> None:
         """All subclasses should override this method, if they need any
@@ -172,11 +192,11 @@ class Hook(object):
         Args:
             trainer (BaseTrainer): The trainer of the training process.
         """
-        self._after_epoch(trainer, mode='train')
+        self._after_epoch(trainer, mode="train")
 
-    def after_val_epoch(self,
-                        trainer,
-                        metrics: Optional[Dict[str, float]] = None) -> None:
+    def after_val_epoch(
+        self, trainer, metrics: Optional[Dict[str, float]] = None
+    ) -> None:
         """All subclasses should override this method, if they need any
         operations after each validation epoch.
 
@@ -186,11 +206,11 @@ class Hook(object):
                 metrics on validation dataset. The keys are the names of the
                 metrics, and the values are corresponding results.
         """
-        self._after_epoch(trainer, mode='val')
+        self._after_epoch(trainer, mode="val")
 
-    def after_test_epoch(self,
-                         trainer,
-                         metrics: Optional[Dict[str, float]] = None) -> None:
+    def after_test_epoch(
+        self, trainer, metrics: Optional[Dict[str, float]] = None
+    ) -> None:
         """All subclasses should override this method, if they need any
         operations after each test epoch.
 
@@ -200,12 +220,11 @@ class Hook(object):
                 metrics on test dataset. The keys are the names of the
                 metrics, and the values are corresponding results.
         """
-        self._after_epoch(trainer, mode='test')
+        self._after_epoch(trainer, mode="test")
 
-    def before_train_iter(self,
-                          trainer,
-                          batch_idx: int,
-                          data_batch: DATA_BATCH = None) -> None:
+    def before_train_iter(
+        self, trainer, batch_idx: int, data_batch: DATA_BATCH = None
+    ) -> None:
         """All subclasses should override this method, if they need any
         operations before each training iteration.
 
@@ -215,12 +234,12 @@ class Hook(object):
             data_batch (dict or tuple or list, optional): Data from dataloader.
         """
         self._before_iter(
-            trainer, batch_idx=batch_idx, data_batch=data_batch, mode='train')
+            trainer, batch_idx=batch_idx, data_batch=data_batch, mode="train"
+        )
 
-    def before_val_iter(self,
-                        trainer,
-                        batch_idx: int,
-                        data_batch: DATA_BATCH = None) -> None:
+    def before_val_iter(
+        self, trainer, batch_idx: int, data_batch: DATA_BATCH = None
+    ) -> None:
         """All subclasses should override this method, if they need any
         operations before each validation iteration.
 
@@ -231,12 +250,12 @@ class Hook(object):
                 Defaults to None.
         """
         self._before_iter(
-            trainer, batch_idx=batch_idx, data_batch=data_batch, mode='val')
+            trainer, batch_idx=batch_idx, data_batch=data_batch, mode="val"
+        )
 
-    def before_test_iter(self,
-                         trainer,
-                         batch_idx: int,
-                         data_batch: DATA_BATCH = None) -> None:
+    def before_test_iter(
+        self, trainer, batch_idx: int, data_batch: DATA_BATCH = None
+    ) -> None:
         """All subclasses should override this method, if they need any
         operations before each test iteration.
 
@@ -247,13 +266,16 @@ class Hook(object):
                 Defaults to None.
         """
         self._before_iter(
-            trainer, batch_idx=batch_idx, data_batch=data_batch, mode='test')
+            trainer, batch_idx=batch_idx, data_batch=data_batch, mode="test"
+        )
 
-    def after_train_iter(self,
-                         trainer,
-                         batch_idx: int,
-                         data_batch: DATA_BATCH = None,
-                         outputs: Optional[dict] = None) -> None:
+    def after_train_iter(
+        self,
+        trainer,
+        batch_idx: int,
+        data_batch: DATA_BATCH = None,
+        outputs: Optional[dict] = None,
+    ) -> None:
         """All subclasses should override this method, if they need any
         operations after each training iteration.
 
@@ -268,13 +290,16 @@ class Hook(object):
             batch_idx=batch_idx,
             data_batch=data_batch,
             outputs=outputs,
-            mode='train')
+            mode="train",
+        )
 
-    def after_val_iter(self,
-                       trainer,
-                       batch_idx: int,
-                       data_batch: DATA_BATCH = None,
-                       outputs: Optional[Sequence] = None) -> None:
+    def after_val_iter(
+        self,
+        trainer,
+        batch_idx: int,
+        data_batch: DATA_BATCH = None,
+        outputs: Optional[Sequence] = None,
+    ) -> None:
         """All subclasses should override this method, if they need any
         operations after each validation iteration.
 
@@ -289,13 +314,16 @@ class Hook(object):
             batch_idx=batch_idx,
             data_batch=data_batch,
             outputs=outputs,
-            mode='val')
+            mode="val",
+        )
 
-    def after_test_iter(self,
-                        trainer,
-                        batch_idx: int,
-                        data_batch: DATA_BATCH = None,
-                        outputs: Optional[Sequence] = None) -> None:
+    def after_test_iter(
+        self,
+        trainer,
+        batch_idx: int,
+        data_batch: DATA_BATCH = None,
+        outputs: Optional[Sequence] = None,
+    ) -> None:
         """All subclasses should override this method, if they need any
         operations after each test iteration.
 
@@ -310,9 +338,10 @@ class Hook(object):
             batch_idx=batch_idx,
             data_batch=data_batch,
             outputs=outputs,
-            mode='test')
+            mode="test",
+        )
 
-    def _before_epoch(self, trainer, mode: str = 'train') -> None:
+    def _before_epoch(self, trainer, mode: str = "train") -> None:
         """All subclasses should override this method, if they need any
         operations before each epoch.
 
@@ -322,7 +351,7 @@ class Hook(object):
             mode (str): Current mode of trainer. Defaults to 'train'.
         """
 
-    def _after_epoch(self, trainer, mode: str = 'train') -> None:
+    def _after_epoch(self, trainer, mode: str = "train") -> None:
         """All subclasses should override this method, if they need any
         operations after each epoch.
 
@@ -332,11 +361,13 @@ class Hook(object):
             mode (str): Current mode of trainer. Defaults to 'train'.
         """
 
-    def _before_iter(self,
-                     trainer,
-                     batch_idx: int,
-                     data_batch: DATA_BATCH = None,
-                     mode: str = 'train') -> None:
+    def _before_iter(
+        self,
+        trainer,
+        batch_idx: int,
+        data_batch: DATA_BATCH = None,
+        mode: str = "train",
+    ) -> None:
         """All subclasses should override this method, if they need any
         operations before each iter.
 
@@ -348,12 +379,14 @@ class Hook(object):
             mode (str): Current mode of trainer. Defaults to 'train'.
         """
 
-    def _after_iter(self,
-                    trainer,
-                    batch_idx: int,
-                    data_batch: DATA_BATCH = None,
-                    outputs: Optional[Union[Sequence, dict]] = None,
-                    mode: str = 'train') -> None:
+    def _after_iter(
+        self,
+        trainer,
+        batch_idx: int,
+        data_batch: DATA_BATCH = None,
+        outputs: Optional[Union[Sequence, dict]] = None,
+        mode: str = "train",
+    ) -> None:
         """All subclasses should override this method, if they need any
         operations after each epoch.
 
@@ -463,14 +496,22 @@ class Hook(object):
         # some methods will be triggered in multi stages
         # use this dict to map method to stages.
         method_stages_map = {
-            '_before_epoch':
-            ['before_train_epoch', 'before_val_epoch', 'before_test_epoch'],
-            '_after_epoch':
-            ['after_train_epoch', 'after_val_epoch', 'after_test_epoch'],
-            '_before_iter':
-            ['before_train_iter', 'before_val_iter', 'before_test_iter'],
-            '_after_iter':
-            ['after_train_iter', 'after_val_iter', 'after_test_iter'],
+            "_before_epoch": [
+                "before_train_epoch",
+                "before_val_epoch",
+                "before_test_epoch",
+            ],
+            "_after_epoch": [
+                "after_train_epoch",
+                "after_val_epoch",
+                "after_test_epoch",
+            ],
+            "_before_iter": [
+                "before_train_iter",
+                "before_val_iter",
+                "before_test_iter",
+            ],
+            "_after_iter": ["after_train_iter", "after_val_iter", "after_test_iter"],
         }
 
         for method, map_stages in method_stages_map.items():

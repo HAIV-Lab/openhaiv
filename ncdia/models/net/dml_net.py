@@ -9,6 +9,7 @@ from torch.nn.parameter import Parameter
 
 from ncdia.utils import MODELS, Configs
 
+
 @MODELS.register
 class NormedLinear(nn.Module):
     def __init__(self, in_features, out_features):
@@ -17,10 +18,10 @@ class NormedLinear(nn.Module):
         self.weight.data.uniform_(-1, 1).renorm_(2, 1, 1e-5).mul_(1e5)
 
     def forward(self, x):
-        #out = F.normalize(x, dim=1).mm(F.normalize(self.weight, dim=0))
+        # out = F.normalize(x, dim=1).mm(F.normalize(self.weight, dim=0))
         out = x.mm(F.normalize(self.weight, dim=0))
         return out
-    
+
 
 @MODELS.register
 class DMLNet(nn.Module):
@@ -28,21 +29,22 @@ class DMLNet(nn.Module):
 
     Args:
         network (Configs): Network configuration.
-    
+
     """
+
     def __init__(
         self,
         network: Configs,
         checkpoint_C: str = None,
         checkpoint_N: str = None,
-        loss: str = 'focal', # 'focal' or 'center' or 'dml'
+        loss: str = "focal",  # 'focal' or 'center' or 'dml'
         **kwargs
     ) -> None:
         super().__init__()
         self.args = network.cfg
         self.network_C = MODELS.build(copy.deepcopy(self.args))
         self.network_N = MODELS.build(copy.deepcopy(self.args))
-        
+
         # replace fc layer
         in_features = self.network_C.fc.in_features
         out_features = self.network_C.fc.out_features
@@ -50,27 +52,32 @@ class DMLNet(nn.Module):
         in_features = self.network_N.fc.in_features
         out_features = self.network_N.fc.out_features
         self.network_N.fc = NormedLinear(in_features, out_features)
-        
+
         # Load the state_dict
 
         if checkpoint_C:
             state_dict_C = torch.load(checkpoint_C)
-            if 'state_dict' in state_dict_C:
-                state_dict_C = state_dict_C['state_dict']
+            if "state_dict" in state_dict_C:
+                state_dict_C = state_dict_C["state_dict"]
             # 过滤出 network_C 相关的权重
-            network_C_state_dict = {k.replace('network_C.', ''): v for k, v in state_dict_C.items() if k.startswith('network_C.')}
+            network_C_state_dict = {
+                k.replace("network_C.", ""): v
+                for k, v in state_dict_C.items()
+                if k.startswith("network_C.")
+            }
             self.network_C.load_state_dict(network_C_state_dict)
-
 
         if checkpoint_N:
             state_dict_N = torch.load(checkpoint_N)
-            if 'state_dict' in state_dict_N:
-                state_dict_N = state_dict_N['state_dict']
+            if "state_dict" in state_dict_N:
+                state_dict_N = state_dict_N["state_dict"]
             # 过滤出 network_N 相关的权重
-            network_N_state_dict = {k.replace('network_N.', ''): v for k, v in state_dict_N.items() if k.startswith('network_N.')}
+            network_N_state_dict = {
+                k.replace("network_N.", ""): v
+                for k, v in state_dict_N.items()
+                if k.startswith("network_N.")
+            }
             self.network_N.load_state_dict(network_N_state_dict)
-
-
 
         self.fc = self.network_C.fc
         self.out_features = None
@@ -92,28 +99,30 @@ class DMLNet(nn.Module):
         model.out_features = x[:]
         x = model.fc(x)
         return x
-    
-    def parameters(self, recurse: bool = True):
-        if self.loss == 'focal':
-            return self.network_C.parameters(recurse=recurse)
-        elif self.loss == 'center':
-            return self.network_N.parameters(recurse=recurse)
-        return itertools.chain(self.network_C.parameters(recurse=recurse), self.network_N.parameters(recurse=recurse))
 
+    def parameters(self, recurse: bool = True):
+        if self.loss == "focal":
+            return self.network_C.parameters(recurse=recurse)
+        elif self.loss == "center":
+            return self.network_N.parameters(recurse=recurse)
+        return itertools.chain(
+            self.network_C.parameters(recurse=recurse),
+            self.network_N.parameters(recurse=recurse),
+        )
 
     def forward(self, x):
-        if self.loss == 'focal':
+        if self.loss == "focal":
             return self.feature_norm_forward(self.network_C, x)
-        elif self.loss == 'center':
+        elif self.loss == "center":
             return self.network_N(x)
-        
+
         _ = self.network_N(x)
         self.out_features = self.network_N.out_features
         return self.network_C(x)
-    
+
     def get_features(self):
-        if self.loss == 'focal':
+        if self.loss == "focal":
             return self.network_C.get_features()
-        elif self.loss == 'center':
+        elif self.loss == "center":
             return self.network_N.get_features()
         return self.out_features

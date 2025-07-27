@@ -26,18 +26,24 @@ class DPM(BaseAlg):
 
     @staticmethod
     def scale_features(kl_id, kl_ood, in_fea, out_fea):
-            # 将 numpy.ndarray 转换为 torch.Tensor
-            kl_id = torch.tensor(kl_id, dtype=in_fea.dtype, device=in_fea.device)
-            kl_ood = torch.tensor(kl_ood, dtype=out_fea.dtype, device=out_fea.device)
-            
-            x_max, x_min = max(kl_id.max(), kl_ood.max()), min(kl_id.min(), kl_ood.min())
-            target_max, target_min = max(in_fea.max(), out_fea.max()), min(in_fea.min(), out_fea.min())
-            kl_id_norm = (kl_id - x_min) / (x_max - x_min) * (target_max - target_min) + target_min
-            kl_ood_norm = (kl_ood - x_min) / (x_max - x_min) * (target_max - target_min) + target_min
-            return kl_id_norm, kl_ood_norm
+        # 将 numpy.ndarray 转换为 torch.Tensor
+        kl_id = torch.tensor(kl_id, dtype=in_fea.dtype, device=in_fea.device)
+        kl_ood = torch.tensor(kl_ood, dtype=out_fea.dtype, device=out_fea.device)
+
+        x_max, x_min = max(kl_id.max(), kl_ood.max()), min(kl_id.min(), kl_ood.min())
+        target_max, target_min = max(in_fea.max(), out_fea.max()), min(
+            in_fea.min(), out_fea.min()
+        )
+        kl_id_norm = (kl_id - x_min) / (x_max - x_min) * (
+            target_max - target_min
+        ) + target_min
+        kl_ood_norm = (kl_ood - x_min) / (x_max - x_min) * (
+            target_max - target_min
+        ) + target_min
+        return kl_id_norm, kl_ood_norm
 
     def val_step(self, trainer, data, label, *args, **kwargs):
-        
+
         model = trainer.model
         criterion = trainer.criterion
         device = trainer.device
@@ -51,33 +57,31 @@ class DPM(BaseAlg):
 
         return {"loss": loss.item(), "acc": acc.item()}
 
-
     def test_step(self, trainer, data, label, *args, **kwargs):
-        
-        return self.val_step(trainer, data, label, *args, **kwargs)
 
+        return self.val_step(trainer, data, label, *args, **kwargs)
 
     @staticmethod
     def eval(
         id_gt: torch.Tensor,
-        id_logits: torch.Tensor, 
+        id_logits: torch.Tensor,
         id_feat: torch.Tensor,
-        ood_logits: torch.Tensor, 
-        ood_feat: torch.Tensor, 
-        id_local_logits: torch.Tensor=None, 
-        id_local_feat: torch.Tensor=None, 
-        ood_local_logits: torch.Tensor=None, 
-        ood_local_feat: torch.Tensor=None,
-        train_gt: torch.Tensor = None, 
-        train_logits: torch.Tensor = None, 
-        train_feat: torch.Tensor = None, 
-        train_local_logits: torch.Tensor = None, 
+        ood_logits: torch.Tensor,
+        ood_feat: torch.Tensor,
+        id_local_logits: torch.Tensor = None,
+        id_local_feat: torch.Tensor = None,
+        ood_local_logits: torch.Tensor = None,
+        ood_local_feat: torch.Tensor = None,
+        train_gt: torch.Tensor = None,
+        train_logits: torch.Tensor = None,
+        train_feat: torch.Tensor = None,
+        train_local_logits: torch.Tensor = None,
         train_local_feat: torch.Tensor = None,
-        prototypes: torch.Tensor = None, 
+        prototypes: torch.Tensor = None,
         s_prototypes: torch.Tensor = None,
-        tpr_th: float = 0.95, 
-        prec_th: float = None, 
-        hyperparameters = None
+        tpr_th: float = 0.95,
+        prec_th: float = None,
+        hyperparameters=None,
     ):
         """
         Args:
@@ -108,14 +112,12 @@ class DPM(BaseAlg):
             aupr_in (float): Area under the precision-recall curve for in-distribution samples.
             aupr_out (float): Area under the precision-recall curve for out-of-distribution
         """
-        T = hyperparameters['T']
+        T = hyperparameters["T"]
         print("DPM inference..")
         neg_ood_gt = -1 * np.ones(ood_logits.shape[0])
 
-        id_conf, _ = torch.max(
-            torch.softmax(id_logits / T, dim=1), dim=1)
-        ood_conf, _ = torch.max(
-            torch.softmax(ood_logits / T, dim=1), dim=1)
+        id_conf, _ = torch.max(torch.softmax(id_logits / T, dim=1), dim=1)
+        ood_conf, _ = torch.max(torch.softmax(ood_logits / T, dim=1), dim=1)
 
         s_id_logits = torch.softmax(id_logits / 5, dim=1)
         s_ood_logits = torch.softmax(ood_logits / 5, dim=1)
@@ -125,27 +127,29 @@ class DPM(BaseAlg):
         print("Calculating KL divergence...")
         id_kl = []
         for i in tqdm(range(0, len(id_logits), batch_size), desc="ID KL"):
-            batch_logits = s_id_logits[i:i+batch_size]
+            batch_logits = s_id_logits[i : i + batch_size]
             kl_values = pairwise_distances_argmin_min(
-                batch_logits, s_prototypes, metric=DPM.kl)[1]
+                batch_logits, s_prototypes, metric=DPM.kl
+            )[1]
             id_kl.append(kl_values)
         id_kl = np.concatenate(id_kl)
 
         ood_kl = []
         for i in tqdm(range(0, len(ood_logits), batch_size), desc="OOD KL"):
-            batch_logits = s_ood_logits[i:i+batch_size]
+            batch_logits = s_ood_logits[i : i + batch_size]
             kl_values = pairwise_distances_argmin_min(
-                batch_logits, s_prototypes, metric=DPM.kl)[1]
+                batch_logits, s_prototypes, metric=DPM.kl
+            )[1]
             ood_kl.append(kl_values)
         ood_kl = np.concatenate(ood_kl)
-        
+
         id_kl, ood_kl = DPM.scale_features(id_kl, ood_kl, id_conf, ood_conf)
 
-        best_score = float('-inf')
+        best_score = float("-inf")
         best_result = None
         label = np.concatenate([id_gt.cpu(), neg_ood_gt])
         for beta in tqdm(range(0, 101), desc="Searching best beta"):
-            beta = round(beta/10, 1)
+            beta = round(beta / 10, 1)
             id_conf = id_conf - beta * id_kl
             ood_conf = ood_conf - beta * ood_kl
             conf = np.concatenate([id_conf.cpu(), ood_conf.cpu()])
@@ -154,7 +158,7 @@ class DPM(BaseAlg):
             if score > best_score:
                 best_score = score
                 best_result = result
-        
+
         if prec_th is None:
             # return conf, label, *ood_metrics(conf, label, tpr_th), None, None, None
             return best_result, None
@@ -168,4 +172,3 @@ class DPM(BaseAlg):
         # else:
         #     # return conf, label, *ood_metrics(conf, label, tpr_th), *search_threshold(conf, label, prec_th)
         #     return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
-

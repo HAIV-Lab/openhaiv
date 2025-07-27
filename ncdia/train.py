@@ -6,12 +6,18 @@ from ncdia.utils import TRAINERS
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--config-files", "--cfg", type=str, nargs="+", default=[], help="path to config file")
+    "--config-files",
+    "--cfg",
+    type=str,
+    nargs="+",
+    default=[],
+    help="path to config file",
+)
 parser.add_argument(
     "--opts",
     default=[],
     nargs=argparse.REMAINDER,
-    help="modify config options using the command line"
+    help="modify config options using the command line",
 )
 args = parser.parse_args()
 
@@ -30,5 +36,5 @@ def main(args):
     trainer.train()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(args)

@@ -18,6 +18,7 @@ class BMF(BaseDataset):
         transform (list | str): transform to apply on the dataset.
             If str, it should be one of 'train', 'test' for predefined transforms.
     """
+
     # train_transform = transforms.Compose([
     #     transforms.Resize(256, interpolation=transforms.InterpolationMode.BILINEAR),
     #     transforms.RandomResizedCrop(224),
@@ -32,50 +33,64 @@ class BMF(BaseDataset):
     #     transforms.ToTensor(),
     #     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     # ])
-    train_transform = transforms.Compose([
-        transforms.Resize(224, interpolation=transforms.InterpolationMode.BICUBIC),
-        # transforms.RandomResizedCrop(224),
-        # transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.48145466, 0.4578275, 0.40821073], std=[0.26862954, 0.26130258, 0.27577711])
-    ])
+    train_transform = transforms.Compose(
+        [
+            transforms.Resize(224, interpolation=transforms.InterpolationMode.BICUBIC),
+            # transforms.RandomResizedCrop(224),
+            # transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize(
+                mean=[0.48145466, 0.4578275, 0.40821073],
+                std=[0.26862954, 0.26130258, 0.27577711],
+            ),
+        ]
+    )
 
-    test_transform = transforms.Compose([
-        transforms.Resize(224, interpolation=transforms.InterpolationMode.BICUBIC),
-        # transforms.CenterCrop(224),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.48145466, 0.4578275, 0.40821073], std=[0.26862954, 0.26130258, 0.27577711]),
-    ])
+    test_transform = transforms.Compose(
+        [
+            transforms.Resize(224, interpolation=transforms.InterpolationMode.BICUBIC),
+            # transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize(
+                mean=[0.48145466, 0.4578275, 0.40821073],
+                std=[0.26862954, 0.26130258, 0.27577711],
+            ),
+        ]
+    )
 
     def __init__(
-            self,
-            root: str,
-            split: str = 'train',
-            subset_labels: list = None,
-            subset_file: str = None,
-            transform: list | str = None,
-            **kwargs,
+        self,
+        root: str,
+        split: str = "train",
+        subset_labels: list = None,
+        subset_file: str = None,
+        transform: list | str = None,
+        **kwargs,
     ) -> None:
         super().__init__()
         self.root = root
         self.split = split
 
-        if split == 'train':
-            self.images, self.labels = self._load_data(os.path.join(root, 'train'))
-        elif split == 'test':
-            self.images, self.labels = self._load_data(os.path.join(root, 'test'))
+        if split == "train":
+            self.images, self.labels = self._load_data(os.path.join(root, "train"))
+        elif split == "test":
+            self.images, self.labels = self._load_data(os.path.join(root, "test"))
         else:
             raise ValueError(f"Unknown split: {split}")
 
         if subset_labels is not None:
-            self.images, self.labels = self._select_from_label(self.images, self.labels, subset_labels)
+            self.images, self.labels = self._select_from_label(
+                self.images, self.labels, subset_labels
+            )
         if subset_file is not None:
-            self.images, self.labels = self._select_from_file(self.images, self.labels, subset_file)
+            self.images, self.labels = self._select_from_file(
+                self.images, self.labels, subset_file
+            )
 
         if isinstance(transform, str):
-            if transform == 'train':
+            if transform == "train":
                 self.transform = self.train_transform
-            elif transform == 'test':
+            elif transform == "test":
                 self.transform = self.test_transform
             else:
                 raise ValueError(f"Unknown transform: {transform}")
@@ -112,10 +127,10 @@ class BMF(BaseDataset):
             img = self.transform(img)
 
         return {
-            'data': img,
-            'label': label,
-            'attribute': [],
-            'imgpath': imgpath,
+            "data": img,
+            "label": label,
+            "attribute": [],
+            "imgpath": imgpath,
         }
 
     def _select_from_label(self, images: list, labels: list, subset_labels: list | int):
@@ -152,7 +167,7 @@ class BMF(BaseDataset):
             list: list of labels
         """
         selected_images, selected_labels = [], []
-        with open(file, 'r') as f:
+        with open(file, "r") as f:
             for line in f:
                 img = os.path.abspath(line.strip())
                 if img in images:

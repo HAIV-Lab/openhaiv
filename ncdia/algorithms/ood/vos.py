@@ -9,6 +9,8 @@ import numpy as np
 from ncdia.trainers.hooks import QuantifyHook
 from ncdia.utils import HOOKS
 from .metrics import ood_metrics, search_threshold
+
+
 @HOOKS.register
 class VOSHook(QuantifyHook):
     def __init__(self) -> None:
@@ -16,7 +18,8 @@ class VOSHook(QuantifyHook):
 
     def after_test(self, trainer) -> None:
         pass
-        
+
+
 @ALGORITHMS.register
 class VOS(BaseAlg):
     """ODIN
@@ -38,37 +41,40 @@ class VOS(BaseAlg):
     Returns:
         fpr (float): False positive rate.
         auroc (float): Area under the ROC curve.
-        aupr_in (float): Area under the precision-recall curve 
+        aupr_in (float): Area under the precision-recall curve
             for in-distribution samples.
         aupr_out (float): Area under the precision-recall curve
             for out-of-distribution
     """
+
     def __init__(self, trainer) -> None:
         super().__init__(trainer)
         hook = VOSHook()
         trainer.register_hook(hook)
         self.hyparameters = None
-        
+
         self.config = trainer.cfg
         self.net = trainer.model
-        
-        weight_energy = torch.nn.Linear(self.config.model.network['num_classes'], 1).cuda()
+
+        weight_energy = torch.nn.Linear(
+            self.config.model.network["num_classes"], 1
+        ).cuda()
         torch.nn.init.uniform_(weight_energy.weight)
-        
+
         self.logistic_regression = torch.nn.Linear(1, 2).cuda()
         self.number_dict = {}
 
-        for i in range(self.config.model.network['num_classes']):
+        for i in range(self.config.model.network["num_classes"]):
             self.number_dict[i] = 0
-        self.data_dict = torch.zeros(self.config.model.network['num_classes'],
-                                     self.config.sample_number,
-                                     self.config.feature_dim).cuda()
-        self.num_classes = self.config.model.network['num_classes']
-        self.eye_matrix = torch.eye(self.config.feature_dim, device='cuda')
+        self.data_dict = torch.zeros(
+            self.config.model.network["num_classes"],
+            self.config.sample_number,
+            self.config.feature_dim,
+        ).cuda()
+        self.num_classes = self.config.model.network["num_classes"]
+        self.eye_matrix = torch.eye(self.config.feature_dim, device="cuda")
 
         self.sample_number = self.config.sample_number
-
-        
 
     def train_step(self, trainer, data, label, attribute, imgpath):
         """Validation step for Decoupling MaxLogit.
@@ -88,9 +94,9 @@ class VOS(BaseAlg):
         model = trainer.model
         device = trainer.device
         num_classes = self.num_classes
-        
+
         data, label = data.to(device), label.to(device)
-        
+
         x, outputs = model.forward_feature(data)
 
         sum_temp = 0
@@ -98,86 +104,90 @@ class VOS(BaseAlg):
             sum_temp += self.number_dict[index]
         lr_reg_loss = torch.zeros(1).cuda()[0]
 
-        if (sum_temp == num_classes * self.sample_number
-                and trainer.epoch < self.config.start_epoch):
+        if (
+            sum_temp == num_classes * self.sample_number
+            and trainer.epoch < self.config.start_epoch
+        ):
             target_numpy = label.cpu().data.numpy()
             for index in range(len(label)):
                 dict_key = target_numpy[index]
                 self.data_dict[dict_key] = torch.cat(
-                    (self.data_dict[dict_key][1:],
-                     outputs[index].detach().view(1, -1)), 0)
+                    (self.data_dict[dict_key][1:], outputs[index].detach().view(1, -1)),
+                    0,
+                )
 
-        elif (sum_temp == num_classes * self.sample_number
-              and trainer.epoch >= self.config.start_epoch):
+        elif (
+            sum_temp == num_classes * self.sample_number
+            and trainer.epoch >= self.config.start_epoch
+        ):
             target_numpy = label.cpu().data.numpy()
             for index in range(len(label)):
                 dict_key = target_numpy[index]
                 self.data_dict[dict_key] = torch.cat(
-                    (self.data_dict[dict_key][1:],
-                     outputs[index].detach().view(1, -1)), 0)
+                    (self.data_dict[dict_key][1:], outputs[index].detach().view(1, -1)),
+                    0,
+                )
 
             for index in range(num_classes):
                 if index == 0:
-                    X = self.data_dict[index] - self.data_dict[index].mean(
-                        0)
-                    mean_embed_id = self.data_dict[index].mean(0).view(
-                        1, -1)
+                    X = self.data_dict[index] - self.data_dict[index].mean(0)
+                    mean_embed_id = self.data_dict[index].mean(0).view(1, -1)
                 else:
-                    X = torch.cat((X, self.data_dict[index] -
-                                   self.data_dict[index].mean(0)), 0)
+                    X = torch.cat(
+                        (X, self.data_dict[index] - self.data_dict[index].mean(0)), 0
+                    )
                     mean_embed_id = torch.cat(
-                        (mean_embed_id, self.data_dict[index].mean(0).view(
-                            1, -1)), 0)
+                        (mean_embed_id, self.data_dict[index].mean(0).view(1, -1)), 0
+                    )
 
             temp_precision = torch.mm(X.t(), X) / len(X)
             temp_precision += 0.0001 * self.eye_matrix
             for index in range(num_classes):
                 new_dis = MultivariateNormal(
-                    loc=mean_embed_id[index],
-                    covariance_matrix=temp_precision)
-                negative_samples = new_dis.rsample(
-                    (self.config.sample_from, ))
+                    loc=mean_embed_id[index], covariance_matrix=temp_precision
+                )
+                negative_samples = new_dis.rsample((self.config.sample_from,))
                 prob_density = new_dis.log_prob(negative_samples)
-                cur_samples, index_prob = torch.topk(
-                    -prob_density, self.config.select)
+                cur_samples, index_prob = torch.topk(-prob_density, self.config.select)
                 if index == 0:
                     ood_samples = negative_samples[index_prob]
                 else:
                     ood_samples = torch.cat(
-                        (ood_samples, negative_samples[index_prob]), 0)
+                        (ood_samples, negative_samples[index_prob]), 0
+                    )
             if len(ood_samples) != 0:
 
-                energy_score_for_fg = log_sum_exp(x,
-                                                  num_classes=num_classes,
-                                                  dim=1)
+                energy_score_for_fg = log_sum_exp(x, num_classes=num_classes, dim=1)
                 try:
                     predictions_ood = self.net.network.fc(ood_samples)
                 except AttributeError:
                     predictions_ood = self.net.network.fc(ood_samples)
 
-                energy_score_for_bg = log_sum_exp(predictions_ood,
-                                                  num_classes=num_classes,
-                                                  dim=1)
+                energy_score_for_bg = log_sum_exp(
+                    predictions_ood, num_classes=num_classes, dim=1
+                )
 
-                input_for_lr = torch.cat(
-                    (energy_score_for_fg, energy_score_for_bg), -1)
+                input_for_lr = torch.cat((energy_score_for_fg, energy_score_for_bg), -1)
                 labels_for_lr = torch.cat(
-                    (torch.ones(len(outputs)).cuda(),
-                     torch.zeros(len(ood_samples)).cuda()), -1)
+                    (
+                        torch.ones(len(outputs)).cuda(),
+                        torch.zeros(len(ood_samples)).cuda(),
+                    ),
+                    -1,
+                )
 
-                output1 = self.logistic_regression(input_for_lr.view(
-                    -1, 1))
+                output1 = self.logistic_regression(input_for_lr.view(-1, 1))
 
-                lr_reg_loss = F.cross_entropy(output1,
-                                              labels_for_lr.long())
+                lr_reg_loss = F.cross_entropy(output1, labels_for_lr.long())
         else:
             target_numpy = label.cpu().data.numpy()
             for index in range(len(label)):
                 dict_key = target_numpy[index]
 
                 if self.number_dict[dict_key] < self.sample_number:
-                    self.data_dict[dict_key][self.number_dict[
-                        dict_key]] = outputs[index].detach()
+                    self.data_dict[dict_key][self.number_dict[dict_key]] = outputs[
+                        index
+                    ].detach()
                     self.number_dict[dict_key] += 1
         loss = F.cross_entropy(x, label)
         loss += self.config.loss_weight * lr_reg_loss
@@ -214,7 +224,6 @@ class VOS(BaseAlg):
 
         return {"loss": loss.item(), "acc": acc.item()}
 
-
     def test_step(self, trainer, data, label, *args, **kwargs):
         """Test step for Decoupling MaxLogit.
 
@@ -233,25 +242,36 @@ class VOS(BaseAlg):
         return self.val_step(trainer, data, label, *args, **kwargs)
 
     @staticmethod
-    def eval(id_gt: torch.Tensor ,id_logits: torch.Tensor, id_feat: torch.Tensor, 
-            ood_logits: torch.Tensor, ood_feat: torch.Tensor, 
-            train_logits: torch.Tensor = None, train_feat: torch.Tensor = None, train_gt: torch.Tensor = None,
-            tpr_th: float = 0.95, prec_th: float = None, hyparameters: dict = None,
-            id_local_logits = None, id_local_feat = None, ood_local_logits = None,
-            ood_local_feat = None, train_local_logits = None, train_local_feat = None,
-            prototypes = None, s_prototypes = None, hyperparameters = None
-            ):
-        """ODIN
-        """
+    def eval(
+        id_gt: torch.Tensor,
+        id_logits: torch.Tensor,
+        id_feat: torch.Tensor,
+        ood_logits: torch.Tensor,
+        ood_feat: torch.Tensor,
+        train_logits: torch.Tensor = None,
+        train_feat: torch.Tensor = None,
+        train_gt: torch.Tensor = None,
+        tpr_th: float = 0.95,
+        prec_th: float = None,
+        hyparameters: dict = None,
+        id_local_logits=None,
+        id_local_feat=None,
+        ood_local_logits=None,
+        ood_local_feat=None,
+        train_local_logits=None,
+        train_local_feat=None,
+        prototypes=None,
+        s_prototypes=None,
+        hyperparameters=None,
+    ):
+        """ODIN"""
         temperature = 1
 
         neg_ood_gt = -1 * np.ones(ood_logits.shape[0])
 
-        id_conf = temperature * torch.logsumexp(id_logits / temperature,
-                                                  dim=1)
-        ood_conf = temperature * torch.logsumexp(ood_logits / temperature,
-                                                  dim=1)
-        
+        id_conf = temperature * torch.logsumexp(id_logits / temperature, dim=1)
+        ood_conf = temperature * torch.logsumexp(ood_logits / temperature, dim=1)
+
         conf = np.concatenate([id_conf.cpu(), ood_conf.cpu()])
         label = np.concatenate([id_conf, neg_ood_gt])
         # label = np.concatenate([np.ones_like(id_conf), neg_ood_gt])
@@ -260,7 +280,13 @@ class VOS(BaseAlg):
         if prec_th is None:
             return conf, label, *ood_metrics(conf, label, tpr_th), None, None, None
         else:
-            return conf, label, *ood_metrics(conf, label, tpr_th), *search_threshold(conf, label, prec_th)
+            return (
+                conf,
+                label,
+                *ood_metrics(conf, label, tpr_th),
+                *search_threshold(conf, label, prec_th),
+            )
+
 
 def log_sum_exp(value, num_classes=10, dim=None, keepdim=False):
     """Numerically stable implementation of the operation."""
@@ -275,9 +301,12 @@ def log_sum_exp(value, num_classes=10, dim=None, keepdim=False):
             m = m.squeeze(dim)
 
         output = m + torch.log(
-            torch.sum(F.relu(weight_energy.weight) * torch.exp(value0),
-                      dim=dim,
-                      keepdim=keepdim))
+            torch.sum(
+                F.relu(weight_energy.weight) * torch.exp(value0),
+                dim=dim,
+                keepdim=keepdim,
+            )
+        )
         # set lower bound
         out_list = output.cpu().detach().numpy().tolist()
         for i in range(len(out_list)):

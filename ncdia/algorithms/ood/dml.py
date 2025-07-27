@@ -9,13 +9,17 @@ from ncdia.trainers.hooks import AlgHook
 import numpy as np
 from tqdm import tqdm
 from .metrics import ood_metrics, search_threshold
+
+
 @HOOKS.register
 class DMLHook(AlgHook):
     def __init__(self) -> None:
         super().__init__()
 
     def before_train(self, trainer) -> None:
-        trainer.center_optimizer = torch.optim.SGD(trainer.criterion.parameters(), lr=0.5)
+        trainer.center_optimizer = torch.optim.SGD(
+            trainer.criterion.parameters(), lr=0.5
+        )
 
     def before_train_iter(self, trainer, batch_idx, data_batch) -> None:
         trainer.center_optimizer.zero_grad()
@@ -31,7 +35,7 @@ class DMLHook(AlgHook):
     def after_train_iter(self, trainer, batch_idx, data_batch, outputs) -> None:
         center_weight = trainer.center_weight
         for param in trainer.criterion.parameters():
-            param.grad.data *= (1./(center_weight + 1e-12))
+            param.grad.data *= 1.0 / (center_weight + 1e-12)
         trainer.center_optimizer.step()
 
 
@@ -45,11 +49,12 @@ class DML(BaseAlg):
         - test_step(trainer, data, label, *args, **kwargs)
 
     """
+
     def __init__(self, trainer) -> None:
         super().__init__(trainer)
         self.trainer = trainer
 
-        if trainer.model.loss == 'center':
+        if trainer.model.loss == "center":
             hook = DMLHook()
             trainer.register_hook(hook)
 
@@ -74,7 +79,7 @@ class DML(BaseAlg):
 
         data, label = data.to(device), label.to(device)
         outputs = model(data)
-        if model.loss == 'center':
+        if model.loss == "center":
             features = model.get_features()
 
             loss_ct = criterion(features, label)
@@ -84,7 +89,7 @@ class DML(BaseAlg):
             loss = loss_ce + loss_ct * trainer.center_weight
         else:
             loss = criterion(outputs, label)
-        
+
         acc = accuracy(outputs, label)[0]
 
         loss.backward()
@@ -134,16 +139,29 @@ class DML(BaseAlg):
                 - "acc": Accuracy value.
         """
         return self.val_step(trainer, data, label, *args, **kwargs)
-    
+
     @staticmethod
-    def eval(id_gt: torch.Tensor ,id_logits: torch.Tensor, id_feat: torch.Tensor, 
-            ood_logits: torch.Tensor, ood_feat: torch.Tensor, 
-            train_logits: torch.Tensor = None, train_feat: torch.Tensor = None, 
-            tpr_th: float = 0.95, prec_th: float = None, hyparameters: float = None,
-            id_local_logits = None, id_local_feat = None, ood_local_logits = None,
-            ood_local_feat = None, train_local_logits = None, train_local_feat = None,
-            prototypes = None, s_prototypes = None, hyperparameters = None
-            ):
+    def eval(
+        id_gt: torch.Tensor,
+        id_logits: torch.Tensor,
+        id_feat: torch.Tensor,
+        ood_logits: torch.Tensor,
+        ood_feat: torch.Tensor,
+        train_logits: torch.Tensor = None,
+        train_feat: torch.Tensor = None,
+        tpr_th: float = 0.95,
+        prec_th: float = None,
+        hyparameters: float = None,
+        id_local_logits=None,
+        id_local_feat=None,
+        ood_local_logits=None,
+        ood_local_feat=None,
+        train_local_logits=None,
+        train_local_feat=None,
+        prototypes=None,
+        s_prototypes=None,
+        hyperparameters=None,
+    ):
         """Decoupled MaxLogit+ (DML+) method for OOD detection.
 
         Decoupling MaxLogit for Out-of-Distribution Detection
@@ -164,7 +182,7 @@ class DML(BaseAlg):
         Returns:
             fpr (float): False positive rate.
             auroc (float): Area under the ROC curve.
-            aupr_in (float): Area under the precision-recall curve 
+            aupr_in (float): Area under the precision-recall curve
                 for in-distribution samples.
             aupr_out (float): Area under the precision-recall curve
                 for out-of-distribution
@@ -173,17 +191,17 @@ class DML(BaseAlg):
         out_score1 = np.max(id_logits.data.cpu().numpy(), axis=1)
 
         tmp1 = np.sum(in_score1)
-        in_score1_tmp = in_score1/tmp1
-        out_score1_tmp = out_score1/tmp1
+        in_score1_tmp = in_score1 / tmp1
+        out_score1_tmp = out_score1 / tmp1
 
         in_score2 = id_feat.norm(2, dim=1).data.cpu().numpy()
         out_score2 = id_feat.norm(2, dim=1).data.cpu().numpy()
 
         tmp1 = np.sum(in_score2)
-        in_score2_tmp = in_score2/tmp1
-        out_score2_tmp = out_score2/tmp1
+        in_score2_tmp = in_score2 / tmp1
+        out_score2_tmp = out_score2 / tmp1
 
-        in_score = in_score1_tmp + in_score2_tmp  
+        in_score = in_score1_tmp + in_score2_tmp
         out_score = out_score1_tmp + out_score2_tmp
 
         conf = np.concatenate([in_score, out_score])
@@ -192,4 +210,6 @@ class DML(BaseAlg):
         if prec_th is None:
             return ood_metrics(conf, label, tpr_th), None
         else:
-            return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
+            return ood_metrics(conf, label, tpr_th), search_threshold(
+                conf, label, prec_th
+            )

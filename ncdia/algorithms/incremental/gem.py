@@ -20,14 +20,16 @@ from torch.utils.data import DataLoader
 from ncdia.dataloader import MergedDataset
 from ncdia.dataloader import BaseDataset
 
+
 @HOOKS.register
 class GEMHook(AlgHook):
     def __init__(self) -> None:
         super().__init__()
 
     def after_train(self, trainer) -> None:
-        filename = 'task_' + str(trainer.session) + '.pth'
+        filename = "task_" + str(trainer.session) + ".pth"
         trainer.save_ckpt(os.path.join(trainer.work_dir, filename))
+
 
 @ALGORITHMS.register
 class GEM(BaseAlg):
@@ -51,10 +53,13 @@ class GEM(BaseAlg):
             self.grad_dims.append(param.data.numel())
         self.grads = torch.Tensor(sum(self.grad_dims), self.args.CIL.sessions).cuda()
 
-        self.memory_data = torch.FloatTensor(self.args.CIL.sessions, self.n_memories, 3, 224, 224).cuda()
-        self.memory_label = torch.LongTensor(self.args.CIL.sessions, self.n_memories).cuda()
+        self.memory_data = torch.FloatTensor(
+            self.args.CIL.sessions, self.n_memories, 3, 224, 224
+        ).cuda()
+        self.memory_label = torch.LongTensor(
+            self.args.CIL.sessions, self.n_memories
+        ).cuda()
         self.memory_pointer = 0
-
 
     def train_step(self, trainer, data, label, attribute, imgpath):
         """
@@ -75,7 +80,10 @@ class GEM(BaseAlg):
         for past_session in range(session):
             self._network.zero_grad()
             inf, sup = self.calc_range(past_session)
-            mask = torch.where((self.memory_label[past_session] >= inf) & (self.memory_label[past_session] < sup))[0].cuda()
+            mask = torch.where(
+                (self.memory_label[past_session] >= inf)
+                & (self.memory_label[past_session] < sup)
+            )[0].cuda()
             if len(mask) > 0:
                 data_ = self.memory_data[past_session][mask]
                 label_ = self.memory_label[past_session][mask]
@@ -92,13 +100,17 @@ class GEM(BaseAlg):
 
         if session > 0:
             self.store_grad(session)
-            dotp = torch.mm(self.grads[:, session].unsqueeze(0), self.grads[:, : session])
+            dotp = torch.mm(
+                self.grads[:, session].unsqueeze(0), self.grads[:, :session]
+            )
             if (dotp < 0).sum() != 0:
                 new_grad = self.project2cone2(session)
                 self.overwrite_grad(new_grad)
 
-        loss, acc, per_acc = self.forward(data, label, session, train=False, current=True)
-        ret = {'loss': loss.item(), 'acc': acc.item(), 'per_class_acc': per_acc}
+        loss, acc, per_acc = self.forward(
+            data, label, session, train=False, current=True
+        )
+        ret = {"loss": loss.item(), "acc": acc.item(), "per_class_acc": per_acc}
 
         return ret
 
@@ -126,7 +138,7 @@ class GEM(BaseAlg):
         self._network = trainer.model
         self._network.eval()
         loss, acc, per_acc = self.forward(data, label, session, train=False)
-        ret = {'loss': loss.item(), 'acc': acc.item(), 'per_class_acc': per_acc}
+        ret = {"loss": loss.item(), "acc": acc.item(), "per_class_acc": per_acc}
         return ret
 
     def test_step(self, trainer, data, label, *args, **kwargs):
@@ -149,10 +161,10 @@ class GEM(BaseAlg):
         labels = label.cuda()
         logits = self._network(data)
         if train:
-            logits[:, : inf].data.fill_(-10e10)
+            logits[:, :inf].data.fill_(-10e10)
             if not current:
-                logits[:, sup : ].data.fill_(-10e10)
-        logits_ = logits[:, : sup]
+                logits[:, sup:].data.fill_(-10e10)
+        logits_ = logits[:, :sup]
         acc = accuracy(logits_, labels)[0]
         per_acc = str(per_class_accuracy(logits_, labels))
         loss = self.loss(logits_, labels)
@@ -165,22 +177,22 @@ class GEM(BaseAlg):
         start = self.memory_pointer
         end = min(start + batchsize, self.n_memories)
         inc = end - start
-        self.memory_data[session, start: end].copy_(data.data[: inc])
+        self.memory_data[session, start:end].copy_(data.data[:inc])
         if batchsize == 1:
             self.memory_label[session, start] = label.data[0]
         else:
-            self.memory_label[session, start: end].copy_(label.data[: inc])
+            self.memory_label[session, start:end].copy_(label.data[:inc])
         self.memory_pointer += batchsize
         if self.memory_pointer >= self.n_memories:
             self.memory_pointer = 0
 
     def store_grad(self, session):
         """
-            This stores parameter gradients of past tasks.
-            pp: parameters
-            grads: gradients
-            grad_dims: list with number of parameters per layers
-            tid: task id
+        This stores parameter gradients of past tasks.
+        pp: parameters
+        grads: gradients
+        grad_dims: list with number of parameters per layers
+        tid: task id
         """
         # store the gradients
         self.grads[:, session].fill_(0.0)
@@ -188,39 +200,39 @@ class GEM(BaseAlg):
         for param in self._network.parameters():
             if param.grad is not None:
                 beg = 0 if cnt == 0 else sum(self.grad_dims[:cnt])
-                en = sum(self.grad_dims[:cnt + 1])
-                self.grads[beg: en, session].copy_(param.grad.data.view(-1))
+                en = sum(self.grad_dims[: cnt + 1])
+                self.grads[beg:en, session].copy_(param.grad.data.view(-1))
             cnt += 1
 
     def overwrite_grad(self, newgrad):
         """
-            This is used to overwrite the gradients with a new gradient
-            vector, whenever violations occur.
-            pp: parameters
-            newgrad: corrected gradient
-            grad_dims: list storing number of parameters at each layer
+        This is used to overwrite the gradients with a new gradient
+        vector, whenever violations occur.
+        pp: parameters
+        newgrad: corrected gradient
+        grad_dims: list storing number of parameters at each layer
         """
         print("Overwriting Gradient......")
         cnt = 0
         for param in self._network.parameters():
             if param.grad is not None:
                 beg = 0 if cnt == 0 else sum(self.grad_dims[:cnt])
-                en = sum(self.grad_dims[:cnt + 1])
-                this_grad = newgrad[beg: en].contiguous().view(param.grad.data.size())
+                en = sum(self.grad_dims[: cnt + 1])
+                this_grad = newgrad[beg:en].contiguous().view(param.grad.data.size())
                 param.grad.data.copy_(this_grad)
             cnt += 1
 
     def project2cone2(self, session):
         """
-            Solves the GEM dual QP described in the paper given a proposed
-            gradient "gradient", and a memory of task gradients "memories".
-            Overwrites "gradient" with the final projected update.
+        Solves the GEM dual QP described in the paper given a proposed
+        gradient "gradient", and a memory of task gradients "memories".
+        Overwrites "gradient" with the final projected update.
 
-            input:  gradient, p-vector
-            input:  memories, (t * p)-vector
-            output: x, p-vector
+        input:  gradient, p-vector
+        input:  memories, (t * p)-vector
+        output: x, p-vector
         """
-        old_grad = self.grads[:, : session].cpu().t().double().numpy()
+        old_grad = self.grads[:, :session].cpu().t().double().numpy()
         cur_grad = self.grads[:, session].cpu().contiguous().view(-1).double().numpy()
         C = old_grad @ old_grad.T
         p = old_grad @ cur_grad

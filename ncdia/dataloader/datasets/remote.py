@@ -11,31 +11,37 @@ from .utils import BaseDataset
 from ncdia.dataloader.augmentations.constrained_cropping import CustomMultiCropping
 
 from collections import defaultdict
+
 attr_path = "/data/datasets/remote/0718_dy/Attribute0718.xlsx"
 
+
 def get_transform():
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                         std=[0.229, 0.224, 0.225])
+    normalize = transforms.Normalize(
+        mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+    )
     num_crops = [2, 4]
     size_crops = [224, 96]
-    min_scale_crops =  [0.14, 0.05]
+    min_scale_crops = [0.14, 0.05]
     max_scale_crops = [1, 0.14]
     constrained_cropping = False
-    crop_transform = CustomMultiCropping(size_large=size_crops[0],
-                                         scale_large=(min_scale_crops[0], max_scale_crops[0]),
-                                         size_small=size_crops[1],
-                                         scale_small=(min_scale_crops[1], max_scale_crops[1]),
-                                         N_large=num_crops[0], N_small=num_crops[1],
-                                         condition_small_crops_on_key=constrained_cropping)
-    secondary_transform = transforms.Compose([
-        transforms.RandomHorizontalFlip(),    
-        transforms.RandomApply([
-        transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)
-        ], p=0.8),
-        transforms.RandomGrayscale(p=0.2),
-        transforms.ToTensor(),
-        normalize]
-        )
+    crop_transform = CustomMultiCropping(
+        size_large=size_crops[0],
+        scale_large=(min_scale_crops[0], max_scale_crops[0]),
+        size_small=size_crops[1],
+        scale_small=(min_scale_crops[1], max_scale_crops[1]),
+        N_large=num_crops[0],
+        N_small=num_crops[1],
+        condition_small_crops_on_key=constrained_cropping,
+    )
+    secondary_transform = transforms.Compose(
+        [
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),
+            transforms.RandomGrayscale(p=0.2),
+            transforms.ToTensor(),
+            normalize,
+        ]
+    )
     return crop_transform, secondary_transform
 
 
@@ -56,52 +62,61 @@ class Remote(BaseDataset):
         labels (list): list of labels
         num_classes (int): number of classes
         transform (torchvision.transforms.Compose): transform to apply on the dataset
-    
-    """
-    train_transform = transforms.Compose([
-        transforms.Resize(256, interpolation=transforms.InterpolationMode.BILINEAR),
-        transforms.RandomResizedCrop(224),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    ])
 
-    test_transform = transforms.Compose([
-        transforms.Resize(256, interpolation=transforms.InterpolationMode.BILINEAR),
-        transforms.CenterCrop(224),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    ])
+    """
+
+    train_transform = transforms.Compose(
+        [
+            transforms.Resize(256, interpolation=transforms.InterpolationMode.BILINEAR),
+            transforms.RandomResizedCrop(224),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ]
+    )
+
+    test_transform = transforms.Compose(
+        [
+            transforms.Resize(256, interpolation=transforms.InterpolationMode.BILINEAR),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ]
+    )
 
     def __init__(
-            self,
-            root: str,
-            split: str = 'train',
-            subset_labels: list = None,
-            subset_file: str = None,
-            transform: list | str = None,
-            **kwargs,
+        self,
+        root: str,
+        split: str = "train",
+        subset_labels: list = None,
+        subset_file: str = None,
+        transform: list | str = None,
+        **kwargs,
     ) -> None:
         super().__init__()
         self.root = root
         self.split = split
 
-        if split == 'train':
-            self.images, self.labels = self._load_data(os.path.join(root, 'train'))
-        elif split == 'test':
-            self.images, self.labels = self._load_data(os.path.join(root, 'test'))
+        if split == "train":
+            self.images, self.labels = self._load_data(os.path.join(root, "train"))
+        elif split == "test":
+            self.images, self.labels = self._load_data(os.path.join(root, "test"))
         else:
             raise ValueError(f"Unknown split: {split}")
-        
+
         if subset_labels is not None:
-            self.images, self.labels = self._select_from_label(self.images, self.labels, subset_labels)
+            self.images, self.labels = self._select_from_label(
+                self.images, self.labels, subset_labels
+            )
         if subset_file is not None:
-            self.images, self.labels = self._select_from_file(self.images, self.labels, subset_file)
+            self.images, self.labels = self._select_from_file(
+                self.images, self.labels, subset_file
+            )
 
         if isinstance(transform, str):
-            if transform == 'train':
+            if transform == "train":
                 self.transform = self.train_transform
-            elif transform == 'test':
+            elif transform == "test":
                 self.transform = self.test_transform
             else:
                 raise ValueError(f"Unknown transform: {transform}")
@@ -153,7 +168,7 @@ class Remote(BaseDataset):
                 else:
                     labels.append(num)
         return imgpaths, labels
-    
+
     def _select_from_label(self, images: list, labels: list, subset_labels: list | int):
         """Select images from a subset of labels
 
@@ -188,14 +203,14 @@ class Remote(BaseDataset):
             list: list of labels
         """
         selected_images, selected_labels = [], []
-        with open(file, 'r') as f:
+        with open(file, "r") as f:
             for line in f:
                 img = os.path.abspath(line.strip())
                 if img in images:
                     selected_images.append(img)
                     selected_labels.append(labels[images.index(img)])
         return selected_images, selected_labels
-    
+
     def sample_test_data(self, ratio: int | float):
         """Sample a subset of the test data for each class according to the given ratio.
 
@@ -203,11 +218,11 @@ class Remote(BaseDataset):
             ratio (int | float): ratio of the sampled data.
                 If int, it represents the number of samples to be selected.
                 If float, it represents the ratio of the samples to be selected.
-        
+
         Returns:
             Sampled data and corresponding targets.
         """
-        if self.split != 'test':
+        if self.split != "test":
             raise ValueError("Sampling is only applicable in test mode")
 
         class_indices = {}
@@ -225,7 +240,7 @@ class Remote(BaseDataset):
                 sample_size = max(1, int(len(indices) * ratio))
             else:
                 raise ValueError("Invalid ratio value")
-            
+
             sampled_indices = random.sample(indices, sample_size)
             for i in sampled_indices:
                 sampled_images.append(self.images[i])
@@ -240,13 +255,18 @@ class Remote(BaseDataset):
         imgpath, label = self.images[index], self.labels[index]
         img = pil_loader(imgpath)
         if self.multi_train:
-            image = Image.open(imgpath).convert('RGB')
+            image = Image.open(imgpath).convert("RGB")
             classify_image = [self.transform(image)]
             # print(self.crop_transform(image))
             multi_crop = self.crop_transform(image)
-            assert (len(multi_crop) == self.crop_transform.N_large + self.crop_transform.N_small)
+            assert (
+                len(multi_crop)
+                == self.crop_transform.N_large + self.crop_transform.N_small
+            )
             if isinstance(self.secondary_transform, list):
-                multi_crop = [tf(x) for tf, x in zip(self.secondary_transform, multi_crop)]
+                multi_crop = [
+                    tf(x) for tf, x in zip(self.secondary_transform, multi_crop)
+                ]
             else:
                 multi_crop = [self.secondary_transform(x) for x in multi_crop]
             total_img = classify_image + multi_crop
@@ -257,8 +277,8 @@ class Remote(BaseDataset):
         attrs = torch.tensor(list(map(float, attrs)), dtype=torch.float)
 
         return {
-            'data': total_img,
-            'label': label,
-            'attribute': attrs,
-            'imgpath': imgpath,
+            "data": total_img,
+            "label": label,
+            "attribute": attrs,
+            "imgpath": imgpath,
         }

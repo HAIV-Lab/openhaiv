@@ -27,18 +27,19 @@ class ImageNet(ImageFolder, BaseDataset):
         >>> batch = dataset[0]
         >>> print(batch['data'].size, batch['label'])
         (3, 224, 224) 0
-    
+
     """
+
     def __init__(
-            self,
-            root: str,
-            split: str = "train",
-            loader = default_loader,
-            transform: Callable | None = None,
-            target_transform: Callable | None = None,
-            **kwargs,
+        self,
+        root: str,
+        split: str = "train",
+        loader=default_loader,
+        transform: Callable | None = None,
+        target_transform: Callable | None = None,
+        **kwargs,
     ) -> None:
-        assert split in ['train', 'val'], f"Unsupported split: {split}"
+        assert split in ["train", "val"], f"Unsupported split: {split}"
         root = os.path.join(root, split)
 
         ImageFolder.__init__(self, root, transform, target_transform, loader)
@@ -47,9 +48,9 @@ class ImageNet(ImageFolder, BaseDataset):
         for path, target in self.samples:
             self.images.append(path)
             self.labels.append(target)
-            
+
         self.loader = loader
-    
+
     def __len__(self) -> int:
         """Get the length of the dataset
 
@@ -80,8 +81,8 @@ class ImageNet(ImageFolder, BaseDataset):
             label = self.target_transform(label)
 
         return {
-            'data': sample,
-            'label': label,
-            'attribute': [],
-            'imgpath': imgpath,
+            "data": sample,
+            "label": label,
+            "attribute": [],
+            "imgpath": imgpath,
         }

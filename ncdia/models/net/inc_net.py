@@ -9,29 +9,31 @@ from ncdia.models.net.der_net import SimpleLinear
 
 from ncdia.utils import MODELS, Configs
 
+
 @MODELS.register
 class BaseNet(nn.Module):
     """BaseNet for incremental learning.
 
     Args:
         network (Configs): Network configuration.
-    
+
     """
+
     def __init__(
-            self,
-            network: Configs,
-            base_classes,
-            num_classes,
-            att_classes,
-            net_alice,
-            mode = "ft_cos",
+        self,
+        network: Configs,
+        base_classes,
+        num_classes,
+        att_classes,
+        net_alice,
+        mode="ft_cos",
     ) -> None:
         super().__init__()
         self.args = network.cfg
-        self.args['pretrained'] = True
-        self.args['num_classes'] = 1000
+        self.args["pretrained"] = True
+        self.args["num_classes"] = 1000
         if "type" not in network:
-            self.args['type'] = 'resnet50'
+            self.args["type"] = "resnet50"
         self.convnet = MODELS.build(self.args)
         self.fc = None
 
@@ -81,8 +83,9 @@ class IncrementalNet(BaseNet):
 
     Args:
         network (Configs): Network configuration.
-    
+
     """
+
     def __init__(
         self,
         network: Configs,
@@ -90,9 +93,11 @@ class IncrementalNet(BaseNet):
         num_classes,
         att_classes,
         net_alice,
-        mode = "ft_cos",
+        mode="ft_cos",
     ) -> None:
-        super().__init__(network, base_classes, num_classes, att_classes, net_alice, mode)
+        super().__init__(
+            network, base_classes, num_classes, att_classes, net_alice, mode
+        )
         self.update_fc(num_classes)
 
     def update_fc(self, nb_classes):
@@ -106,7 +111,7 @@ class IncrementalNet(BaseNet):
 
         del self.fc
         self.fc = fc
-    
+
     def weight_align(self, increment):
         weights = self.fc.weight.data
         newnorm = torch.norm(weights[-increment:, :], p=2, dim=1)
@@ -120,7 +125,7 @@ class IncrementalNet(BaseNet):
     def generate_fc(self, in_dim, out_dim):
         fc = SimpleLinear(in_dim, out_dim)
         return fc
-    
+
     def forward(self, x):
         x = self.convnet(x)
         features = self.convnet.out_features

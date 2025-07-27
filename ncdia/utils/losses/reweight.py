@@ -8,12 +8,13 @@ from ncdia.utils import LOSSES
 @LOSSES.register
 class ReweightedCrossEntropyLoss(nn.Module):
     """Reweighted Cross Entropy Loss.
-    
+
     This loss applies sample-specific weights to the standard cross-entropy loss.
 
     Args:
         None
     """
+
     def __init__(self):
         super(ReweightedCrossEntropyLoss, self).__init__()
 
@@ -27,19 +28,20 @@ class ReweightedCrossEntropyLoss(nn.Module):
         Returns:
             Tensor: The computed loss value.
         """
-        losses = F.cross_entropy(logits, labels, reduction='none')
+        losses = F.cross_entropy(logits, labels, reduction="none")
         return (losses * sample_weights.type_as(losses)).mean()
 
 
 @LOSSES.register
 class ReweightedSoftCrossEntropyLoss(nn.Module):
     """Reweighted Soft Cross Entropy Loss.
-    
+
     This loss applies sample-specific weights to the soft cross-entropy loss.
 
     Args:
         None
     """
+
     def __init__(self):
         super(ReweightedSoftCrossEntropyLoss, self).__init__()
 

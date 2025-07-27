@@ -3,7 +3,7 @@ import numpy as np
 
 from ncdia.utils import AUGMENTATIONS
 
-__all__ = ['AugExpand']
+__all__ = ["AugExpand"]
 
 # custom functions for AugExpand
 CUSTOMFUNCS = {}
@@ -11,7 +11,7 @@ CUSTOMFUNCS = {}
 
 @AUGMENTATIONS.register
 class AugExpand(torch.nn.Module):
-    """ Expand the input tensor to multiple views.
+    """Expand the input tensor to multiple views.
 
                image
                  |
@@ -31,7 +31,7 @@ class AugExpand(torch.nn.Module):
     Args:
         preaugment (callable): pre-augmentation function before applying AugExpand.
         preprocess (callable): pre-processing function after applying AugExpand.
-        baseaugment (callable, optional): 
+        baseaugment (callable, optional):
             augmentation to generate an original view without AugExpand,
             if None, original view is not included in the output.
         custom_funcs (list, optional): list of custom augmentation functions.
@@ -66,11 +66,12 @@ class AugExpand(torch.nn.Module):
         >>> # output: torch.Tensor (2, 3, 224, 224)
 
     """
+
     def __init__(
         self,
         preaugment,
         preprocess,
-        baseaugment = None,
+        baseaugment=None,
         custom_funcs: list = [],
         n_views: int = 2,
     ):
@@ -80,9 +81,9 @@ class AugExpand(torch.nn.Module):
         self.baseaugment = baseaugment
         self.custom_funcs = custom_funcs or []
         self.n_views = n_views
-    
+
     def augexpand(self, image, aug_funcs=[]):
-        """ Apply augmentations to an image.
+        """Apply augmentations to an image.
         Args:
             image (PIL.Image): input image.
             aug_funcs (list): list of augmentation functions.
@@ -93,13 +94,13 @@ class AugExpand(torch.nn.Module):
         x_processed = self.preprocess(x_orig)
         if len(aug_funcs) == 0:
             return x_processed
-        
+
         x_aug = x_orig.copy()
         x_aug = np.random.choice(aug_funcs)(x_aug)
         return self.preprocess(x_aug)
 
     def forward(self, img):
-        """ Apply AugExpand to an image.
+        """Apply AugExpand to an image.
         Args:
             img (PIL.Image): input image.
         Returns:
@@ -109,18 +110,19 @@ class AugExpand(torch.nn.Module):
             base_img = [self.preprocess(self.baseaugment(img))]
         else:
             base_img = []
-        
+
         views = [
             self.augexpand(img, self.custom_funcs)
-            for _ in range(self.n_views - len(base_img))]
-        
+            for _ in range(self.n_views - len(base_img))
+        ]
+
         return torch.stack(base_img + views)
-    
+
     def __repr__(self) -> str:
-        format_string = self.__class__.__name__ + '('
-        format_string += f'preaugment={self.preaugment}, '
-        format_string += f'preprocess={self.preprocess}, '
-        format_string += f'baseaugment={self.baseaugment}, '
-        format_string += f'custom_funcs={self.custom_funcs}, '
-        format_string += f'n_views={self.n_views})'
+        format_string = self.__class__.__name__ + "("
+        format_string += f"preaugment={self.preaugment}, "
+        format_string += f"preprocess={self.preprocess}, "
+        format_string += f"baseaugment={self.baseaugment}, "
+        format_string += f"custom_funcs={self.custom_funcs}, "
+        format_string += f"n_views={self.n_views})"
         return format_string

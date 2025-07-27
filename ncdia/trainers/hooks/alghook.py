@@ -8,7 +8,7 @@ class AlgHook(Hook):
     This class is a base class for all algorithm hooks.
     """
 
-    priority = 'NORMAL'
+    priority = "NORMAL"
 
     def init_trainer(self, trainer) -> None:
         """Initialize algorithm for trainer.

@@ -3,10 +3,12 @@ import torch
 import torch.nn as nn
 from ncdia.utils import MODELS, Configs
 
+
 def norm(x):
     norm = torch.norm(x, p=2, dim=1)
-    x = x / (norm.expand(1, -1).t() + .0001)
+    x = x / (norm.expand(1, -1).t() + 0.0001)
     return x
+
 
 @MODELS.register
 class CosineDeconf(nn.Module):
@@ -17,14 +19,15 @@ class CosineDeconf(nn.Module):
         self.init_weights()
 
     def init_weights(self):
-        nn.init.kaiming_normal_(self.h.weight.data, nonlinearity='relu')
+        nn.init.kaiming_normal_(self.h.weight.data, nonlinearity="relu")
 
     def forward(self, x):
         x = norm(x)
         w = norm(self.h.weight)
 
-        ret = (torch.matmul(x, w.T))
+        ret = torch.matmul(x, w.T)
         return ret
+
 
 @MODELS.register
 class EuclideanDeconf(nn.Module):
@@ -35,7 +38,7 @@ class EuclideanDeconf(nn.Module):
         self.init_weights()
 
     def init_weights(self):
-        nn.init.kaiming_normal_(self.h.weight.data, nonlinearity='relu')
+        nn.init.kaiming_normal_(self.h.weight.data, nonlinearity="relu")
 
     def forward(self, x):
 
@@ -47,6 +50,7 @@ class EuclideanDeconf(nn.Module):
         ret = -((x - h).pow(2)).mean(1)
         return ret
 
+
 @MODELS.register
 class InnerDeconf(nn.Module):
     def __init__(self, in_features, num_classes):
@@ -56,64 +60,70 @@ class InnerDeconf(nn.Module):
         self.init_weights()
 
     def init_weights(self):
-        nn.init.kaiming_normal_(self.h.weight.data, nonlinearity='relu')
+        nn.init.kaiming_normal_(self.h.weight.data, nonlinearity="relu")
         self.h.bias.data = torch.zeros(size=self.h.bias.size())
 
     def forward(self, x):
         return self.h(x)
 
+
 @MODELS.register
 class GodinNet(nn.Module):
-    def __init__(self,
-                 network: Configs,
-                 checkpoint: str = None,
-                 feature_size: int = 2048,
-                 num_classes: int = 94,
-                 similarity_measure='cosine',
-                 loss: str = 'CrossEntropyLoss', 
-                 **kwargs)-> None:
+    def __init__(
+        self,
+        network: Configs,
+        checkpoint: str = None,
+        feature_size: int = 2048,
+        num_classes: int = 94,
+        similarity_measure="cosine",
+        loss: str = "CrossEntropyLoss",
+        **kwargs
+    ) -> None:
         super(GodinNet, self).__init__()
 
         h_dict = {
-            'cosine': CosineDeconf,
-            'inner': InnerDeconf,
-            'euclid': EuclideanDeconf
+            "cosine": CosineDeconf,
+            "inner": InnerDeconf,
+            "euclid": EuclideanDeconf,
         }
 
         self.num_classes = num_classes
         self.args = network.cfg
-        self.args['pretrained'] = True
-        num_classes_true = self.args['num_classes']
-        self.args['num_classes'] = 1000
+        self.args["pretrained"] = True
+        num_classes_true = self.args["num_classes"]
+        self.args["num_classes"] = 1000
         self.network = MODELS.build(copy.deepcopy(self.args))
         self.network.fc = torch.nn.Linear(feature_size, num_classes_true)
-        
-        self.noise_magnitude =  0.0025
+
+        self.noise_magnitude = 0.0025
         self.backbone = self.network
-            
-        if hasattr(self.backbone, 'fc'):
+
+        if hasattr(self.backbone, "fc"):
             # remove fc otherwise ddp will
             # report unused params
             self.backbone.fc = nn.Identity()
 
         self.h = h_dict[similarity_measure](feature_size, self.num_classes)
 
-        self.g = nn.Sequential(nn.Linear(feature_size, 1), nn.BatchNorm1d(1),
-                               nn.Sigmoid())
+        self.g = nn.Sequential(
+            nn.Linear(feature_size, 1), nn.BatchNorm1d(1), nn.Sigmoid()
+        )
         self.loss = loss
         self.softmax = nn.Softmax()
-        
+
         self.input_std = [0.5, 0.5, 0.5]
         if checkpoint:
-            key_dict = checkpoint.split(' ')
+            key_dict = checkpoint.split(" ")
             checkpoint = key_dict[0]
             self.inference = key_dict[1]
-            print('load_checkpoint')
+            print("load_checkpoint")
             state_dict = torch.load(checkpoint)
-            state_dict = {k.replace('network.', ''): v for k, v in state_dict['state_dict'].items()}
+            state_dict = {
+                k.replace("network.", ""): v
+                for k, v in state_dict["state_dict"].items()
+            }
             self.backbone.load_state_dict(state_dict, strict=False)
-            
-            
+
     def backbone_forward(self, x):
         feature1 = self.backbone.relu(self.network.bn1(self.network.conv1(x)))
         feature1 = self.backbone.maxpool(feature1)
@@ -127,8 +137,8 @@ class GodinNet(nn.Module):
 
         # x = self.network(x)
         return logits_cls, feature
-        
-    def forward(self, x, inference=False, score_func='h'):
+
+    def forward(self, x, inference=False, score_func="h"):
         x.requires_grad = True
         _, feature = self.backbone_forward(x)
 
@@ -141,10 +151,10 @@ class GodinNet(nn.Module):
 
         # logits, numerators, and denominators
         if self.inference:
-            if score_func == 'h':
-                output =  numerators
-            elif score_func == 'g':
-                output =  denominators
+            if score_func == "h":
+                output = numerators
+            elif score_func == "g":
+                output = denominators
             max_scores, _ = torch.max(output, dim=1)
             max_scores.backward(torch.ones(len(max_scores)).cuda())
 
@@ -158,9 +168,7 @@ class GodinNet(nn.Module):
             gradient[:, 2] = (gradient[:, 2]) / self.input_std[2]
 
             # Adding small perturbations to images
-            tempInputs = torch.add(x.detach(),
-                                   gradient,
-                                   alpha=self.noise_magnitude)
+            tempInputs = torch.add(x.detach(), gradient, alpha=self.noise_magnitude)
 
             # calculate score
             _, feature = self.backbone_forward(tempInputs)
@@ -169,22 +177,21 @@ class GodinNet(nn.Module):
 
             denominators_tmp = self.g(feature)
 
-            if score_func == 'h':
+            if score_func == "h":
                 output = numerators_tmp
-            elif score_func == 'g':
-                output =  denominators
+            elif score_func == "g":
+                output = denominators
 
             nnOutput = output.detach()
             nnOutput = nnOutput - nnOutput.max(dim=1, keepdims=True).values
             nnOutput = nnOutput.exp() / nnOutput.exp().sum(dim=1, keepdims=True)
 
-
             return nnOutput
-            
+
         else:
             return quotients
-            
-    def get_features(self,x):
+
+    def get_features(self, x):
         feature1 = self.backbone.relu(self.network.bn1(self.network.conv1(x)))
         feature1 = self.backbone.maxpool(feature1)
         feature2 = self.backbone.layer1(feature1)

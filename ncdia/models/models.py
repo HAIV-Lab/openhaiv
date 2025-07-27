@@ -34,50 +34,48 @@ def get_network(config):
     #     raise Exception('Unexpected Network Architecture!')
 
     if network_config.pretrained:
-        print('Using pretrained model')
+        print("Using pretrained model")
 
         # -------- quantize --------- #
         if config.quantizer.apply:
-            print('!!!!!!! Loading Compressing Models !!!!!!!', flush=True)
+            print("!!!!!!! Loading Compressing Models !!!!!!!", flush=True)
             net = reconstruct(net, config.quantizer.quant)
         # -------- -------- --------- #
 
         if type(net) is dict:
             if isinstance(network_config.checkpoint, list):
-                for subnet, checkpoint in zip(net.values(),
-                                              network_config.checkpoint):
+                for subnet, checkpoint in zip(net.values(), network_config.checkpoint):
                     if checkpoint is not None:
-                        if checkpoint != 'none':
-                            subnet.load_state_dict(torch.load(checkpoint),
-                                                   strict=False)
+                        if checkpoint != "none":
+                            subnet.load_state_dict(torch.load(checkpoint), strict=False)
             elif isinstance(network_config.checkpoint, str):
                 ckpt = torch.load(network_config.checkpoint)
                 subnet_ckpts = {k: {} for k in net.keys()}
                 for k, v in ckpt.items():
                     for subnet_name in net.keys():
                         if k.startwith(subnet_name):
-                            subnet_ckpts[subnet_name][k.replace(
-                                subnet_name + '.', '')] = v
+                            subnet_ckpts[subnet_name][
+                                k.replace(subnet_name + ".", "")
+                            ] = v
                             break
 
                 for subnet_name, subnet in net.items():
                     subnet.load_state_dict(subnet_ckpts[subnet_name])
 
-        elif network_config.name == 'bit' and not network_config.normal_load:
+        elif network_config.name == "bit" and not network_config.normal_load:
             net.load_from(np.load(network_config.checkpoint))
-        elif network_config.name == 'vit':
+        elif network_config.name == "vit":
             pass
         else:
             try:
-                net.load_state_dict(torch.load(network_config.checkpoint),
-                                    strict=False)
+                net.load_state_dict(torch.load(network_config.checkpoint), strict=False)
             except RuntimeError:
                 # sometimes fc should not be loaded
                 loaded_pth = torch.load(network_config.checkpoint)
-                loaded_pth.pop('fc.weight')
-                loaded_pth.pop('fc.bias')
+                loaded_pth.pop("fc.weight")
+                loaded_pth.pop("fc.bias")
                 net.load_state_dict(loaded_pth, strict=False)
-        print('Model Loading {} Completed!'.format(network_config.name))
+        print("Model Loading {} Completed!".format(network_config.name))
 
     if network_config.num_gpus > 1:
         if type(net) is dict:
@@ -85,12 +83,12 @@ def get_network(config):
                 net[key] = torch.nn.parallel.DistributedDataParallel(
                     subnet.cuda(),
                     device_ids=[comm.get_local_rank()],
-                    broadcast_buffers=True)
+                    broadcast_buffers=True,
+                )
         else:
             net = torch.nn.parallel.DistributedDataParallel(
-                net.cuda(),
-                device_ids=[comm.get_local_rank()],
-                broadcast_buffers=True)
+                net.cuda(), device_ids=[comm.get_local_rank()], broadcast_buffers=True
+            )
 
     if network_config.num_gpus > 0:
         if type(net) is dict:

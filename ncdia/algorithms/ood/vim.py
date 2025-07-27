@@ -13,6 +13,7 @@ from scipy.special import logsumexp
 from tqdm import tqdm
 from .metrics import ood_metrics, search_threshold
 
+
 @ALGORITHMS.register
 class VIM(BaseAlg):
     """Virtual-Logit Matching (ViM) method for OOD detection.
@@ -37,16 +38,21 @@ class VIM(BaseAlg):
     Returns:
         fpr (float): False positive rate.
         auroc (float): Area under the ROC curve.
-        aupr_in (float): Area under the precision-recall curve 
+        aupr_in (float): Area under the precision-recall curve
             for in-distribution samples.
         aupr_out (float): Area under the precision-recall curve
             for out-of-distribution
     """
+
     def __init__(self, trainer, dim) -> None:
         super().__init__(trainer)
         self.trainer = trainer
         # use a dict to store hyperparameters
-        self.hyparameters = {"dim": dim, 'w': self.trainer.model.network.fc.weight.data.cpu().numpy(), 'b': self.trainer.model.network.fc.bias.data.cpu().numpy()}
+        self.hyparameters = {
+            "dim": dim,
+            "w": self.trainer.model.network.fc.weight.data.cpu().numpy(),
+            "b": self.trainer.model.network.fc.bias.data.cpu().numpy(),
+        }
 
     def val_step(self, trainer, data, label, *args, **kwargs):
         """Validation step for Decoupling MaxLogit.
@@ -76,7 +82,6 @@ class VIM(BaseAlg):
 
         return {"loss": loss.item(), "acc": acc.item()}
 
-
     def test_step(self, trainer, data, label, *args, **kwargs):
         """Test step for Decoupling MaxLogit.
 
@@ -95,14 +100,28 @@ class VIM(BaseAlg):
         return self.val_step(trainer, data, label, *args, **kwargs)
 
     @staticmethod
-    def eval(id_gt: torch.Tensor ,id_logits: torch.Tensor, id_feat: torch.Tensor, 
-            ood_logits: torch.Tensor, ood_feat: torch.Tensor, 
-            train_logits: torch.Tensor = None, train_feat: torch.Tensor = None,  train_gt: torch.Tensor = None,
-            tpr_th: float = 0.95, prec_th: float = None, hyparameters: dict = None,
-            id_local_logits = None, id_local_feat = None, ood_local_logits = None,
-            ood_local_feat = None, train_local_logits = None, train_local_feat = None,
-            prototypes = None, s_prototypes = None, hyperparameters = None
-            ):
+    def eval(
+        id_gt: torch.Tensor,
+        id_logits: torch.Tensor,
+        id_feat: torch.Tensor,
+        ood_logits: torch.Tensor,
+        ood_feat: torch.Tensor,
+        train_logits: torch.Tensor = None,
+        train_feat: torch.Tensor = None,
+        train_gt: torch.Tensor = None,
+        tpr_th: float = 0.95,
+        prec_th: float = None,
+        hyparameters: dict = None,
+        id_local_logits=None,
+        id_local_feat=None,
+        ood_local_logits=None,
+        ood_local_feat=None,
+        train_local_logits=None,
+        train_local_feat=None,
+        prototypes=None,
+        s_prototypes=None,
+        hyperparameters=None,
+    ):
         """Decoupled MaxLogit+ (DML+) method for OOD detection.
 
         Decoupling MaxLogit for Out-of-Distribution Detection
@@ -123,45 +142,39 @@ class VIM(BaseAlg):
         Returns:
             fpr (float): False positive rate.
             auroc (float): Area under the ROC curve.
-            aupr_in (float): Area under the precision-recall curve 
+            aupr_in (float): Area under the precision-recall curve
                 for in-distribution samples.
             aupr_out (float): Area under the precision-recall curve
                 for out-of-distribution
         """
         print("VIM inference..")
 
-        w, b = hyparameters['w'], hyparameters['b']
-        dim = hyparameters['dim']
+        w, b = hyparameters["w"], hyparameters["b"]
+        dim = hyparameters["dim"]
         feature_id_train = train_feat.cpu().numpy()
         logit_id_train = feature_id_train @ w.T + b
         u = -np.matmul(pinv(w), b)
         ec = EmpiricalCovariance(assume_centered=True)
         ec.fit(feature_id_train - u)
         eig_vals, eigen_vectors = np.linalg.eig(ec.covariance_)
-        NS = np.ascontiguousarray(
-            (eigen_vectors.T[np.argsort(eig_vals * -1)[dim:]]).T)
+        NS = np.ascontiguousarray((eigen_vectors.T[np.argsort(eig_vals * -1)[dim:]]).T)
 
-        vlogit_id_train = norm(np.matmul(feature_id_train - u,
-                                            NS),
-                                axis=-1)
-        alpha = logit_id_train.max(
-            axis=-1).mean() / vlogit_id_train.mean()
-        print(f'{alpha=:.4f}')
-        
+        vlogit_id_train = norm(np.matmul(feature_id_train - u, NS), axis=-1)
+        alpha = logit_id_train.max(axis=-1).mean() / vlogit_id_train.mean()
+        print(f"{alpha=:.4f}")
+
         id_feat = id_feat.cpu()
         logit_ood = id_feat @ w.T + b
         _, pred = torch.max(logit_ood, dim=1)
         energy_ood = logsumexp(logit_ood.numpy(), axis=-1)
-        vlogit_ood = norm(np.matmul(id_feat.numpy() - u, NS),
-                          axis=-1) * alpha
+        vlogit_ood = norm(np.matmul(id_feat.numpy() - u, NS), axis=-1) * alpha
         id_score = -vlogit_ood + energy_ood
 
         ood_feat = ood_feat.cpu()
         logit_ood = ood_feat @ w.T + b
         _, pred = torch.max(logit_ood, dim=1)
         energy_ood = logsumexp(logit_ood.numpy(), axis=-1)
-        vlogit_ood = norm(np.matmul(ood_feat.numpy() - u, NS),
-                          axis=-1) * alpha
+        vlogit_ood = norm(np.matmul(ood_feat.numpy() - u, NS), axis=-1) * alpha
         ood_score = -vlogit_ood + energy_ood
 
         conf = np.concatenate([id_score, ood_score])
@@ -174,4 +187,6 @@ class VIM(BaseAlg):
             # return get_measures(id_conf, ood_conf, tpr_th), None
         else:
             # return conf, label, *ood_metrics(conf, label, tpr_th), *search_threshold(conf, label, prec_th)
-            return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
+            return ood_metrics(conf, label, tpr_th), search_threshold(
+                conf, label, prec_th
+            )

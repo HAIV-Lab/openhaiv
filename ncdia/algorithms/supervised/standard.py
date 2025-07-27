@@ -14,6 +14,7 @@ class StandardSL(BaseAlg):
         - test_step(trainer, data, label, *args, **kwargs)
 
     """
+
     def train_step(self, trainer, data, label, *args, **kwargs):
         """Training step for standard supervised learning.
 
@@ -35,7 +36,7 @@ class StandardSL(BaseAlg):
         device = trainer.device
 
         data, label = data.to(device), label.to(device)
-        if hasattr(model, 'forward') and 'label' in model.forward.__code__.co_varnames:
+        if hasattr(model, "forward") and "label" in model.forward.__code__.co_varnames:
             outputs = model(data, label)
         else:
             outputs = model(data)
@@ -67,7 +68,7 @@ class StandardSL(BaseAlg):
 
         with torch.no_grad():
             data, label = data.to(device), label.to(device)
-            if hasattr(model, "evaluate") and callable(getattr(model, 'evaluate')):
+            if hasattr(model, "evaluate") and callable(getattr(model, "evaluate")):
                 outputs = model.evaluate(data)
             else:
                 outputs = model(data)

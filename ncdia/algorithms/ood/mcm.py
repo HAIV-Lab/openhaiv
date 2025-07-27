@@ -10,6 +10,7 @@ import numpy as np
 from tqdm import tqdm
 from .metrics import ood_metrics, search_threshold
 
+
 @ALGORITHMS.register
 class MCM(BaseAlg):
 
@@ -31,33 +32,31 @@ class MCM(BaseAlg):
 
         return {"loss": loss.item(), "acc": acc.item()}
 
-
     def test_step(self, trainer, data, label, *args, **kwargs):
 
         return self.val_step(trainer, data, label, *args, **kwargs)
 
-
     @staticmethod
     def eval(
         id_gt: torch.Tensor,
-        id_logits: torch.Tensor, 
+        id_logits: torch.Tensor,
         id_feat: torch.Tensor,
-        ood_logits: torch.Tensor, 
-        ood_feat: torch.Tensor, 
-        id_local_logits: torch.Tensor=None, 
-        id_local_feat: torch.Tensor=None, 
-        ood_local_logits: torch.Tensor=None, 
-        ood_local_feat: torch.Tensor=None,
-        train_gt: torch.Tensor = None, 
-        train_logits: torch.Tensor = None, 
-        train_feat: torch.Tensor = None, 
-        train_local_logits: torch.Tensor = None, 
+        ood_logits: torch.Tensor,
+        ood_feat: torch.Tensor,
+        id_local_logits: torch.Tensor = None,
+        id_local_feat: torch.Tensor = None,
+        ood_local_logits: torch.Tensor = None,
+        ood_local_feat: torch.Tensor = None,
+        train_gt: torch.Tensor = None,
+        train_logits: torch.Tensor = None,
+        train_feat: torch.Tensor = None,
+        train_local_logits: torch.Tensor = None,
         train_local_feat: torch.Tensor = None,
-        prototypes: torch.Tensor = None, 
+        prototypes: torch.Tensor = None,
         s_prototypes: torch.Tensor = None,
-        tpr_th: float = 0.95, 
-        prec_th: float = None, 
-        hyperparameters = None
+        tpr_th: float = 0.95,
+        prec_th: float = None,
+        hyperparameters=None,
     ):
         """
         Args:
@@ -88,15 +87,13 @@ class MCM(BaseAlg):
             aupr_in (float): Area under the precision-recall curve for in-distribution samples.
             aupr_out (float): Area under the precision-recall curve for out-of-distribution
         """
-        T = hyperparameters['T']
+        T = hyperparameters["T"]
         print("MCM inference..")
         neg_ood_gt = -1 * np.ones(ood_logits.shape[0])
 
-        id_conf, _ = torch.max(
-            torch.softmax(id_logits / T, dim=1), dim=1)
-        ood_conf, _ = torch.max(
-            torch.softmax(ood_logits / T, dim=1), dim=1)
-        
+        id_conf, _ = torch.max(torch.softmax(id_logits / T, dim=1), dim=1)
+        ood_conf, _ = torch.max(torch.softmax(ood_logits / T, dim=1), dim=1)
+
         conf = np.concatenate([id_conf.cpu(), ood_conf.cpu()])
         label = np.concatenate([id_gt.cpu(), neg_ood_gt])
 
@@ -105,5 +102,6 @@ class MCM(BaseAlg):
             return ood_metrics(conf, label, tpr_th), None
         else:
             # return conf, label, *ood_metrics(conf, label, tpr_th), *search_threshold(conf, label, prec_th)
-            return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
-
+            return ood_metrics(conf, label, tpr_th), search_threshold(
+                conf, label, prec_th
+            )

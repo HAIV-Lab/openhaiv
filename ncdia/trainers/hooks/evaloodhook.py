@@ -6,16 +6,15 @@ from .hook import Hook
 
 @HOOKS.register
 class NCDHook(Hook):
-    """A hook to execute OOD and NCD detection to relabel data
-    """
+    """A hook to execute OOD and NCD detection to relabel data"""
 
-    priority = 'NORMAL'
+    priority = "NORMAL"
 
     default_loader = {
-        'batch_size': 64,
-        'shuffle': False,
-        'num_workers': 8,
-        'pin_memory': True,
+        "batch_size": 64,
+        "shuffle": False,
+        "num_workers": 8,
+        "pin_memory": True,
     }
 
     def init_trainer(self, trainer) -> None:
@@ -42,7 +41,7 @@ class NCDHook(Hook):
 
         trainer._train_loader = ncd_detector.relabel(
             trainer.train_loader,
-            metrics=ncd_cfg.metrics or ['msp'],
+            metrics=ncd_cfg.metrics or ["msp"],
             tpr_th=ncd_cfg.tpr_th or 0.95,
             prec_th=ncd_cfg.prec_th or 0.42,
         )

@@ -3,9 +3,18 @@ from torchvision.transforms._presets import ImageClassification
 from torchvision.models._meta import _IMAGENET_CATEGORIES
 from torchvision.models._api import Weights, WeightsEnum
 
-__all__ = ['ResNet18_Weights', 'ResNet34_Weights', 'ResNet50_Weights', 'ResNet101_Weights',
-           'ResNet152_Weights', 'ResNeXt50_32X4D_Weights', 'ResNeXt101_32X8D_Weights',
-           'ResNeXt101_64X4D_Weights', 'Wide_ResNet50_2_Weights', 'Wide_ResNet101_2_Weights']
+__all__ = [
+    "ResNet18_Weights",
+    "ResNet34_Weights",
+    "ResNet50_Weights",
+    "ResNet101_Weights",
+    "ResNet152_Weights",
+    "ResNeXt50_32X4D_Weights",
+    "ResNeXt101_32X8D_Weights",
+    "ResNeXt101_64X4D_Weights",
+    "Wide_ResNet50_2_Weights",
+    "Wide_ResNet101_2_Weights",
+]
 
 
 _COMMON_META = {

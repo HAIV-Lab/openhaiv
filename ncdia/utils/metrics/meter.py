@@ -1,12 +1,11 @@
-
-
 class BaseMeter(object):
     """Base class for meters.
 
     Attributes:
         value (Any): Value of meter.
-        
+
     """
+
     def __init__(self):
         super(BaseMeter, self).__init__()
         self.reset()
@@ -19,10 +18,10 @@ class BaseMeter(object):
     def reset(self):
         """Reset meter."""
         raise NotImplementedError
-    
+
     def update(self, val, n: int = 1):
         """Update meter.
-        
+
         Args:
             val (Any): Value to update.
             n (int): Number of times to update.
@@ -48,8 +47,9 @@ class AverageMeter(BaseMeter):
         >>> meter.update(2)
         >>> meter.avg
         1.5
-        
+
     """
+
     @property
     def value(self):
         return self.avg

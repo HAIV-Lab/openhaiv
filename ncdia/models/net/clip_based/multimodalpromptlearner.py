@@ -6,24 +6,31 @@ from ncdia.utils import MODELS, Configs
 from .clip_maple import simple_tokenizer as _Tokenizer
 
 _tokenizer = _Tokenizer()
+
+
 def _get_clones(module, N):
     return nn.ModuleList([copy.deepcopy(module) for i in range(N)])
+
 
 @MODELS.register
 class MultiModalPromptLearner(nn.Module):
     def __init__(self, cfg, classnames, clip_model):
         super().__init__()
         n_cls = len(classnames)
-        n_ctx = cfg.backbone.N_CTX # 16 or 4
+        n_ctx = cfg.backbone.N_CTX  # 16 or 4
         ctx_init = cfg.backbone.CTX_INIT  # ''
         dtype = clip_model.dtype
         ctx_dim = clip_model.ln_final.weight.shape[0]
         clip_imsize = clip_model.visual.input_resolution
-        cfg_imsize = cfg.backbone.image_size # 224
-        assert cfg_imsize == clip_imsize, f"cfg_imsize ({cfg_imsize}) must equal to clip_imsize ({clip_imsize})"
+        cfg_imsize = cfg.backbone.image_size  # 224
+        assert (
+            cfg_imsize == clip_imsize
+        ), f"cfg_imsize ({cfg_imsize}) must equal to clip_imsize ({clip_imsize})"
         assert cfg.backbone.PROMPT_DEPTH >= 1, "For MaPLe, PROMPT_DEPTH should be >= 1"
-        self.compound_prompts_depth = cfg.backbone.PROMPT_DEPTH  # max=12, but will create 11 such shared prompts
-    
+        self.compound_prompts_depth = (
+            cfg.backbone.PROMPT_DEPTH
+        )  # max=12, but will create 11 such shared prompts
+
         if ctx_init and (n_ctx) <= 4:
             # use given words to initialize context vectors
             ctx_init = ctx_init.replace("_", " ")
@@ -44,13 +51,13 @@ class MultiModalPromptLearner(nn.Module):
             nn.init.normal_(ctx_vectors, std=0.02)
             prompt_prefix = " ".join(["X"] * n_ctx)
 
-        print('MaPLe design: Multi-modal Prompt Learning')
+        print("MaPLe design: Multi-modal Prompt Learning")
         print(f'Initial context: "{prompt_prefix}"')
         print(f"Number of context words (tokens): {n_ctx}")
 
         # These below, related to the shallow prompts
         # Linear layer so that the tokens will project to 512 and will be initialized from 768
-        self.proj = nn.Linear(ctx_dim, 768) # to be optimized
+        self.proj = nn.Linear(ctx_dim, 768)  # to be optimized
         self.proj.half()
         self.ctx = nn.Parameter(ctx_vectors)  # to be optimized
 
@@ -59,19 +66,24 @@ class MultiModalPromptLearner(nn.Module):
 
         # Minimum can be 1, which defaults to shallow MaPLe
         # compound prompts
-        self.compound_prompts_text = nn.ParameterList([nn.Parameter(torch.empty(n_ctx, 512))
-                                                      for _ in range(self.compound_prompts_depth - 1)])
+        self.compound_prompts_text = nn.ParameterList(
+            [
+                nn.Parameter(torch.empty(n_ctx, 512))
+                for _ in range(self.compound_prompts_depth - 1)
+            ]
+        )
         for single_para in self.compound_prompts_text:
             nn.init.normal_(single_para, std=0.02)
         # Also make corresponding projection layers, for each prompt
         single_layer = nn.Linear(ctx_dim, 768)
-        self.compound_prompt_projections = _get_clones(single_layer, self.compound_prompts_depth - 1)
-
+        self.compound_prompt_projections = _get_clones(
+            single_layer, self.compound_prompts_depth - 1
+        )
 
         classnames = [name.replace("_", " ") for name in classnames]
         name_lens = [len(_tokenizer.encode(name)) for name in classnames]
         prompts = [prompt_prefix + " " + name + "." for name in classnames]
-        
+
         tokenized_prompts = torch.cat([clip.tokenize(p) for p in prompts])
         with torch.no_grad():
             embedding = clip_model.token_embedding(tokenized_prompts).type(dtype)
@@ -126,4 +138,9 @@ class MultiModalPromptLearner(nn.Module):
             visual_deep_prompts.append(layer(self.compound_prompts_text[index]))
         # Now the other way around
         # We will project the textual prompts from 512 to 768
-        return prompts, self.proj(self.ctx), self.compound_prompts_text, visual_deep_prompts   # pass here original, as for visual 768 is required
+        return (
+            prompts,
+            self.proj(self.ctx),
+            self.compound_prompts_text,
+            visual_deep_prompts,
+        )  # pass here original, as for visual 768 is required

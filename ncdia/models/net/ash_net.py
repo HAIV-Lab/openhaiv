@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 from ncdia.utils import MODELS, Configs
 
+
 @MODELS.register
 class ASHNet(nn.Module):
     def __init__(self, backbone):

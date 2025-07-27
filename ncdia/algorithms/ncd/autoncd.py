@@ -14,7 +14,7 @@ from ncdia.algorithms.ood import AutoOOD
 
 
 class AutoNCD(object):
-    """AutoNCD class for evaluating with OOD metrics and 
+    """AutoNCD class for evaluating with OOD metrics and
     relabeling the OOD dataset for the next session.
 
     Args:
@@ -23,15 +23,16 @@ class AutoNCD(object):
         test_loader (DataLoader): test dataloader
         device (torch.device, optional): device to run the evaluation. Default to None.
         verbose (bool, optional): print the progress bar. Default to False.
-    
+
     """
+
     def __init__(
-            self,
-            model: nn.Module,
-            train_loader: DataLoader,
-            test_loader: DataLoader,
-            device: torch.device = None,
-            verbose: bool = False,
+        self,
+        model: nn.Module,
+        train_loader: DataLoader,
+        test_loader: DataLoader,
+        device: torch.device = None,
+        verbose: bool = False,
     ):
         super(AutoNCD, self).__init__()
         self.model = model.eval()
@@ -44,12 +45,12 @@ class AutoNCD(object):
                 device = param.device
                 break
         self.device = device
-        
+
     @torch.no_grad()
     def inference(
-            self,
-            dataloader: DataLoader,
-            split: str = 'train',
+        self,
+        dataloader: DataLoader,
+        split: str = "train",
     ) -> tuple:
         """Inference the model on the dataloader and return relevant information.
         If split is 'train', return the prototype of the training data.
@@ -76,15 +77,15 @@ class AutoNCD(object):
         print("dataloader.datasets: ", dataloader.dataset)
         tbar = tqdm(dataloader, dynamic_ncols=True, disable=not self.verbose)
         for batch in tbar:
-            data = batch['data'].to(self.device)
-            label = batch['label'].to(self.device)
-            imgpath = batch['imgpath']
+            data = batch["data"].to(self.device)
+            label = batch["label"].to(self.device)
+            imgpath = batch["imgpath"]
 
             joint_preds = self.model(data)
             joint_preds_att = None
             if isinstance(joint_preds, tuple):
                 joint_preds, joint_preds_att = joint_preds
-            joint_preds = joint_preds[:, :self.all_classes]
+            joint_preds = joint_preds[:, : self.all_classes]
             score = torch.softmax(joint_preds, dim=1)
             conf, pred = torch.max(score, dim=1)
             feats = self.model.get_features(data)
@@ -99,7 +100,7 @@ class AutoNCD(object):
                 logits_attrs.append(joint_preds_att.clone().detach().cpu())
                 pred_att = (torch.sigmoid(joint_preds_att) > 0.5).type(torch.int)
                 preds_attrs.append(pred_att)
-        
+
         # convert values into numpy array
         features = torch.cat(features, dim=0)
         logits = torch.cat(logits, dim=0)
@@ -110,7 +111,7 @@ class AutoNCD(object):
             logits_attrs = torch.cat(logits_attrs, dim=0)
             preds_attrs = torch.cat(preds_attrs, dim=0).to(torch.int)
 
-        if split == 'train':
+        if split == "train":
             classes = torch.unique(labels)
             prototype_cls = []
             prototype_att = []
@@ -122,23 +123,28 @@ class AutoNCD(object):
                 if logits_attrs != []:
                     att_predictions = logits_attrs[cls_indices]
                     prototype_att.append(torch.mean(att_predictions, dim=0))
-            
+
             if prototype_att != []:
-                return features, logits, torch.stack(prototype_cls), torch.stack(prototype_att)
+                return (
+                    features,
+                    logits,
+                    torch.stack(prototype_cls),
+                    torch.stack(prototype_att),
+                )
 
             return features, logits, torch.stack(prototype_cls)
 
         if logits_attrs != []:
             return imgpaths, features, logits, preds, labels, logits_attrs
-        
+
         return imgpaths, features, logits, preds, labels
-    
+
     def relabel(
-            self,
-            ood_loader: DataLoader,
-            metrics: str | list = [],
-            tpr_th: float = 0.95,
-            prec_th: float = None,
+        self,
+        ood_loader: DataLoader,
+        metrics: str | list = [],
+        tpr_th: float = 0.95,
+        prec_th: float = None,
     ):
         """Relabel the OOD dataset for the next session.
 
@@ -162,13 +168,18 @@ class AutoNCD(object):
         self.base_classes = self.train_loader.dataset.num_classes
         self.inc_classes = self.ood_loader.dataset.num_classes
         self.all_classes = self.base_classes + self.inc_classes
-        
+
         # prepare prototype of training data
-        train_ret = self.inference(self.train_loader, split='train')
-        if len(train_ret)==3:
+        train_ret = self.inference(self.train_loader, split="train")
+        if len(train_ret) == 3:
             self.train_feats, self.train_logits, self.prototype_cls = train_ret
         else:
-            self.train_feats, self.train_logits, self.prototype_cls, self.prototype_att = train_ret
+            (
+                self.train_feats,
+                self.train_logits,
+                self.prototype_cls,
+                self.prototype_att,
+            ) = train_ret
         # self.train_feats, self.train_logits, self.prototype_cls = \
         #     self.inference(self.train_loader, split='train')
         # self.prototype_cls = F.normalize(self.prototype_cls, p=2, dim=1)
@@ -177,49 +188,90 @@ class AutoNCD(object):
         self.ood_attrs = None
 
         # prepare id statistics from test data
-        ret_test = self.inference(self.test_loader, split='test')
-        if len(ret_test)==5:
-            self.id_imgpaths, self.id_feats, self.id_logits, self.id_preds, self.id_labels = ret_test
+        ret_test = self.inference(self.test_loader, split="test")
+        if len(ret_test) == 5:
+            (
+                self.id_imgpaths,
+                self.id_feats,
+                self.id_logits,
+                self.id_preds,
+                self.id_labels,
+            ) = ret_test
         else:
-            self.id_imgpaths, self.id_feats, self.id_logits, self.id_preds, self.id_labels, self.attrs = ret_test
+            (
+                self.id_imgpaths,
+                self.id_feats,
+                self.id_logits,
+                self.id_preds,
+                self.id_labels,
+                self.attrs,
+            ) = ret_test
         # self.id_imgpaths, self.id_feats, self.id_logits, self.id_preds, self.id_labels = \
         #     self.inference(self.test_loader, split='test')
-        
+
         # prepare ood statistics from ood data
-        ret_ood = self.inference(self.ood_loader, split='test')
-        if len(ret_ood)==5:
-            self.ood_imgpaths, self.ood_feats, self.ood_logits, self.ood_preds, self.ood_labels = ret_ood
+        ret_ood = self.inference(self.ood_loader, split="test")
+        if len(ret_ood) == 5:
+            (
+                self.ood_imgpaths,
+                self.ood_feats,
+                self.ood_logits,
+                self.ood_preds,
+                self.ood_labels,
+            ) = ret_ood
         else:
-            self.ood_imgpaths, self.ood_feats, self.ood_logits, self.ood_preds, self.ood_labels, self.ood_attrs = ret_ood
+            (
+                self.ood_imgpaths,
+                self.ood_feats,
+                self.ood_logits,
+                self.ood_preds,
+                self.ood_labels,
+                self.ood_attrs,
+            ) = ret_ood
         # self.ood_imgpaths, self.ood_feats, self.ood_logits, self.ood_preds, self.ood_labels = \
         #     self.inference(self.ood_loader, split='test')
-        
+
         # find the best ood threshold
         if self.attrs is not None:
             self.ood_metrics = AutoOOD.eval(
-                self.prototype_cls, self.fc_weight,
-                self.train_feats, self.train_logits,
-                self.id_feats, self.id_logits, self.id_labels,
-                self.ood_feats, self.ood_logits, self.ood_labels,
-                metrics=metrics, tpr_th=tpr_th, prec_th=prec_th,
-                id_attrs=self.attrs, ood_attrs = self.ood_attrs,
-                prototype_att = self.prototype_att
+                self.prototype_cls,
+                self.fc_weight,
+                self.train_feats,
+                self.train_logits,
+                self.id_feats,
+                self.id_logits,
+                self.id_labels,
+                self.ood_feats,
+                self.ood_logits,
+                self.ood_labels,
+                metrics=metrics,
+                tpr_th=tpr_th,
+                prec_th=prec_th,
+                id_attrs=self.attrs,
+                ood_attrs=self.ood_attrs,
+                prototype_att=self.prototype_att,
             )
         else:
             self.ood_metrics = AutoOOD.eval(
-                self.prototype_cls, self.fc_weight,
-                self.train_feats, self.train_logits,
-                self.id_feats, self.id_logits, self.id_labels,
-                self.ood_feats, self.ood_logits, self.ood_labels,
-                metrics=metrics, tpr_th=tpr_th, prec_th=prec_th,
+                self.prototype_cls,
+                self.fc_weight,
+                self.train_feats,
+                self.train_logits,
+                self.id_feats,
+                self.id_logits,
+                self.id_labels,
+                self.ood_feats,
+                self.ood_logits,
+                self.ood_labels,
+                metrics=metrics,
+                tpr_th=tpr_th,
+                prec_th=prec_th,
             )
-        
 
         if isinstance(metrics, list):
             metric = metrics[0]
         else:
             metric = metrics
-
 
         threshold = self.ood_metrics[metric][6]
         conf = torch.tensor(self.ood_metrics[metric][0])
@@ -236,8 +288,10 @@ class AutoNCD(object):
         novel_target = label[novel_indices]
         novel_feat = total_feat[novel_indices]
 
-        sift_indices, max_similarities = self.search_discrete_point(novel_feat, novel_target)
-        if sift_indices.numel()==0:
+        sift_indices, max_similarities = self.search_discrete_point(
+            novel_feat, novel_target
+        )
+        if sift_indices.numel() == 0:
             sift_indices = torch.tensor([i for i in range(len(max_similarities))])
         assert sift_indices.numel() > 0, "There is no novel samples."
         novel_target = novel_target[sift_indices]
@@ -245,12 +299,13 @@ class AutoNCD(object):
         # sift_indices = sift_indices.tolist()
         novel_imgpath_list = [novel_imgpath_list[i] for i in sift_indices]
 
-        
         kmeans = KMeans(self.inc_classes)
         kmeans.fit(novel_feat)
         pseudo_labels = kmeans.labels_
         pseudo_labels = pseudo_labels + self.inc_classes
-        pseudo_labels = self._split_cluster_label(novel_target, pseudo_labels, self.ood_labels)
+        pseudo_labels = self._split_cluster_label(
+            novel_target, pseudo_labels, self.ood_labels
+        )
 
         ood_loader.dataset.data = novel_imgpath_list
         ood_loader.dataset.targets = pseudo_labels
@@ -276,14 +331,16 @@ class AutoNCD(object):
         assert index.size > 0, "find no ood samples"
         y_label_crop = y_label[index]
         y_pred_crop = y_pred[index]
-        
+
         D = max(y_pred_crop.max(), y_label_crop.max()) + 1
         w = np.zeros((D, D), dtype=int)
         for i in range(y_pred_crop.size):
             w[y_pred_crop[i], y_label_crop[i]] += 1
 
         ind = linear_sum_assignment(w.max() - w)
-        ind = np.vstack(ind).T  # n*2 matrix, each row contains a pair of (pred, label), predicted pseudo label (0~n), true label ()
+        ind = np.vstack(
+            ind
+        ).T  # n*2 matrix, each row contains a pair of (pred, label), predicted pseudo label (0~n), true label ()
 
         cluster_label = np.array([ind[x, 1] for x in y_pred])
 
@@ -291,10 +348,11 @@ class AutoNCD(object):
             cluster_label_diff = np.setdiff1d(cluster_label, ood_class)
             ood_class_diff = np.setdiff1d(ood_class, cluster_label)
             for i in range(cluster_label_diff.size):
-                cluster_label[cluster_label == cluster_label_diff[i]] = ood_class_diff[i]
+                cluster_label[cluster_label == cluster_label_diff[i]] = ood_class_diff[
+                    i
+                ]
 
         return cluster_label
-
 
     def search_discrete_point(self, novel_feat, novel_target):
         kmeans = KMeans(self.inc_classes)
@@ -305,10 +363,9 @@ class AutoNCD(object):
         for i in range(novel_feat.size(0)):
             index, max_similarity = 0, 0.0
             for j in range(novel_feat.size(0)):
-                if i != j and pseudo_labels[i]==pseudo_labels[j]:
+                if i != j and pseudo_labels[i] == pseudo_labels[j]:
                     similarity = cosine_similarity(
-                        novel_feat[i].unsqueeze(0),
-                        novel_feat[j].unsqueeze(0)
+                        novel_feat[i].unsqueeze(0), novel_feat[j].unsqueeze(0)
                     )[0][0]
                     if similarity > max_similarity:
                         index, max_similarity = j, similarity
@@ -319,11 +376,21 @@ class AutoNCD(object):
             max_neighbors.append(index)
         max_similarities = torch.tensor(max_similarities)
 
-        if torch.min(novel_target) >= torch.min(self.ood_labels): # all samples are new class
+        if torch.min(novel_target) >= torch.min(
+            self.ood_labels
+        ):  # all samples are new class
             sift_threshold = torch.min(max_similarities) - 1e-8
         else:
-            sift_threshold = torch.max(max_similarities[novel_target < torch.min(self.ood_labels)]) + 1e-8
-        sift_indices = torch.tensor([i for i in range(len(max_similarities)) \
-                                     if max_similarities[i] > sift_threshold])
-        
+            sift_threshold = (
+                torch.max(max_similarities[novel_target < torch.min(self.ood_labels)])
+                + 1e-8
+            )
+        sift_indices = torch.tensor(
+            [
+                i
+                for i in range(len(max_similarities))
+                if max_similarities[i] > sift_threshold
+            ]
+        )
+
         return sift_indices, max_similarities

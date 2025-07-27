@@ -98,7 +98,7 @@ def set_value(obj: dict, key: str, value):
         set_value(obj[keys[0]], ".".join(keys[1:]), value)
 
 
-class Configs():
+class Configs:
     """Configs class.
 
     Args:
@@ -129,7 +129,7 @@ class Configs():
         1
         >>> cfg.b.c
         2
-        
+
         >>> cfg = Configs()
         >>> cfg.merge_from_list(['a=1', 'b.c=2'])
         >>> cfg.a
@@ -137,7 +137,8 @@ class Configs():
         >>> cfg.b.c
         2
     """
-    def __init__(self, obj=None, name='config'):
+
+    def __init__(self, obj=None, name="config"):
         self.cfg = {}
         self._name = name
 
@@ -156,19 +157,23 @@ class Configs():
         Args:
             cfg_file (str): path to yaml file
         """
-        assert cfg_file.split(".")[-1] in ["yaml", "yml"], "Only yaml files are supported"
+        assert cfg_file.split(".")[-1] in [
+            "yaml",
+            "yml",
+        ], "Only yaml files are supported"
         cfg_file = os.path.abspath(os.path.expanduser(cfg_file))
 
         with open(cfg_file, "r") as f:
             cfg = yaml.load(f, Loader=yaml.FullLoader)
-            if cfg is None: cfg = {}
+            if cfg is None:
+                cfg = {}
 
-        if '_base_' in cfg:
-            if not isinstance(cfg['_base_'], list):
-                cfg['_base_'] = [cfg['_base_']]
+        if "_base_" in cfg:
+            if not isinstance(cfg["_base_"], list):
+                cfg["_base_"] = [cfg["_base_"]]
 
-            for base_cfg_file in cfg['_base_']:
-                self.merge_from_yaml(base_cfg_file) 
+            for base_cfg_file in cfg["_base_"]:
+                self.merge_from_yaml(base_cfg_file)
 
         self.merge_from_dict(cfg)
 
@@ -184,35 +189,37 @@ class Configs():
 
         for k, v in args.items():
             if k in cfg and isinstance(v, dict) and isinstance(cfg[k], dict):
-                if '_delete_' in v and v['_delete_']:
+                if "_delete_" in v and v["_delete_"]:
                     cfg.pop(k)
-                elif '_replace_' in v and v['_replace_']:
-                    v.pop('_replace_')
+                elif "_replace_" in v and v["_replace_"]:
+                    v.pop("_replace_")
                     cfg[k] = v
                 else:
                     self.merge_from_dict(v, cfg[k])
             else:
-                if isinstance(v, dict) and '_delete_' in v:
-                    if v['_delete_']: continue
-                    else: v.pop('_delete_')
-                elif isinstance(v, dict) and '_replace_' in v:
-                    v.pop('_replace_')
+                if isinstance(v, dict) and "_delete_" in v:
+                    if v["_delete_"]:
+                        continue
+                    else:
+                        v.pop("_delete_")
+                elif isinstance(v, dict) and "_replace_" in v:
+                    v.pop("_replace_")
                 cfg[k] = v
 
     def merge_from_list(self, args: list):
         """Merge configs from list.
-        
+
         Args:
             args (list): list to be merged
         """
         args_dict = {}
         for arg in args:
             try:
-                k, v = arg.split('=')
+                k, v = arg.split("=")
             except ValueError:
-                raise ValueError('Argument must be in format k=v')
+                raise ValueError("Argument must be in format k=v")
             set_value(args_dict, k.strip(), v.strip())
-        
+
         self.merge_from_dict(args_dict)
 
     def merge_from_config(self, cfg):
@@ -223,24 +230,24 @@ class Configs():
         """
         if isinstance(cfg, Configs):
             cfg = cfg.cfg
-        
-        if '_base_' in cfg:
-            if not isinstance(cfg['_base_'], list):
-                cfg['_base_'] = [cfg['_base_']]
 
-            for base_cfg_file in cfg['_base_']:
+        if "_base_" in cfg:
+            if not isinstance(cfg["_base_"], list):
+                cfg["_base_"] = [cfg["_base_"]]
+
+            for base_cfg_file in cfg["_base_"]:
                 self.merge_from_yaml(base_cfg_file)
-        
+
         self.merge_from_dict(cfg)
 
     def freeze(self):
-        """Freeze configs, construct a tree of Configs, 
-           and set it to global variable _cfg,
-           which can be accessed by 
-           ```
-           >>> from utils.config import get_cfg
-           >>> cfg = get_cfg()
-           ```
+        """Freeze configs, construct a tree of Configs,
+        and set it to global variable _cfg,
+        which can be accessed by
+        ```
+        >>> from utils.config import get_cfg
+        >>> cfg = get_cfg()
+        ```
         """
         cfg = self.cfg
         self.__init__(cfg)
@@ -261,22 +268,22 @@ class Configs():
                 return _value[".".join(key_path[1:])]
             else:
                 raise KeyError('Key "{}" not found in config'.format(key))
-            
+
         else:
             raise KeyError('Key "{}" not found in config'.format(key))
 
     def __str__(self, indent=0):
-        content = ''
+        content = ""
 
         for _key in self.__dict__:
             _value = getattr(self, _key)
 
-            if _key in ['cfg', '_name']:
+            if _key in ["cfg", "_name"]:
                 continue
             elif not isinstance(_value, Configs):
-                content += ' ' * indent + f'{_key}: {_value}\n'
+                content += " " * indent + f"{_key}: {_value}\n"
             else:
-                content += ' ' * indent + f'{_key}:\n'
+                content += " " * indent + f"{_key}:\n"
                 content += _value.__str__(indent + 2)
 
         return content
@@ -286,22 +293,22 @@ class Configs():
             return object.__getattribute__(self, name)
         except AttributeError:
             return None
-    
+
     def __contains__(self, key):
         return key in self.cfg
-    
+
     def __len__(self):
         return len(self.cfg)
-    
+
     def keys(self):
         return self.cfg.keys()
-    
+
     def values(self):
         return self.cfg.values()
-    
+
     def items(self):
         return self.cfg.items()
-    
+
     def __deepcopy__(self, memo):
         new_obj = self.__class__()
         for key, value in self.__dict__.items():
@@ -323,9 +330,9 @@ def setup_cfg(args, default: dict = {}):
 
     # Update default config
     default_cfg = {
-        'seed': -1,
-        'device': 'cuda',
-        'work_dir': "./results/",
+        "seed": -1,
+        "device": "cuda",
+        "work_dir": "./results/",
     }
     for key, value in default.items():
         default_cfg[key] = value
@@ -338,8 +345,8 @@ def setup_cfg(args, default: dict = {}):
         cfg.merge_from_yaml(cfg_file)
 
     for opt in args.opts:
-        if opt.startswith('_base_'):
-            cfg.merge_from_yaml(opt.split('=')[1])
+        if opt.startswith("_base_"):
+            cfg.merge_from_yaml(opt.split("=")[1])
             args.opts.remove(opt)
 
     # Load config from input arguments

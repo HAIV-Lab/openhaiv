@@ -1,7 +1,7 @@
 import os
 import logging
 import itertools
-import numpy as np 
+import numpy as np
 from tqdm import tqdm
 import itertools
 from torch import optim
@@ -27,6 +27,7 @@ from ncdia.dataloader import BaseDataset
 
 from ncdia.models.net.inc_net import IncrementalNet
 
+
 @HOOKS.register
 class BiCHook(AlgHook):
     def __init__(self) -> None:
@@ -41,7 +42,9 @@ class BiCHook(AlgHook):
         # trainer._train_loader = DataLoader(_hist_trainset, **trainer._train_loader_kwargs)
 
         if self._fix_memory and trainer.session > 0:
-            _hist_trainset , new_dataset = self.construct_exemplar_unified(_hist_trainset, trainer.cfg.CIL.per_classes, trainer)
+            _hist_trainset, new_dataset = self.construct_exemplar_unified(
+                _hist_trainset, trainer.cfg.CIL.per_classes, trainer
+            )
             _hist_trainset = MergedDataset([_hist_trainset], replace_transform=True)
             new_dataset = MergedDataset([new_dataset], replace_transform=True)
 
@@ -49,7 +52,9 @@ class BiCHook(AlgHook):
             _hist_trainset.merge([new_dataset], replace_transform=True)
         else:
             _hist_trainset.merge([now_dataset], replace_transform=True)
-        trainer._train_loader = DataLoader(_hist_trainset, **trainer._train_loader_kwargs)
+        trainer._train_loader = DataLoader(
+            _hist_trainset, **trainer._train_loader_kwargs
+        )
 
         _ = trainer.val_loader
         _hist_valset = MergedDataset([trainer.hist_valset], replace_transform=True)
@@ -58,32 +63,32 @@ class BiCHook(AlgHook):
 
     def after_train(self, trainer) -> None:
         trainer.update_hist_dataset(
-            key = 'hist_trainset',
-            new_dataset = trainer.train_loader.dataset,
+            key="hist_trainset",
+            new_dataset=trainer.train_loader.dataset,
             replace_transform=True,
-            inplace=True
+            inplace=True,
         )
 
         trainer.update_hist_dataset(
-            key = 'hist_valset',
-            new_dataset = trainer.val_loader.dataset,
+            key="hist_valset",
+            new_dataset=trainer.val_loader.dataset,
             replace_transform=True,
-            inplace=True
+            inplace=True,
         )
         algorithm = trainer.algorithm
-        filename = 'task_' + str(trainer.session) + '.pth'
+        filename = "task_" + str(trainer.session) + ".pth"
         trainer.save_ckpt(os.path.join(trainer.work_dir, filename))
         old_model = IncrementalNet(
             trainer.cfg.model.network,
             trainer.cfg.CIL.base_classes,
             trainer.cfg.CIL.num_classes,
             trainer.cfg.CIL.att_classes,
-            trainer.cfg.model.net_alice
+            trainer.cfg.model.net_alice,
         )
         old_model.load_state_dict(trainer.model.state_dict())
         for param in old_model.parameters():
             param.requires_grad = False
-        trainer.buffer['old_model'] = old_model
+        trainer.buffer["old_model"] = old_model
 
     def before_val(self, trainer) -> None:
         pass
@@ -99,10 +104,10 @@ class BiCHook(AlgHook):
 
     def after_test(self, trainer) -> None:
         trainer.update_hist_dataset(
-            key = 'hist_testset',
-            new_dataset = trainer.test_loader.dataset,
+            key="hist_testset",
+            new_dataset=trainer.test_loader.dataset,
             replace_transform=True,
-            inplace=True
+            inplace=True,
         )
 
     def construct_exemplar_unified(self, trainset, m, trainer):
@@ -125,8 +130,8 @@ class BiCHook(AlgHook):
         class_counts = np.zeros(total_class)
 
         for i, batch in enumerate(tqdm(data_loader, desc="Calculating class means")):
-            images = batch['data']
-            labels = batch['label']
+            images = batch["data"]
+            labels = batch["label"]
             images = images.cuda()
             with torch.no_grad():
                 features = _network.extract_vector(images)
@@ -145,46 +150,42 @@ class BiCHook(AlgHook):
         selected_indices = {i: [] for i in range(known_class, total_class)}
         selected_features = {i: [] for i in range(known_class, total_class)}
 
-        
-        all_features = []  
-        all_labels = []  
-        all_imgpaths = []  
+        all_features = []
+        all_labels = []
+        all_imgpaths = []
 
         for batch in tqdm(data_loader, desc="Gathering all samples"):
-            images = batch['data'].cuda()  
-            labels = batch['label'].cpu().numpy()  
-            imgpaths = batch['imgpath']  
+            images = batch["data"].cuda()
+            labels = batch["label"].cpu().numpy()
+            imgpaths = batch["imgpath"]
 
-            
             images = images.contiguous().float()
 
-            
             with torch.no_grad():
                 features = _network.extract_vector(images).cpu().numpy()
 
-            
             all_features.append(features)
             all_labels.append(labels)
             all_imgpaths.append(imgpaths)
 
-        
         all_features = np.concatenate(all_features, axis=0)
         all_labels = np.concatenate(all_labels, axis=0)
         all_imgpaths = list(itertools.chain.from_iterable(all_imgpaths))
-        # all_imgpaths = np.concatenate(all_imgpaths, axis=0)  
+        # all_imgpaths = np.concatenate(all_imgpaths, axis=0)
         # print(all_imgpaths)
 
-
-        for class_id in tqdm(range(start_class, known_class), desc="Selecting nearest samples"):
+        for class_id in tqdm(
+            range(start_class, known_class), desc="Selecting nearest samples"
+        ):
             class_indices = np.where(all_labels == class_id)[0]
             if len(class_indices) == 0:
                 continue
 
             class_center = class_means[class_id]
 
-
-            distances = np.linalg.norm(all_features[class_indices] - class_center, axis=1)
-
+            distances = np.linalg.norm(
+                all_features[class_indices] - class_center, axis=1
+            )
 
             nearest_indices = np.argsort(distances)[:m]
             selected_indices[class_id] = class_indices[nearest_indices].tolist()
@@ -197,8 +198,10 @@ class BiCHook(AlgHook):
             retained_images.extend([all_imgpaths[i] for i in indices])
             retained_labels.extend([all_labels[i] for i in indices])
 
-        retained_datasets = BaseDataset(loader=trainer.train_loader.dataset.loader,
-                                        transform=trainer.train_loader.dataset.transform)
+        retained_datasets = BaseDataset(
+            loader=trainer.train_loader.dataset.loader,
+            transform=trainer.train_loader.dataset.transform,
+        )
 
         retained_datasets.images = retained_images
         retained_datasets.labels = retained_labels
@@ -209,22 +212,28 @@ class BiCHook(AlgHook):
             class_indices = np.where(all_labels == class_id)[0]
             all_remaining_images.extend([all_imgpaths[i] for i in class_indices])
             all_remaining_labels.extend([all_labels[i] for i in class_indices])
-        all_remaining_datasets = BaseDataset(loader=trainer.train_loader.dataset.loader,
-                                             transform=trainer.train_loader.dataset.transform)
+        all_remaining_datasets = BaseDataset(
+            loader=trainer.train_loader.dataset.loader,
+            transform=trainer.train_loader.dataset.transform,
+        )
         all_remaining_datasets.images = all_remaining_images
         all_remaining_datasets.labels = all_remaining_labels
 
         return retained_datasets, all_remaining_datasets
+
 
 class BiasLayer(nn.Module):
     def __init__(self):
         super(BiasLayer, self).__init__()
         self.alpha = nn.Parameter(torch.ones(1, requires_grad=True, device="cuda"))
         self.beta = nn.Parameter(torch.zeros(1, requires_grad=True, device="cuda"))
+
     def forward(self, x):
         return self.alpha * x + self.beta
+
     def printParam(self, i):
         print(i, self.alpha.item(), self.beta.item())
+
 
 @ALGORITHMS.register
 class BiC(BaseAlg):
@@ -248,7 +257,7 @@ class BiC(BaseAlg):
         w = self.args.CIL.way
         for s in range(self.args.CIL.sessions):
             if s > 0:
-                out.append(self.bias_layers[s](x[:, b + (s - 1) * w:b + s * w]))
+                out.append(self.bias_layers[s](x[:, b + (s - 1) * w : b + s * w]))
             else:
                 out.append(self.bias_layers[s](x[:, :b]))
         return torch.cat(out, dim=1)
@@ -266,13 +275,13 @@ class BiC(BaseAlg):
         self._network = trainer.model
         self._network.train()
         if session > 0:
-            self._old_network = trainer.buffer['old_model']
+            self._old_network = trainer.buffer["old_model"]
             self._old_network = self._old_network.cuda()
             self._old_network.eval()
             loss, acc, per_acc = self.loss_process(data, label, session, distill=True)
         else:
             loss, acc, per_acc = self.loss_process(data, label, session, distill=False)
-        ret = {'loss': loss, 'acc': acc, 'per_class_acc': per_acc}
+        ret = {"loss": loss, "acc": acc, "per_class_acc": per_acc}
         return ret
 
     def val_step(self, trainer, data, label, *args, **kwargs):
@@ -301,7 +310,7 @@ class BiC(BaseAlg):
         for _ in range(len(self.bias_layers)):
             self.bias_layers[_].train()
         loss, acc, per_acc = self.loss_process(data, label, session, distill=False)
-        ret = {'loss': loss.item(), 'acc': acc.item(), 'per_class_acc': per_acc}
+        ret = {"loss": loss.item(), "acc": acc.item(), "per_class_acc": per_acc}
         return ret
 
     def test_step(self, trainer, data, label, *args, **kwargs):
@@ -309,7 +318,7 @@ class BiC(BaseAlg):
         self._network = trainer.model
         self._network.eval()
         loss, acc, per_acc = self.loss_process(data, label, session, distill=False)
-        ret = {'loss': loss.item(), 'acc': acc.item(), 'per_class_acc': per_acc}
+        ret = {"loss": loss.item(), "acc": acc.item(), "per_class_acc": per_acc}
         return ret
 
     def get_net(self):

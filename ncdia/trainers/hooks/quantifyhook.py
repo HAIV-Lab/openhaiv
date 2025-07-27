@@ -17,14 +17,14 @@ class QuantifyHook(AlgHook):
         verbose (bool, optional): Whether to print the progress. Defaults to False.
     """
 
-    priority = 'NORMAL'
+    priority = "NORMAL"
 
     def __init__(
-            self,
-            gather_train_stats=False,
-            gather_test_stats=False,
-            save_stats=False,
-            verbose=False,
+        self,
+        gather_train_stats=False,
+        gather_test_stats=False,
+        save_stats=False,
+        verbose=False,
     ) -> None:
         super(QuantifyHook, self).__init__()
         self.gather_train_stats = gather_train_stats
@@ -54,12 +54,12 @@ class QuantifyHook(AlgHook):
         # Gather the statistics
         features, logits, labels = [], [], []
         local_features, local_logits = [], []
-        local_feats=None
-        local_preds=None
+        local_feats = None
+        local_preds = None
         for batch in tbar:
-            data = batch['data'].to(device)
-            label = batch['label'].to(device)
-            if hasattr(model, "evaluate") and callable(getattr(model, 'evaluate')):
+            data = batch["data"].to(device)
+            label = batch["label"].to(device)
+            if hasattr(model, "evaluate") and callable(getattr(model, "evaluate")):
                 preds = model.evaluate(data)
             else:
                 preds = model(data)
@@ -77,7 +77,7 @@ class QuantifyHook(AlgHook):
             if local_preds is not None:
                 local_features.append(local_feats.clone().detach().cpu())
                 local_logits.append(local_preds.clone().detach().cpu())
-        
+
         features = torch.cat(features, dim=0)
         logits = torch.cat(logits, dim=0)
         labels = torch.cat(labels, dim=0).to(torch.int)
@@ -115,7 +115,7 @@ class QuantifyHook(AlgHook):
             model=trainer.model,
             dataloader=trainer.train_loader,
             device=trainer.device,
-            verbose=self.verbose
+            verbose=self.verbose,
         )
 
         # Assign training stats to trainer,
@@ -124,8 +124,7 @@ class QuantifyHook(AlgHook):
 
         if self.save_stats:
             torch.save(
-                train_stats,
-                os.path.join(trainer.work_dir, "train_stats_final.pt")
+                train_stats, os.path.join(trainer.work_dir, "train_stats_final.pt")
             )
 
     def after_test(self, trainer) -> None:
@@ -141,7 +140,7 @@ class QuantifyHook(AlgHook):
             model=trainer.model,
             dataloader=trainer.test_loader,
             device=trainer.device,
-            verbose=self.verbose
+            verbose=self.verbose,
         )
 
         # Assign testing statistics to trainer,
@@ -149,10 +148,8 @@ class QuantifyHook(AlgHook):
         trainer._test_stats = test_stats
 
         if self.save_stats:
-            torch.save(
-                test_stats,
-                os.path.join(trainer.work_dir, "test_stats.pt")
-            )
+            torch.save(test_stats, os.path.join(trainer.work_dir, "test_stats.pt"))
+
 
 @HOOKS.register
 class QuantifyHook_OOD(AlgHook):
@@ -165,14 +162,14 @@ class QuantifyHook_OOD(AlgHook):
         verbose (bool, optional): Whether to print the progress. Defaults to False.
     """
 
-    priority = 'NORMAL'
+    priority = "NORMAL"
 
     def __init__(
-            self,
-            gather_train_stats=False,
-            gather_test_stats=False,
-            save_stats=False,
-            verbose=False,
+        self,
+        gather_train_stats=False,
+        gather_test_stats=False,
+        save_stats=False,
+        verbose=False,
     ) -> None:
         super(QuantifyHook_OOD, self).__init__()
         self.gather_train_stats = gather_train_stats
@@ -180,7 +177,9 @@ class QuantifyHook_OOD(AlgHook):
         self.save_stats = save_stats
         self.verbose = verbose
 
-    def gather_stats(self, model, dataloader, device, id_acc=False, verbose=False) -> dict:
+    def gather_stats(
+        self, model, dataloader, device, id_acc=False, verbose=False
+    ) -> dict:
         """Calculate the statistics of dataset.
 
         Args:
@@ -202,12 +201,12 @@ class QuantifyHook_OOD(AlgHook):
         # Gather the statistics
         features, logits, labels = [], [], []
         local_features, local_logits = [], []
-        local_feats=None
-        local_preds=None
+        local_feats = None
+        local_preds = None
         for batch in tbar:
-            data = batch['data'].to(device)
-            label = batch['label'].to(device)
-            if hasattr(model, "evaluate") and callable(getattr(model, 'evaluate')):
+            data = batch["data"].to(device)
+            label = batch["label"].to(device)
+            if hasattr(model, "evaluate") and callable(getattr(model, "evaluate")):
                 preds = model.evaluate(data)
             else:
                 preds = model(data)
@@ -249,7 +248,7 @@ class QuantifyHook_OOD(AlgHook):
         s_prototypes = []
         for cls in torch.unique(labels):
             cls_idx = torch.where(labels == cls)
-            s_logits = torch.softmax(logits/5, dim=1)
+            s_logits = torch.softmax(logits / 5, dim=1)
             cls_preds = logits[cls_idx]
             prototypes.append(torch.mean(cls_preds, dim=0))
             cls_preds = s_logits[cls_idx]
@@ -282,7 +281,7 @@ class QuantifyHook_OOD(AlgHook):
             model=trainer.model,
             dataloader=trainer.train_loader,
             device=trainer.device,
-            verbose=self.verbose
+            verbose=self.verbose,
         )
 
         # Assign training stats to trainer,
@@ -291,8 +290,7 @@ class QuantifyHook_OOD(AlgHook):
 
         if self.save_stats:
             torch.save(
-                train_stats,
-                os.path.join(trainer.work_dir, "train_stats_final.pt")
+                train_stats, os.path.join(trainer.work_dir, "train_stats_final.pt")
             )
 
     def after_test(self, trainer) -> None:
@@ -308,7 +306,7 @@ class QuantifyHook_OOD(AlgHook):
             model=trainer.model,
             dataloader=trainer.test_loader,
             device=trainer.device,
-            verbose=self.verbose
+            verbose=self.verbose,
         )
 
         # Assign testing statistics to trainer,
@@ -316,8 +314,4 @@ class QuantifyHook_OOD(AlgHook):
         trainer._test_stats = test_stats
 
         if self.save_stats:
-            torch.save(
-                test_stats,
-                os.path.join(trainer.work_dir, "test_stats.pt")
-            )
-
+            torch.save(test_stats, os.path.join(trainer.work_dir, "test_stats.pt"))

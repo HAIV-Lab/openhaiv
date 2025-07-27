@@ -1,39 +1,46 @@
 from ncdia.utils import ALGORITHMS
 from .inference import (
-    mls_inf, 
-    msp_inf, 
-    mcm_inf, 
-    glmcm_inf, 
-    dpm_inf, 
-    neglabel_inf, 
-    energy_inf, 
-    vim_inf, 
-    dml_inf, 
-    dmlp_inf, 
+    mls_inf,
+    msp_inf,
+    mcm_inf,
+    glmcm_inf,
+    dpm_inf,
+    neglabel_inf,
+    energy_inf,
+    vim_inf,
+    dml_inf,
+    dmlp_inf,
     prot_inf,
-    klm_inf, 
-    # she_inf, 
+    klm_inf,
+    # she_inf,
     # relation_inf
 )
 
 
 class AutoOOD(object):
-    """AutoOOD class for evaluating OOD detection methods.
-    """
+    """AutoOOD class for evaluating OOD detection methods."""
+
     def __init__(self) -> None:
         super(AutoOOD, self).__init__()
 
     @staticmethod
     def eval(
-            prototype_cls, fc_weight,
-            train_feats, train_logits,
-            id_feats, id_logits, id_labels,
-            ood_feats, ood_logits, ood_labels,
-            metrics: list = [],
-            tpr_th: float = 0.95,
-            prec_th: float = None,
-            id_attrs = None, ood_attrs=None,
-            prototype_att = None
+        prototype_cls,
+        fc_weight,
+        train_feats,
+        train_logits,
+        id_feats,
+        id_logits,
+        id_labels,
+        ood_feats,
+        ood_logits,
+        ood_labels,
+        metrics: list = [],
+        tpr_th: float = 0.95,
+        prec_th: float = None,
+        id_attrs=None,
+        ood_attrs=None,
+        prototype_att=None,
     ) -> dict:
         """Evaluate the OOD detection methods and return OOD scores.
 
@@ -67,7 +74,7 @@ class AutoOOD(object):
                     - label (torch.Tensor): label array
                     - precisions (float): precision when precisions >= prec_th
                     - recalls (float): recall when precisions >= prec_th
-        
+
         """
         ood_scores = {}
         for metric in metrics:
@@ -83,7 +90,7 @@ class AutoOOD(object):
                 fc_weight=fc_weight,
                 prototypes=prototype_cls,
                 tpr_th=tpr_th,
-                prec_th=prec_th
+                prec_th=prec_th,
             )
             # if metric == 'msp':
             #     ood_scores['msp'] = msp(id_labels, id_logits, ood_labels, ood_logits, tpr_th, prec_th)
@@ -109,62 +116,62 @@ class AutoOOD(object):
             #     ood_scores['attr'] = prot(id_labels, [id_attrs], ood_labels, [ood_attrs], [prototype_att], tpr_th, prec_th)
             # else:
             #     raise ValueError(f"Unknown metric: {metric}")
-        
+
         return ood_scores
 
     @staticmethod
     def inference(
-            metrics,
-            logits, feat,
-            train_logits,
-            train_feat,
-            labels,
-            fc_weight,
-            prototype,
-            logits_att=None,
-            prototype_att=None,
-            global_logits=None,
-            local_logits=None, 
+        metrics,
+        logits,
+        feat,
+        train_logits,
+        train_feat,
+        labels,
+        fc_weight,
+        prototype,
+        logits_att=None,
+        prototype_att=None,
+        global_logits=None,
+        local_logits=None,
     ) -> dict:
         conf = {}
         for metric in metrics:
-            if metric == 'mls':
-                conf['mls'] = mls_inf(logits)
-            elif metric == 'msp':
-                conf['msp'] = msp_inf(logits)
-            elif metric == 'mcm':
-                conf['mcm'] = mcm_inf(logits)
-            elif metric == 'glmcm':
-                conf['glmcm'] = glmcm_inf(global_logits, local_logits)
-            elif metric == 'dpm':
-                conf['dpm'] = dpm_inf(logits, train_logits)
+            if metric == "mls":
+                conf["mls"] = mls_inf(logits)
+            elif metric == "msp":
+                conf["msp"] = msp_inf(logits)
+            elif metric == "mcm":
+                conf["mcm"] = mcm_inf(logits)
+            elif metric == "glmcm":
+                conf["glmcm"] = glmcm_inf(global_logits, local_logits)
+            elif metric == "dpm":
+                conf["dpm"] = dpm_inf(logits, train_logits)
             # elif metric == 'neglabel':
             #     conf['neglabel'] = neglabel_inf(positive_logits, negative_logits)
-            elif metric == 'energy':
-                conf['energy'] = energy_inf(logits)
-            elif metric == 'vim':
-                conf['vim'] = vim_inf(logits, feat, train_logits, train_feat)
-            elif metric == 'dml':
-                conf['dml'] = dml_inf(feat, fc_weight)
-            elif metric == 'dmlp':
-                conf['dmlp'] = dmlp_inf(logits, feat, fc_weight, prototype)
-            elif metric == 'klm':
-                conf['klm'] = klm_inf(logits, train_logits)
+            elif metric == "energy":
+                conf["energy"] = energy_inf(logits)
+            elif metric == "vim":
+                conf["vim"] = vim_inf(logits, feat, train_logits, train_feat)
+            elif metric == "dml":
+                conf["dml"] = dml_inf(feat, fc_weight)
+            elif metric == "dmlp":
+                conf["dmlp"] = dmlp_inf(logits, feat, fc_weight, prototype)
+            elif metric == "klm":
+                conf["klm"] = klm_inf(logits, train_logits)
             # elif metric == 'she':
             #     conf['she'] = she_inf(logits, feat, train_feat)
             # elif metric == 'relation':
             #     conf['relation'] = relation_inf(logits, feat, train_logits, train_feat)
 
-
-            elif metric == 'cls':
-                conf['cls'] = prot_inf([logits], [prototype])
-            elif metric == 'att':
-                conf['att'] = prot_inf([logits], [prototype])
-            elif metric == 'merge':
-                conf['merge'] = prot_inf([logits], [prototype])
-            elif metric == 'attr':
-                conf['attr'] = prot_inf([logits_att], [prototype_att])
+            elif metric == "cls":
+                conf["cls"] = prot_inf([logits], [prototype])
+            elif metric == "att":
+                conf["att"] = prot_inf([logits], [prototype])
+            elif metric == "merge":
+                conf["merge"] = prot_inf([logits], [prototype])
+            elif metric == "attr":
+                conf["attr"] = prot_inf([logits_att], [prototype_att])
             else:
                 raise ValueError(f"Unknown metric: {metric}")
-            
+
         return conf

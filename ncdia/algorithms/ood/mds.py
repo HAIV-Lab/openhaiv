@@ -13,6 +13,7 @@ from scipy.special import logsumexp
 from tqdm import tqdm
 from .metrics import ood_metrics, search_threshold
 
+
 @ALGORITHMS.register
 class MDS(BaseAlg):
     """MDS
@@ -34,14 +35,16 @@ class MDS(BaseAlg):
     Returns:
         fpr (float): False positive rate.
         auroc (float): Area under the ROC curve.
-        aupr_in (float): Area under the precision-recall curve 
+        aupr_in (float): Area under the precision-recall curve
             for in-distribution samples.
         aupr_out (float): Area under the precision-recall curve
             for out-of-distribution
     """
+
     def __init__(self, trainer) -> None:
         super().__init__(trainer)
         self.hyparameters = None
+
     def test_step(self, trainer, data, label, *args, **kwargs):
         """Test step for Decoupling MaxLogit.
 
@@ -58,6 +61,7 @@ class MDS(BaseAlg):
                 - "acc": Accuracy value.
         """
         return self.val_step(trainer, data, label, *args, **kwargs)
+
     def val_step(self, trainer, data, label, *args, **kwargs):
         """Validation step for Decoupling MaxLogit.
 
@@ -87,31 +91,41 @@ class MDS(BaseAlg):
         return {"loss": loss.item(), "acc": acc.item()}
 
     @staticmethod
-    def eval(id_gt: torch.Tensor ,id_logits: torch.Tensor, id_feat: torch.Tensor, 
-            ood_logits: torch.Tensor, ood_feat: torch.Tensor, 
-            train_logits: torch.Tensor = None, train_feat: torch.Tensor = None, train_gt: torch.Tensor = None,
-            tpr_th: float = 0.95, prec_th: float = None, hyparameters: dict = None,
-            id_local_logits = None, id_local_feat = None, ood_local_logits = None,
-            ood_local_feat = None, train_local_logits = None, train_local_feat = None,
-            prototypes = None, s_prototypes = None, hyperparameters = None
-            ):
-        """MDS
-        """
+    def eval(
+        id_gt: torch.Tensor,
+        id_logits: torch.Tensor,
+        id_feat: torch.Tensor,
+        ood_logits: torch.Tensor,
+        ood_feat: torch.Tensor,
+        train_logits: torch.Tensor = None,
+        train_feat: torch.Tensor = None,
+        train_gt: torch.Tensor = None,
+        tpr_th: float = 0.95,
+        prec_th: float = None,
+        hyparameters: dict = None,
+        id_local_logits=None,
+        id_local_feat=None,
+        ood_local_logits=None,
+        ood_local_feat=None,
+        train_local_logits=None,
+        train_local_feat=None,
+        prototypes=None,
+        s_prototypes=None,
+        hyperparameters=None,
+    ):
+        """MDS"""
         class_mean = []
         centered_data = []
         num_classes = train_gt.max().item() + 1
         for c in range(num_classes):
             class_samples = train_feat[train_gt.eq(c)].data
             class_mean.append(class_samples.mean(0))
-            centered_data.append(class_samples -
-                                    class_mean[c].view(1, -1))
+            centered_data.append(class_samples - class_mean[c].view(1, -1))
 
         class_mean = torch.stack(class_mean)
 
-        group_lasso = EmpiricalCovariance(
-            assume_centered=False)
-        group_lasso.fit(
-            torch.cat(centered_data).cpu().numpy().astype(np.float32))
+        group_lasso = EmpiricalCovariance(assume_centered=False)
+        group_lasso.fit(torch.cat(centered_data).cpu().numpy().astype(np.float32))
         # inverse of covariance
         precision = torch.from_numpy(group_lasso.precision_).float()
 
@@ -122,7 +136,8 @@ class MDS(BaseAlg):
         for c in range(num_classes):
             tensor = id_feat.cpu() - class_mean[c].view(1, -1)
             class_scores[:, c] = -torch.matmul(
-                torch.matmul(tensor, precision), tensor.t()).diag()
+                torch.matmul(tensor, precision), tensor.t()
+            ).diag()
 
         if_conf = torch.max(class_scores, dim=1)[0]
 
@@ -131,18 +146,21 @@ class MDS(BaseAlg):
         for c in range(num_classes):
             tensor = ood_feat.cpu() - class_mean[c].view(1, -1)
             class_scores[:, c] = -torch.matmul(
-                torch.matmul(tensor, precision), tensor.t()).diag()
+                torch.matmul(tensor, precision), tensor.t()
+            ).diag()
         ood_conf = torch.max(class_scores, dim=1)[0]
         conf = np.concatenate([if_conf.cpu().numpy(), ood_conf.cpu().numpy()])
-        
+
         neg_ood_gt = -1 * np.ones(ood_logits.shape[0])
-        
+
         label = np.concatenate([np.ones_like(if_conf), neg_ood_gt])
-        
+
         if prec_th is None:
             # return conf, label, *ood_metrics(conf, label, tpr_th), None, None, None
             return ood_metrics(conf, label, tpr_th), None
             # return get_measures(id_conf, ood_conf, tpr_th), None
         else:
             # return conf, label, *ood_metrics(conf, label, tpr_th), *search_threshold(conf, label, prec_th)
-            return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
+            return ood_metrics(conf, label, tpr_th), search_threshold(
+                conf, label, prec_th
+            )

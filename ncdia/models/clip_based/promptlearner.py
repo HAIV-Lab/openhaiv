@@ -9,24 +9,25 @@ from ncdia.models.clip_based.clip.simple_tokenizer import SimpleTokenizer as _To
 
 _tokenizer = _Tokenizer()
 
+
 # Textual Prompt Learner
 @MODELS.register
 class PromptLearner(nn.Module):
     def __init__(
-        self, 
-        # cfg, 
-        classnames, 
+        self,
+        # cfg,
+        classnames,
         clip_model,
         N_CTX,
         CTX_INIT,
         image_size,
         CSC,
-        CLASS_TOKEN_POSITION
+        CLASS_TOKEN_POSITION,
     ):
         super().__init__()
         n_cls = len(classnames)
-        # n_ctx = cfg.N_CTX 
-        # ctx_init = cfg.CTX_INIT  
+        # n_ctx = cfg.N_CTX
+        # ctx_init = cfg.CTX_INIT
         n_ctx = N_CTX
         ctx_init = CTX_INIT
         dtype = clip_model.dtype
@@ -34,9 +35,10 @@ class PromptLearner(nn.Module):
         clip_imsize = clip_model.visual.input_resolution
         # cfg_imsize = cfg.image_size # 224
         cfg_imsize = image_size
-        assert cfg_imsize == clip_imsize, f"cfg_imsize ({cfg_imsize}) must equal to clip_imsize ({clip_imsize})"
-        
-    
+        assert (
+            cfg_imsize == clip_imsize
+        ), f"cfg_imsize ({cfg_imsize}) must equal to clip_imsize ({clip_imsize})"
+
         if ctx_init:
             # use given words to initialize context vectors
             ctx_init = ctx_init.replace("_", " ")
@@ -70,7 +72,7 @@ class PromptLearner(nn.Module):
         classnames = [name.replace("_", " ") for name in classnames]
         name_lens = [len(_tokenizer.encode(name)) for name in classnames]
         prompts = [prompt_prefix + " " + name + "." for name in classnames]
-        
+
         tokenized_prompts = torch.cat([clip.tokenize(p) for p in prompts])
         with torch.no_grad():
             embedding = clip_model.token_embedding(tokenized_prompts).type(dtype)
@@ -100,7 +102,7 @@ class PromptLearner(nn.Module):
             prompts = torch.cat(
                 [
                     prefix,  # (n_cls, 1, dim)
-                    ctx,     # (n_cls, n_ctx, dim)
+                    ctx,  # (n_cls, n_ctx, dim)
                     suffix,  # (n_cls, *, dim)
                 ],
                 dim=1,
@@ -118,11 +120,11 @@ class PromptLearner(nn.Module):
                 ctx_i_half2 = ctx[i : i + 1, half_n_ctx:, :]
                 prompt = torch.cat(
                     [
-                        prefix_i,     # (1, 1, dim)
+                        prefix_i,  # (1, 1, dim)
                         ctx_i_half1,  # (1, n_ctx//2, dim)
-                        class_i,      # (1, name_len, dim)
+                        class_i,  # (1, name_len, dim)
                         ctx_i_half2,  # (1, n_ctx//2, dim)
-                        suffix_i,     # (1, *, dim)
+                        suffix_i,  # (1, *, dim)
                     ],
                     dim=1,
                 )
@@ -140,8 +142,8 @@ class PromptLearner(nn.Module):
                 prompt = torch.cat(
                     [
                         prefix_i,  # (1, 1, dim)
-                        class_i,   # (1, name_len, dim)
-                        ctx_i,     # (1, n_ctx, dim)
+                        class_i,  # (1, name_len, dim)
+                        ctx_i,  # (1, n_ctx, dim)
                         suffix_i,  # (1, *, dim)
                     ],
                     dim=1,
@@ -153,20 +155,21 @@ class PromptLearner(nn.Module):
             raise ValueError
 
         return prompts
-    
+
+
 # Textual Prompt Learner for DualCoOp
 @MODELS.register
 class MLCPromptLearner(nn.Module):
     def __init__(
-        self, 
-        # cfg, 
-        classnames, 
+        self,
+        # cfg,
+        classnames,
         clip_model,
         N_CTX,
         CTX_INIT,
         image_size,
         CSC,
-        CLASS_TOKEN_POSITION
+        CLASS_TOKEN_POSITION,
     ):
         super().__init__()
         n_cls = len(classnames)
@@ -192,8 +195,8 @@ class MLCPromptLearner(nn.Module):
             with torch.no_grad():
                 embedding_pos = clip_model.token_embedding(prompt_pos).type(dtype)
                 embedding_neg = clip_model.token_embedding(prompt_neg).type(dtype)
-            ctx_vectors_pos = embedding_pos[0, 1: 1 + n_ctx_pos, :]
-            ctx_vectors_neg = embedding_neg[0, 1: 1 + n_ctx_neg, :]
+            ctx_vectors_pos = embedding_pos[0, 1 : 1 + n_ctx_pos, :]
+            ctx_vectors_neg = embedding_neg[0, 1 : 1 + n_ctx_neg, :]
             prompt_prefix_pos = ctx_init_pos
             prompt_prefix_neg = ctx_init_neg
             # if cfg.TRAINER.COOP_MLC.CSC:
@@ -243,27 +246,35 @@ class MLCPromptLearner(nn.Module):
         tokenized_prompts_pos = torch.cat(tokenized_prompts_pos)
         tokenized_prompts_neg = torch.cat(tokenized_prompts_neg)
         with torch.no_grad():
-            embedding_pos = clip_model.token_embedding(tokenized_prompts_pos).type(dtype)
-            embedding_neg = clip_model.token_embedding(tokenized_prompts_neg).type(dtype)
+            embedding_pos = clip_model.token_embedding(tokenized_prompts_pos).type(
+                dtype
+            )
+            embedding_neg = clip_model.token_embedding(tokenized_prompts_neg).type(
+                dtype
+            )
 
         # These token vectors will be saved when in save_model(),
         # but they should be ignored in load_model() as we want to use
         # those computed using the current class names
-        self.register_buffer("token_prefix_pos", embedding_pos[:, :1, :] )
-        self.register_buffer("token_suffix_pos", embedding_pos[:, 1 + n_ctx_pos:, :])
+        self.register_buffer("token_prefix_pos", embedding_pos[:, :1, :])
+        self.register_buffer("token_suffix_pos", embedding_pos[:, 1 + n_ctx_pos :, :])
         self.register_buffer("token_prefix_neg", embedding_neg[:, :1, :])
-        self.register_buffer("token_suffix_neg", embedding_neg[:, 1 + n_ctx_neg:, :])
+        self.register_buffer("token_suffix_neg", embedding_neg[:, 1 + n_ctx_neg :, :])
 
         self.n_cls = n_cls
         self.n_ctx_pos = n_ctx_pos
         self.n_ctx_neg = n_ctx_neg
-        tokenized_prompts = torch.cat([tokenized_prompts_neg, tokenized_prompts_pos], dim=0)  # torch.Tensor
+        tokenized_prompts = torch.cat(
+            [tokenized_prompts_neg, tokenized_prompts_pos], dim=0
+        )  # torch.Tensor
         self.register_buffer("tokenized_prompts", tokenized_prompts)
         self.name_lens = name_lens
         clip_imsize = clip_model.visual.input_resolution
         # cfg_imsize = cfg.image_size # 224
         cfg_imsize = image_size
-        assert cfg_imsize == clip_imsize, f"cfg_imsize ({cfg_imsize}) must equal to clip_imsize ({clip_imsize})"
+        assert (
+            cfg_imsize == clip_imsize
+        ), f"cfg_imsize ({cfg_imsize}) must equal to clip_imsize ({clip_imsize})"
 
     def forward(self, cls_id=None):
         ctx_pos = self.ctx_pos
@@ -298,7 +309,6 @@ class MLCPromptLearner(nn.Module):
             suffix_pos = self.token_suffix_pos[cls_id]
             suffix_neg = self.token_suffix_neg[cls_id]
 
-
         prompts_pos = torch.cat(
             [
                 prefix_pos,  # (n_cls, 1, dim)
@@ -320,14 +330,16 @@ class MLCPromptLearner(nn.Module):
         prompts = torch.cat([prompts_neg, prompts_pos], dim=0)
 
         if cls_id is not None:
-            tokenized_prompts_pos = self.tokenized_prompts[self.n_cls:][cls_id]
-            tokenized_prompts_neg = self.tokenized_prompts[:self.n_cls][cls_id]
-            tokenized_prompts = torch.cat([tokenized_prompts_neg, tokenized_prompts_pos], dim=0)
+            tokenized_prompts_pos = self.tokenized_prompts[self.n_cls :][cls_id]
+            tokenized_prompts_neg = self.tokenized_prompts[: self.n_cls][cls_id]
+            tokenized_prompts = torch.cat(
+                [tokenized_prompts_neg, tokenized_prompts_pos], dim=0
+            )
         else:
             tokenized_prompts = self.tokenized_prompts
 
-
         return prompts, tokenized_prompts
+
 
 # # Textual and Visual Prompt Learner for methods like Maple
 # def _get_clones(module, N):
@@ -337,7 +349,7 @@ class MLCPromptLearner(nn.Module):
 #     def __init__(self, cfg, classnames, clip_model):
 #         super().__init__()
 #         n_cls = len(classnames)
-#         n_ctx = cfg.backbone.N_CTX 
+#         n_ctx = cfg.backbone.N_CTX
 #         ctx_init = cfg.backbone.CTX_INIT
 #         dtype = clip_model.dtype
 #         ctx_dim = clip_model.ln_final.weight.shape[0]
@@ -346,7 +358,7 @@ class MLCPromptLearner(nn.Module):
 #         assert cfg_imsize == clip_imsize, f"cfg_imsize ({cfg_imsize}) must equal to clip_imsize ({clip_imsize})"
 #         assert cfg.backbone.PROMPT_DEPTH >= 1, "For MaPLe, PROMPT_DEPTH should be >= 1"
 #         self.compound_prompts_depth = cfg.backbone.PROMPT_DEPTH  # max=12, but will create 11 such shared prompts
-    
+
 #         if ctx_init and (n_ctx) <= 4:
 #             # use given words to initialize context vectors
 #             ctx_init = ctx_init.replace("_", " ")
@@ -394,7 +406,7 @@ class MLCPromptLearner(nn.Module):
 #         classnames = [name.replace("_", " ") for name in classnames]
 #         name_lens = [len(_tokenizer.encode(name)) for name in classnames]
 #         prompts = [prompt_prefix + " " + name + "." for name in classnames]
-        
+
 #         tokenized_prompts = torch.cat([clip.tokenize(p) for p in prompts])
 #         with torch.no_grad():
 #             embedding = clip_model.token_embedding(tokenized_prompts).type(dtype)
@@ -450,14 +462,14 @@ class MLCPromptLearner(nn.Module):
 #         # Now the other way around
 #         # We will project the textual prompts from 512 to 768
 #         return prompts, self.proj(self.ctx), self.compound_prompts_text, visual_deep_prompts   # pass here original, as for visual 768 is required
-    
-# # Textual Prompt Learner for NegPrompt    
+
+# # Textual Prompt Learner for NegPrompt
 # @MODELS.register
 # class NegPromptLearner(nn.Module):
 #     def __init__(self, cfg, classnames, clip_model):
 #         super().__init__()
 #         n_cls = len(classnames)
-#         n_ctx = cfg.N_CTX 
+#         n_ctx = cfg.N_CTX
 #         OOD_NUM = cfg.OOD_NUM # number of ood prompts
 #         self.OOD_NUM = OOD_NUM
 #         ctx_init = cfg.CTX_INIT  # ''
@@ -468,7 +480,7 @@ class MLCPromptLearner(nn.Module):
 #         cfg_imsize = cfg.image_size # 224
 
 #         assert cfg_imsize == clip_imsize, f"cfg_imsize ({cfg_imsize}) must equal to clip_imsize ({clip_imsize})"
-        
+
 #         if ctx_init:
 #             # use given words to initialize context vectors
 #             ctx_init = ctx_init.replace("_", " ")
@@ -530,16 +542,16 @@ class MLCPromptLearner(nn.Module):
 #         print(f"Number of context words (tokens): {n_ctx}")
 
 #         classnames = [name.replace("_", " ") for name in classnames]
-#         name_lens = [len(_tokenizer.encode(name)) for name in classnames] 
+#         name_lens = [len(_tokenizer.encode(name)) for name in classnames]
 #         prompts = [prompt_prefix + " " + name + "." for name in classnames]  # 'X X X X X X X X X X X X X X X X toilet paper.'
 #         selected_adj_text, selected_noun_text, unselected_adj_text, unselected_noun_text = get_selected_ood_text_list(self.OOD_NUM)
 #         selected_ood_text = selected_adj_text + selected_noun_text
 #         ood_prompts = [prompt_prefix + " " + name + "." for name in selected_ood_text]
-        
+
 #         tokenized_prompts = torch.cat([clip.tokenize(p) for p in prompts]) # 1000*77
 #         with torch.no_grad():
 #             embedding = clip_model.token_embedding(tokenized_prompts).type(dtype) # 1000*77*512
-        
+
 #         ood_tokenized_prompts = torch.cat([clip.tokenize(p) for p in ood_prompts]) # ood number *77
 #         with torch.no_grad():
 #             ood_embedding = clip_model.token_embedding(ood_tokenized_prompts).type(dtype) # 1000*77*512
@@ -549,11 +561,11 @@ class MLCPromptLearner(nn.Module):
 #         self.register_buffer("token_prefix", embedding[:, :1, :])  # SOS, 1000*1*512
 #         self.register_buffer("token_suffix", embedding[:, 1 + n_ctx :, :])  # CLS, EOS, 1000*60*512
 
-#         self.register_buffer("ood_token_prefix", ood_embedding[:, :1, :])  # SOS, 
-#         self.register_buffer("ood_token_suffix", ood_embedding[:, 1 + n_ctx :, :])  # CLS, EOS, 
+#         self.register_buffer("ood_token_prefix", ood_embedding[:, :1, :])  # SOS,
+#         self.register_buffer("ood_token_suffix", ood_embedding[:, 1 + n_ctx :, :])  # CLS, EOS,
 #         self.n_cls = n_cls # 1000
 #         self.n_ctx = n_ctx # 16
-        
+
 #         self.tokenized_prompts = torch.cat((tokenized_prompts, ood_tokenized_prompts), dim=0)  # torch.Tensor, 1001*77
 #         self.name_lens = name_lens
 #         self.class_token_position = cfg.CLASS_TOKEN_POSITION # end
@@ -638,6 +650,5 @@ class MLCPromptLearner(nn.Module):
 
 #         else:
 #             raise ValueError
-        
-#         return prompts
 
+#         return prompts

@@ -11,17 +11,15 @@ from ncdia.trainers.hooks import AlgHook
 from ncdia.trainers.hooks import QuantifyHook
 
 
-
 @HOOKS.register
 class FinetuneHook(QuantifyHook):
     def __init__(self) -> None:
         super().__init__()
-    
+
     def after_train(self, trainer) -> None:
         algorithm = trainer.algorithm
-        filename = 'task_' + str(trainer.session) + '.pth'
+        filename = "task_" + str(trainer.session) + ".pth"
         trainer.save_ckpt(os.path.join(trainer.work_dir, filename))
-
 
 
 @ALGORITHMS.register
@@ -64,9 +62,9 @@ class Finetune(BaseAlg):
         loss.backward()
 
         ret = {}
-        ret['loss'] = loss
-        ret['acc'] = acc
-        ret['per_class_acc'] = per_acc
+        ret["loss"] = loss
+        ret["acc"] = acc
+        ret["per_class_acc"] = per_acc
 
         return ret
 
@@ -92,7 +90,7 @@ class Finetune(BaseAlg):
         """
 
         session = self.trainer.session
-        test_class = self.args.CIL.base_classes + session  * self.args.CIL.way
+        test_class = self.args.CIL.base_classes + session * self.args.CIL.way
         self._network = trainer.model
         self._network.eval()
         data = data.cuda()
@@ -102,16 +100,16 @@ class Finetune(BaseAlg):
         acc = accuracy(logits_, labels)[0]
         loss = self.loss(logits_, labels)
         per_acc = str(per_class_accuracy(logits_, labels))
-        
+
         ret = {}
-        ret['loss'] = loss.item()
-        ret['acc'] = acc.item()
-        ret['per_class_acc'] = per_acc
-        
+        ret["loss"] = loss.item()
+        ret["acc"] = acc.item()
+        ret["per_class_acc"] = per_acc
+
         return ret
 
     def test_step(self, trainer, data, label, *args, **kwargs):
         return self.val_step(trainer, data, label, *args, **kwargs)
-    
+
     def get_net(self):
         return self._network

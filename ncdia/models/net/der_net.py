@@ -7,12 +7,14 @@ import torch.nn.functional as F
 
 from ncdia.utils import MODELS, Configs
 
+
 @MODELS.register
 class SimpleLinear(nn.Module):
-    '''
+    """
     Reference:
     https://github.com/pytorch/pytorch/blob/master/torch/nn/modules/linear.py
-    '''
+    """
+
     def __init__(self, in_features, out_features, bias=True):
         super(SimpleLinear, self).__init__()
         self.in_features = in_features
@@ -21,11 +23,11 @@ class SimpleLinear(nn.Module):
         if bias:
             self.bias = nn.Parameter(torch.Tensor(out_features))
         else:
-            self.register_parameter('bias', None)
+            self.register_parameter("bias", None)
         self.reset_parameters()
 
     def reset_parameters(self):
-        nn.init.kaiming_uniform_(self.weight, nonlinearity='linear')
+        nn.init.kaiming_uniform_(self.weight, nonlinearity="linear")
         nn.init.constant_(self.bias, 0)
 
     def forward(self, input):
@@ -34,30 +36,31 @@ class SimpleLinear(nn.Module):
 
 @MODELS.register
 class DERNET(nn.Module):
-
     """DERNET for incremental learning.
 
     Args:
         network (Configs): Network configuration.
-    
+
     """
-    cur_class  = [9]
+
+    cur_class = [9]
+
     def __init__(
-            self,
-            network: Configs,
-            base_classes,
-            num_classes,
-            att_classes,
-            net_alice,
-            mode = "ft_cos",
+        self,
+        network: Configs,
+        base_classes,
+        num_classes,
+        att_classes,
+        net_alice,
+        mode="ft_cos",
     ) -> None:
         super().__init__()
         self.args = network.cfg
-        self.args['pretrained'] = True
-        self.args['num_classes'] = 1000
+        self.args["pretrained"] = True
+        self.args["num_classes"] = 1000
         if "type" not in self.args:
-            self.args['type'] = 'resnet18'
-        
+            self.args["type"] = "resnet18"
+
         self.out_dim = None
         self.fc = None
         self.aux_fc = None
@@ -67,24 +70,22 @@ class DERNET(nn.Module):
 
         self.task_sizes = []
         self.convnets = nn.ModuleList()
-        
+
         for i in self.att_classes:
             self.update_fc(i)
-        
-        
-    
+
     @property
     def feature_dim(self):
         if self.out_dim is None:
             return 0
         return self.out_dim * len(self.convnets)
-    
+
     @property
     def num_features(self):
         if self.out_dim is None:
             return 0
         return self.out_dim * len(self.convnets)
-    
+
     def extract_vector(self, x):
         features = []
         for convnet in self.convnets:
@@ -92,9 +93,9 @@ class DERNET(nn.Module):
             features.append(convnet.out_features)
         features = torch.cat(features, 1)
         return features
-    
+
     def forward(self, x):
-        
+
         features = []
         for convnet in self.convnets:
             convnet(x)
@@ -110,13 +111,13 @@ class DERNET(nn.Module):
 
         out.update({"aux_logits": aux_logits, "features": features})
         return out
-    
+
     def update_fc(self, nb_classes):
         if len(self.convnets) == 0:
             self.convnets.append(MODELS.build(self.args))
         else:
             if "type" not in self.args:
-                self.args['type'] = 'resnet18'
+                self.args["type"] = "resnet18"
             self.convnets.append(MODELS.build(self.args).cuda())
             self.convnets[-1].load_state_dict(self.convnets[-2].state_dict())
 
@@ -145,7 +146,7 @@ class DERNET(nn.Module):
 
     def copy(self):
         return copy.deepcopy(self)
-    
+
     def freeze(self):
         for param in self.parameters():
             param.requires_grad = False
