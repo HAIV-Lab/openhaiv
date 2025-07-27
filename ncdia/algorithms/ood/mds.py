@@ -161,6 +161,4 @@ class MDS(BaseAlg):
             # return get_measures(id_conf, ood_conf, tpr_th), None
         else:
             # return conf, label, *ood_metrics(conf, label, tpr_th), *search_threshold(conf, label, prec_th)
-            return ood_metrics(conf, label, tpr_th), search_threshold(
-                conf, label, prec_th
-            )
+            return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)

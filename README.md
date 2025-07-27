@@ -10,11 +10,11 @@
 
 ### 👋 Welcome to OpenHAIV
 
-![intro](docs/images/intro.png)
+<img src="docs/images/intro.png" alt="intro" width="60%"/>
 
-**OpenHAIV** is a comprehensive framework for open-world object recognition, supporting **out-of-distribution detection**, **novel class discovery**, and **incremental learning**. It is designed to enable robust and flexible object recognition in unconstrained environments.
+**OpenHAIV** is a comprehensive framework for open-world object recognition, supporting ***out-of-distribution detection***, ***novel class discovery***, and ***incremental learning***. It is designed to enable robust and flexible object recognition in unconstrained environments.
 
-![pipeline](docs/images/pipeline.png)
+<img src="docs/images/pipeline.png" alt="pipeline" width="60%"/>
 
 The framework adopts a modular design overall, which is reflected in two key aspects.
 
@@ -275,6 +275,7 @@ python ncd.py
   <!--- `AdaScale L`: AdaSCALE: Adaptive Scaling for OOD Detection. Arxiv 2025[[paper](https://arxiv.org/abs/2503.08023)]-->
   <!--- `IODIN`: Going Beyond Conventional OOD Detection. Arxiv 2025[[paper](https://arxiv.org/abs/2411.10794)]-->
   <!--- `NCI`: Detecting Out-of-Distribution Through the Lens of Neural Collapse. CVPR 2025[[paper](https://arxiv.org/abs/2311.01479)]-->
+  
 </details>
 
 <details>
@@ -384,7 +385,7 @@ Please note that all contributors are expected to follow our [Code of Conduct](C
 
 ### 🤝Contributors
 
-Xiang Xiang, Qinhao Zhou, Jing Ma, Zhuo Xu, Jiaxin Dai, Yifan Liang, Hanlin Li, Yao Deng, Zhipeng Chen.
+Xiang Xiang, Qinhao Zhou, Jing Ma, Zhuo Xu, Jiaxin Dai, Yifan Liang, Hanlin Li, Yao Deng, Zhipeng Chen, Zihan Zhang, Yuwen Tan.
 
 <!-- 以下内容在代码仓库公开后可以启用  -->
 <!-- <a href="https://github.com/HAIV-Lab/openhaiv/graphs/contributors">

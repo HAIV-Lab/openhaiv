@@ -111,6 +111,4 @@ class KLM(BaseAlg):
             return ood_metrics(conf, label, tpr_th), None
         else:
             # return conf, label, *ood_metrics(conf, label, tpr_th), *search_threshold(conf, label, prec_th)
-            return ood_metrics(conf, label, tpr_th), search_threshold(
-                conf, label, prec_th
-            )
+            return ood_metrics(conf, label, tpr_th), search_threshold(conf, label, prec_th)
