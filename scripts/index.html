@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>scripts - OpenHAIV</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../stylesheets/custom.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "scripts";
+        var mkdocs_page_input_path = "scripts.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> OpenHAIV
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Get Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="..">Introduction</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../quik/">Quik Start</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../methods/">Reproduced Methods</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../results/">Results</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Documentation</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../overview/">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../config/">config</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../ncdia/">ncdia</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">scripts</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#script-directory-structure">Script Directory Structure</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#naming-conventions">Naming Conventions</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#script-types">Script Types</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#supervised-learning-scripts-sl">Supervised Learning Scripts (sl/)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#incremental-learning-scripts-inc">Incremental Learning Scripts (inc/)</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#class-incremental-learning">Class-incremental Learning</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#few-shot-class-incremental-learning">Few-shot Class-incremental Learning</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#out-of-distribution-detection-scripts-ood">Out-of-Distribution Detection Scripts (ood/)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#batch-processing-scripts">Batch Processing Scripts</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#customizing-scripts">Customizing Scripts</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#running-scripts">Running Scripts</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#advanced-usage">Advanced Usage</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#gpu-selection">GPU Selection</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#multi-stage-training">Multi-stage Training</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#running-on-multiple-gpus">Running on Multiple GPUs</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">More Information</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../people/">People</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../contributing/">Contributing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../citation/">Citation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../acknowledgment/">Acknowledgment</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">OpenHAIV</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Documentation</li>
+      <li class="breadcrumb-item active">scripts</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="scripts">Scripts</h1>
+<p>The OpenHAIV framework provides a comprehensive set of shell scripts that help users quickly execute various experiments. These scripts are organized by task type and provide a convenient way to run experiments with pre-configured settings. This document explains the script directory structure, naming conventions, and how to use and customize these scripts.</p>
+<h2 id="script-directory-structure">Script Directory Structure</h2>
+<p>The scripts are organized in the following directory structure:</p>
+<pre><code>scripts/
+├── sl/           # Supervised Learning scripts
+├── inc/          # Incremental Learning scripts
+├── ood/          # Out-of-Distribution Detection scripts
+└── ncdia_*.sh    # Neural Component Decoupling scripts
+</code></pre>
+<h3 id="naming-conventions">Naming Conventions</h3>
+<p>Scripts follow a consistent naming pattern that indicates:
+1. The task type (e.g., <code>sl_</code>, <code>inc_</code>, <code>det_</code>)
+2. The dataset (e.g., <code>oes_</code>, <code>cifar10_</code>, <code>cub_</code>)
+3. The model architecture (e.g., <code>rn18</code>, <code>coop-b16</code>)
+4. The algorithm or method (e.g., <code>msp</code>, <code>lwf</code>, <code>savc</code>)</p>
+<p>Example: <code>sl_oes_coop-b16.sh</code> indicates a Supervised Learning task on the OES dataset using CoOp-CLIP-B/16 model.</p>
+<h2 id="script-types">Script Types</h2>
+<h3 id="supervised-learning-scripts-sl">Supervised Learning Scripts (<code>sl/</code>)</h3>
+<p>These scripts train models in a standard supervised learning setting. They typically use the <code>PreTrainer</code> trainer and standard classification losses.</p>
+<p>Example:</p>
+<pre><code class="language-bash"># Benchmark: OES
+# Model: ResNet18
+# Method: Cross-Entropy
+# Task: Supervised Learning
+python ncdia/train.py \
+    --cfg configs/pipeline/supervised_learning/sl_oes_rn18.yaml \
+    --opts device='cuda:0'
+</code></pre>
+<p>Common supervised learning scripts include:
+- <code>sl_oes_rn18.sh</code>: Training a ResNet18 model on OES dataset
+- <code>sl_cifar10_rn18.sh</code>: Training a ResNet18 model on CIFAR10 dataset
+- <code>sl_oes_coop-b16.sh</code>: Training a CoOp-CLIP-B/16 model on OES dataset</p>
+<h3 id="incremental-learning-scripts-inc">Incremental Learning Scripts (<code>inc/</code>)</h3>
+<p>These scripts train models in an incremental learning setting, where new classes are introduced over time. There are two main subtypes:</p>
+<h4 id="class-incremental-learning">Class-incremental Learning</h4>
+<p>Example:</p>
+<pre><code class="language-bash"># Benchmark: CUB200
+# Model: ResNet18
+# Method: LwF
+# Task: Class-incremental Learning
+python ncdia/train.py \
+    --cfg configs/pipeline/incremental_learning/inc_cub_lwf.yaml \
+    --opts device='cuda:0'
+</code></pre>
+<h4 id="few-shot-class-incremental-learning">Few-shot Class-incremental Learning</h4>
+<p>Example:</p>
+<pre><code class="language-bash"># Benchmark: BM200
+# Model: ResNet18
+# Method: SAVC
+# Task: Few-shot Class-incremental Learning
+python ncdia/train.py \
+    --cfg configs/pipeline/incremental_learning/inc_BM200_savc.yaml \
+    --opts device='cuda:0'
+</code></pre>
+<p>Common incremental learning scripts include:
+- <code>inc_cub_lwf.sh</code>: Learning without Forgetting on CUB200 dataset
+- <code>inc_cub_icarl.sh</code>: iCaRL method on CUB200 dataset
+- <code>inc_BM200_savc.sh</code>: SAVC method on BM200 dataset (few-shot setting)</p>
+<h3 id="out-of-distribution-detection-scripts-ood">Out-of-Distribution Detection Scripts (<code>ood/</code>)</h3>
+<p>These scripts train and evaluate models for out-of-distribution detection, identifying samples that don't belong to the training distribution.</p>
+<p>Example:</p>
+<pre><code class="language-bash"># Benchmark: OES
+# Model: ResNet50
+# Method: MSP
+# Task: Out-of-Distribution Detection
+python ncdia/train.py \
+    --cfg configs/pipeline/ood_detection/det_oes_rn50_msp.yaml \
+    --opts device='cuda:0'
+</code></pre>
+<p>Common OOD detection scripts include:
+- <code>det_oes_rn50_msp.sh</code>: Maximum Softmax Probability method with ResNet50 on OES dataset
+- <code>det_oes_rn50_mls.sh</code>: Maximum Logit Score method with ResNet50 on OES dataset
+- <code>det_oes_clip-b16_glmcm.sh</code>: GL-MCM method with CLIP-B/16 on OES dataset</p>
+<h3 id="batch-processing-scripts">Batch Processing Scripts</h3>
+<p>Some scripts are designed to run multiple related experiments in sequence:</p>
+<p>Example:</p>
+<pre><code class="language-bash"># Benchmark: OES
+# Model: Multiple CLIP-based Models
+# Method: Multiple Detection Methods
+# Task: Out-of-Distribution Detection (With Training)
+
+bash scripts/ood/det_oes_coop-b16_mcm.sh
+bash scripts/ood/det_oes_locoop-b16_glmcm.sh
+bash scripts/ood/det_oes_sct-b16_glmcm.sh
+bash scripts/ood/det_oes_dpm-b16_dpm.sh
+# More scripts...
+</code></pre>
+<h2 id="customizing-scripts">Customizing Scripts</h2>
+<p>You can customize existing scripts or create new ones by following these steps:</p>
+<ol>
+<li>
+<p><strong>Copy an Existing Script</strong>:
+   <code>bash
+   cp scripts/sl/sl_oes_rn18.sh scripts/sl/sl_oes_mymodel.sh</code></p>
+</li>
+<li>
+<p><strong>Modify the Configuration Path</strong>:
+   <code>bash
+   # Change this line
+   --cfg configs/pipeline/supervised_learning/sl_oes_rn18.yaml \
+   # To point to your custom configuration
+   --cfg configs/pipeline/supervised_learning/sl_oes_mymodel.yaml \</code></p>
+</li>
+<li>
+<p><strong>Update the Script Comments</strong> to reflect your experiment:
+   <code>bash
+   # Benchmark: OES
+   # Model: MyModel
+   # Method: MyMethod
+   # Task: Supervised Learning</code></p>
+</li>
+</ol>
+<h2 id="running-scripts">Running Scripts</h2>
+<p>To run a script, simply execute it with bash:</p>
+<pre><code class="language-bash">bash scripts/sl/sl_oes_rn18.sh
+</code></pre>
+<p>You can also override configuration parameters directly from the command line:</p>
+<pre><code class="language-bash">bash scripts/sl/sl_oes_rn18.sh --opts device='cuda:1' trainer.max_epochs=20
+</code></pre>
+<h2 id="advanced-usage">Advanced Usage</h2>
+<h3 id="gpu-selection">GPU Selection</h3>
+<p>Most scripts allow specifying the GPU device using the <code>device</code> parameter:</p>
+<pre><code class="language-bash">python ncdia/train.py \
+    --cfg configs/pipeline/supervised_learning/sl_oes_rn18.yaml \
+    --opts device='cuda:0'  # Use the first GPU
+</code></pre>
+<p>To use a different GPU, change <code>cuda:0</code> to the desired GPU index (e.g., <code>cuda:1</code>).</p>
+<h3 id="multi-stage-training">Multi-stage Training</h3>
+<p>Some scripts implement multi-stage training, where different phases (e.g., training, testing) are executed sequentially:</p>
+<pre><code class="language-bash"># Training phase
+python ncdia/train.py \
+    --cfg configs/pipeline/ood_detection/msp/det_oes_rn50_msp_train.yaml \
+    --opts device='cuda:0'
+
+# Testing phase
+python ncdia/train.py \
+    --cfg configs/pipeline/ood_detection/msp/det_oes_rn50_msp_test.yaml \
+    --opts device='cuda:0'
+</code></pre>
+<h3 id="running-on-multiple-gpus">Running on Multiple GPUs</h3>
+<p>For multi-GPU training, you can use the <code>CUDA_VISIBLE_DEVICES</code> environment variable:</p>
+<pre><code class="language-bash">CUDA_VISIBLE_DEVICES=0,1,2,3 python ncdia/train.py \
+    --cfg configs/pipeline/supervised_learning/sl_oes_rn18.yaml \
+    --opts device='cuda' trainer.distributed=True
+</code></pre>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../ncdia/" class="btn btn-neutral float-left" title="ncdia"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../people/" class="btn btn-neutral float-right" title="People">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2025 <a href="https://github.com/HAIV-Lab" target="_blank">HAIV Lab</a>. Licensed under the <a href="https://opensource.org/licenses/MIT" target="_blank">MIT License</a>.</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../ncdia/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../people/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

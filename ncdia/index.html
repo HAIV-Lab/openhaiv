@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>ncdia - OpenHAIV</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../stylesheets/custom.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "ncdia";
+        var mkdocs_page_input_path = "ncdia.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> OpenHAIV
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Get Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="..">Introduction</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../quik/">Quik Start</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../methods/">Reproduced Methods</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../results/">Results</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Documentation</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../overview/">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../config/">config</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">ncdia</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#ncdiaalgorithms">ncdia.algorithms</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#ncdiaalgorithmsbasepy">ncdia.algorithms.base.py</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#basealg">BaseAlg</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ncdiaalgorithmsincremental">ncdia.algorithms.incremental</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ncdiaalgorithmsncdautoncdpy">ncdia.algorithms.ncd.autoncd.py</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#autoncd">AutoNCD</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ncdiaalgorithmsoodautooodpy">ncdia.algorithms.ood.autoood.py</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#autoood">AutoOOD</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ncdiaalgorithmsoodmethodspy">ncdia.algorithms.ood.methods.py</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ncdiaalgorithmsoodinferencepy">ncdia.algorithms.ood.inference.py</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ncdiaalgorithmsoodmetricspy">ncdia.algorithms.ood.metrics.py</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ncdiaalgorithmssupervisedstandardpy">ncdia.algorithms.supervised.standard.py</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#standardsl">StandardSL</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#ncdiadataloader">ncdia.dataloader</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#ncdiadataloaderbasepy">ncdia.dataloader.base.py</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ncdiadataloadertoolspy">ncdia.dataloader.tools.py</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ncdiadataloaderdatasets">ncdia.dataloader.datasets</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ncdiadataloaderaugmentations">ncdia.dataloader.augmentations</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#ncdiamodel">ncdia.model</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#ncdiamodelsmodelspy">ncdia.models.models.py</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ncdiamodelsnetinc_netpy">ncdia.models.net.inc_net.py</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#basenet">BaseNet</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#incrementalnet">IncrementalNet</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#ncdiatrainers">ncdia.trainers</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#ncdiatrainersbasepy">ncdia.trainers.base.py</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#basetrainer">BaseTrainer</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ncdiatrainerspretrainerpy">ncdia.trainers.pretrainer.py</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#pretrainer">PreTrainer</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ncdiatrainersinctrainerpy">ncdia.trainers.inctrainer.py</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#inctrainer">IncTrainer</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ncdiatrainershooks">ncdia.trainers.hooks</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#hook">Hook</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#alghook">AlgHook</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#loggerhook">LoggerHook</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#metrichook">MetricHook</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#modelhook">ModelHook</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#ncdhook">NCDHook</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#optimizerhook">OptimizerHook</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#schedulerhook">SchedulerHook</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ncdiatrainersoptims">ncdia.trainers.optims</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#ncdiatrainersoptimsoptimizerpy">ncdia.trainers.optims.optimizer.py</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#ncdiatrainersoptimsschedulerpy">ncdia.trainers.optims.scheduler.py</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ncdiatrainerspriority">ncdia.trainers.priority</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#priority">Priority</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#ncdiautils">ncdia.utils</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#ncdiautilsmetrics">ncdia.utils.metrics</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#ncdiautilsmetricsaccuracypy">ncdia.utils.metrics.accuracy.py</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#ncdiautilsmetricsmeterpy">ncdia.utils.metrics.meter.py</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ncdiautilslosses">ncdia.utils.losses</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#crossentropyloss">CrossEntropyLoss</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#angularpenaltysmloss">AngularPenaltySMLoss</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ncdiautilscfgpy">ncdia.utils.cfg.py</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#configs">Configs</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ncdiautilsloggerpy">ncdia.utils.logger.py</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ncdiautilsregistrypy">ncdia.utils.registry.py</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#registry">Registry</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#ncdiautilstoolspy">ncdia.utils.tools.py</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../scripts/">scripts</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">More Information</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../people/">People</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../contributing/">Contributing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../citation/">Citation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../acknowledgment/">Acknowledgment</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">OpenHAIV</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Documentation</li>
+      <li class="breadcrumb-item active">ncdia</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="ncdia">ncdia</h1>
+<h2 id="ncdiaalgorithms">ncdia.algorithms</h2>
+<p>Includes incremental learning algorithms, new class discovery algorithms, and out-of-distribution detection algorithms, as well as supervised learning algorithms.</p>
+<h3 id="ncdiaalgorithmsbasepy">ncdia.algorithms.base.py</h3>
+<h4 id="basealg">BaseAlg</h4>
+<p>Basic algorithm class to define the interface of an algorithm.</p>
+<ul>
+<li>
+<p><span class="highlight-text"><strong>__init__(self, trainer)</strong></span></p>
+<p>The constructor method that initializes an instance of <strong>BaseAlg</strong>.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>trainer</strong> (<em>object</em>): Trainer object.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>train_step(self, trainer, data, label, *args, </strong>kwargs)**</span></p>
+<p>Training step.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>trainer</strong> (<em>object</em>): Trainer object.</li>
+<li><strong>data</strong> (<em>torch.Tensor</em>): Input data.</li>
+<li><strong>label</strong> (<em>torch.Tensor</em>): Label data.</li>
+<li><strong>args</strong> (<em>tuple</em>): Additional arguments.</li>
+<li><strong>kwargs</strong> (<em>dict</em>): Additional keyword arguments.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>results</strong> (<em>dict</em>): Training results. Contains the following keys:<ul>
+<li><strong>"loss"</strong>: Loss value.</li>
+<li><strong>"acc"</strong>: Accuracy value.</li>
+<li><strong>other</strong> "key:value" pairs.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>val_step(self, trainer, data, label, *args, </strong>kwargs)**</span></p>
+<p>Validation step.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>trainer</strong> (<em>object</em>): Trainer object.</li>
+<li><strong>data</strong> (<em>torch.Tensor</em>): Input data.</li>
+<li><strong>label</strong> (<em>torch.Tensor</em>): Label data.</li>
+<li><strong>args</strong> (<em>tuple</em>): Additional arguments.</li>
+<li><strong>kwargs</strong> (<em>dict</em>): Additional keyword arguments.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>results</strong> (<em>dict</em>): Validation results. Contains the following keys:<ul>
+<li><strong>"loss"</strong>: Loss value.</li>
+<li><strong>"acc"</strong>: Accuracy value.</li>
+<li><strong>other</strong> "key:value" pairs.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>test_step(self, trainer, data, label, *args, </strong>kwargs)**</span></p>
+<p>Test step.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>trainer</strong> (<em>object</em>): Trainer object.</li>
+<li><strong>data</strong> (<em>torch.Tensor</em>): Input data.</li>
+<li><strong>label</strong> (<em>torch.Tensor</em>): Label data.</li>
+<li><strong>args</strong> (<em>tuple</em>): Additional arguments.</li>
+<li><strong>kwargs</strong> (<em>dict</em>): Additional keyword arguments.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>results</strong> (<em>dict</em>): Test results. Contains the following keys:<ul>
+<li><strong>"loss"</strong>: Loss value.</li>
+<li><strong>"acc"</strong>: Accuracy value.</li>
+<li><strong>other</strong> "key:value" pairs.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="ncdiaalgorithmsincremental">ncdia.algorithms.incremental</h3>
+<p>Include implementation of Class Incremental Learning (CIL) and Few-shot Class Incremental Learning (FSCIL) algorithm.</p>
+<ul>
+<li><strong>CIL</strong><ul>
+<li><strong>Finetune</strong></li>
+<li><strong>LwF</strong></li>
+<li><strong>EwC</strong></li>
+<li><strong>iCarL</strong></li>
+<li><strong>IL2A</strong></li>
+<li><strong>WA</strong>    </li>
+</ul>
+</li>
+<li><strong>FSCIL</strong><ul>
+<li><strong>ALICE</strong></li>
+<li><strong>FACT</strong></li>
+<li><strong>SAVC</strong></li>
+</ul>
+</li>
+</ul>
+<h3 id="ncdiaalgorithmsncdautoncdpy">ncdia.algorithms.ncd.autoncd.py</h3>
+<p>Modules related to novel class discovery.</p>
+<h4 id="autoncd">AutoNCD</h4>
+<p>Class for evaluating with OOD metrics and relabeling the OOD dataset for the next session.</p>
+<ul>
+<li>
+<p><span class="highlight-text"><strong>__init__(self, model, train_loader, test_loader, device=None, verbose=False)</strong></span></p>
+<p>The constructor method that initializes an instance of <strong>AutoNCD</strong>. </p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>model</strong> (<em>nn.Module</em>): model to be evaluated.</li>
+<li><strong>train_loader</strong> (<em>DataLoader</em>): train dataloader.</li>
+<li><strong>test_loader</strong> (<em>DataLoader</em>): test dataloader.</li>
+<li><strong>device</strong> (<em>torch.device, optional</em>): device to run the evaluation. Default to None.</li>
+<li><strong>verbose</strong> (<em>bool, optional</em>): print the progress bar. Default to False. </li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>inference(self, dataloader, split='train')</strong></span></p>
+<p>Inference the model on the dataloader and return relevant information. If split is 'train', return the prototype of the training data. </p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>dataloader</strong> (<em>DataLoader</em>): dataloader for evaluation.</li>
+<li><strong>split</strong> (<em>str, optional</em>): train or test. Defaults to 'train'.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<p>If split is 'train':</p>
+<ul>
+<li>
+<p><strong>features</strong> (<em>torch.Tensor</em>): feature vectors, (N, D).</p>
+</li>
+<li>
+<p><strong>logits</strong> (<em>torch.Tensor</em>): logit vectors, (N, C).</p>
+</li>
+<li>
+<p><strong>prototype_cls</strong> (<em>torch.Tensor</em>): prototype vectors, (C, D).</p>
+</li>
+</ul>
+<p>If split is 'test':</p>
+<ul>
+<li>
+<p><strong>imgpaths</strong> (<em>list</em>): image paths (list).</p>
+</li>
+<li>
+<p><strong>features</strong> (<em>torch.Tensor</em>): feature vectors, (N, D).</p>
+</li>
+<li>
+<p><strong>logits</strong> (<em>torch.Tensor</em>): logit vectors, (N, C).</p>
+</li>
+<li>
+<p><strong>preds</strong> (<em>torch.Tensor</em>): prediction labels, (N,).</p>
+</li>
+<li>
+<p><strong>labels</strong> (<em>torch.Tensor</em>): ground truth labels, (N,).</p>
+</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>relabel(self, ood_loader, metrics=[], tpr_th=0.95, prec_th=None)</strong></span></p>
+<p>Relabel the OOD dataset for the next session.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>ood_loader</strong> (<em>DataLoader</em>): OOD dataloader for relabeling.</li>
+<li><strong>metrics</strong> (<em>list, optional</em>): metrics to evaluate the OOD dataset. Defaults to [].</li>
+<li><strong>tpr_th</strong> (<em>float, optional</em>): True positive rate threshold. Defaults to 0.95.</li>
+<li><strong>prec_th</strong> (<em>float, optional</em>): Precision threshold. Defaults to None.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>ood_loader</strong> (<em>DataLoader</em>): relabeled OOD dataloader.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>_split_cluster_label(self, y_label, y_pred, ood_class)</strong></span></p>
+<p>Calculate clustering accuracy. Require scikit-learn installed. First compute linear assignment on all data, then look at how good the accuracy is on subsets.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>y_label</strong> (<em>numpy.array</em>): true labels, (n_samples,)</li>
+<li><strong>y_pred</strong> (<em>numpy.array</em>): predicted labels (n_samples,)</li>
+<li><strong>ood_class</strong>: out-of-distribution class labels</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>cluster_label</strong>: cluster label</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>search_discrete_point(self, novel_feat, novel_target)</strong></span></p>
+</li>
+</ul>
+<p><span style="color: red;"><strong>TODO</strong></span></p>
+<h3 id="ncdiaalgorithmsoodautooodpy">ncdia.algorithms.ood.autoood.py</h3>
+<h4 id="autoood">AutoOOD</h4>
+<p>Class for evaluating OOD detection methods.</p>
+<ul>
+<li>
+<p><span class="highlight-text"><strong>eval(prototype_cls, fc_weight, train_feats, train_logits, id_feats, id_logits, id_labels, ood_feats, ood_logits, ood_labels, metrics=[], tpr_th=0.95, prec_th=None, id_attrs=None, ood_attrs=None, prototype_att=None)</strong></span></p>
+<p>Evaluate the OOD detection methods and return OOD scores.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>prototype_cls</strong> (<em>np.ndarray</em>): prototype of training data</li>
+<li><strong>fc_weight</strong> (<em>np.ndarray</em>): weight of the last layer</li>
+<li><strong>train_feats</strong> (<em>np.ndarray</em>): feature of training data</li>
+<li><strong>train_logits</strong> (<em>np.ndarray</em>): logits of training data</li>
+<li><strong>id_feats</strong> (<em>np.ndarray</em>): feature of ID data</li>
+<li><strong>id_logits</strong> (<em>np.ndarray</em>): logits of ID data</li>
+<li><strong>id_labels</strong> (<em>np.ndarray</em>): labels of ID data</li>
+<li><strong>ood_feats</strong> (<em>np.ndarray</em>): feature of OOD data</li>
+<li><strong>ood_logits</strong> (<em>np.ndarray</em>): logits of OOD data</li>
+<li><strong>ood_labels</strong> (<em>np.ndarray</em>): labels of OOD data</li>
+<li><strong>metrics</strong> (<em>list, optional</em>): list of OOD detection methods to evaluate. Defaults to [].</li>
+<li><strong>tpr_th</strong> (<em>float, optional</em>): True positive rate threshold. Defaults to 0.95.</li>
+<li><strong>prec_th</strong> (<em>float, optional</em>): Precision threshold. Defaults to None.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>ood_scores</strong> (<em>dict</em>): OOD scores, keys are the names of the OOD detection methods, values are the OOD scores and search threshold. Each value is a tuple containing the following:<ul>
+<li><strong>ood metrics</strong> (<em>tuple</em>):<ul>
+<li><strong>fpr</strong> (<em>float</em>): false positive rate</li>
+<li><strong>auroc</strong> (<em>float</em>): area under the ROC curve</li>
+<li><strong>aupr_in</strong> (<em>float</em>): area under the precision-recall curve for in-distribution samples</li>
+<li><strong>aupr_out</strong> (<em>float</em>): area under the precision-recall curve for out-of-distribution samples</li>
+</ul>
+</li>
+<li><strong>search threshold</strong> (<em>tuple</em>): threshold for OOD detection if prec_th is not None<ul>
+<li><strong>best_th</strong> (<em>float</em>): best threshold for OOD detection</li>
+<li><strong>conf</strong> (<em>torch.Tensor</em>): confidence scores</li>
+<li><strong>label</strong> (<em>torch.Tensor</em>): label array</li>
+<li><strong>precisions</strong> (<em>float</em>): precision when precisions &gt;= prec_th</li>
+<li><strong>recalls</strong> (<em>float</em>): recall when precisions &gt;= prec_th</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>inference(metrics, logits, feat, train_logits, train_feat, fc_weight, prototype, logits_att=None, prototype_att=None)</strong></span></p>
+<p>Inferencec method for OOD detection</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>metrics</strong> (<em>list</em>): the ood metrics used for inference.</li>
+<li><strong>logits</strong> (<em>np.ndarray</em>): logits of inference data.</li>
+<li><strong>feat</strong> (<em>np.ndarray</em>): features of inference data.</li>
+<li><strong>train_logits</strong> (<em>np.ndarray</em>): logits of training data.</li>
+<li><strong>train_feat</strong> (<em>np.ndarray</em>): features of training data.</li>
+<li><strong>fc_weight</strong> (<em>np.ndarray</em>): weight of the last layer.</li>
+<li><strong>prototype</strong> (<em>np.ndarray</em>): prototypes of training data.</li>
+<li><strong>logits_att</strong> (<em>np.ndarray, optional</em>): logits of attribute.</li>
+<li><strong>prototype_att</strong> (<em>np.ndarray, optional</em>): prototypes of attribute. </li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>conf</strong> (<em>dict</em>): contains the confidence using different metrics, <strong>conf[metric]</strong> (<em>torch.Tensor</em>) is the confidence using specific metric.</li>
+</ul>
+</li>
+</ul>
+<h3 id="ncdiaalgorithmsoodmethodspy">ncdia.algorithms.ood.methods.py</h3>
+<ul>
+<li>
+<p><span class="highlight-text"><strong>msp(id_gt, id_logits, ood_gt, ood_logits, tpr_th=0.95, prec_th=None)</strong></span></p>
+<p>Maximum Softmax Probability (MSP) method for OOD detection.</p>
+<p>A Baseline for Detecting Misclassified and Out-of-Distribution Examples in Neural Networks.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>id_gt</strong> (<em>torch.Tensor</em>): ID ground truth labels. Shape (N,).</li>
+<li><strong>id_logits</strong> (<em>torch.Tensor</em>): ID logits. Shape (N, C).</li>
+<li><strong>ood_gt</strong> (<em>torch.Tensor</em>): OOD ground truth labels. Shape (M,).</li>
+<li><strong>ood_logits</strong> (<em>torch.Tensor</em>): OOD logits. Shape (M, C).</li>
+<li><strong>tpr_th</strong> (<em>float</em>): True positive rate threshold to compute
+    false positive rate. Default is 0.95.</li>
+<li><strong>prec_th</strong> (<em>float</em>): Precision threshold for searching - threshold.
+    If None, not searching for threshold. Default is None.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>conf</strong> (<em>np.ndarray</em>): Confidence scores. Shape (N + M,).</li>
+<li><strong>label</strong> (<em>np.ndarray</em>): Label array. Shape (N + M,).</li>
+<li><strong>fpr</strong> (<em>float</em>): False positive rate.</li>
+<li><strong>auroc</strong> (<em>float</em>): Area under the ROC curve.</li>
+<li><strong>aupr_in</strong> (<em>float</em>): Area under the precision-recall curve 
+    for in-distribution samples.</li>
+<li><strong>aupr_out</strong> (<em>float</em>): Area under the precision-recall curve
+    for out-of-distribution</li>
+<li><strong>best_th</strong> (<em>float</em>): Threshold for OOD detection. If prec_th is None, None.</li>
+<li><strong>prec</strong> (<em>float</em>): Precision at the threshold. If prec_th is None, None.</li>
+<li><strong>recall</strong> (<em>float</em>): Recall at the threshold. If prec_th is None, None.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>mcm(id_gt, id_logits, ood_gt, ood_logits, T=2, tpr_th=0.95, prec_th=None)</strong></span></p>
+<p>Maximum Concept Matching (MCM) method for OOD detection.</p>
+<p>Delving into Out-of-Distribution Detection with Vision-Language Representations</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>id_gt</strong> (<em>torch.Tensor</em>): ID ground truth labels. Shape (N,).</li>
+<li><strong>id_logits</strong> (<em>torch.Tensor</em>): ID logits. Shape (N, C).</li>
+<li><strong>ood_gt</strong> (<em>torch.Tensor</em>): OOD ground truth labels. Shape (M,).</li>
+<li><strong>ood_logits</strong> (<em>torch.Tensor</em>): OOD logits. Shape (M, C).</li>
+<li><strong>T</strong> (<em>int</em>): Temperature for softmax.</li>
+<li><strong>tpr_th</strong> (<em>float</em>): True positive rate threshold to compute
+    false positive rate. Default is 0.95.</li>
+<li><strong>prec_th</strong> (<em>float</em>): Precision threshold for searching threshold.
+    If None, not searching for threshold. Default is None.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>fpr</strong> (<em>float</em>): False positive rate.</li>
+<li><strong>auroc</strong> (<em>float</em>): Area under the ROC curve.</li>
+<li><strong>aupr_in</strong> (<em>float</em>): Area under the precision-recall curve 
+    for in-distribution samples.</li>
+<li><strong>aupr_out</strong> (<em>float</em>): Area under the precision-recall curve
+    for out-of-distribution.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>max_logit(id_gt, id_logits, ood_gt, ood_logits, tpr_th=0.95, prec_th=None)</strong></span></p>
+<p>Maximum Logit (MaxLogit) method for OOD detection.</p>
+<p>Scaling Out-of-Distribution Detection for Real-World Settings</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>id_gt</strong> (<em>torch.Tensor</em>): ID ground truth labels. Shape (N,).</li>
+<li><strong>id_logits</strong> (<em>torch.Tensor</em>): ID logits. Shape (N, C).</li>
+<li><strong>ood_gt</strong> (<em>torch.Tensor</em>): OOD ground truth labels. Shape (M,).</li>
+<li><strong>ood_logits</strong> (<em>torch.Tensor</em>): OOD logits. Shape (M, C).</li>
+<li><strong>tpr_th</strong> (<em>float</em>): True positive rate threshold to compute
+    false positive rate. Default is 0.95.</li>
+<li><strong>prec_th</strong> (<em>float</em>): Precision threshold for searching threshold.
+    If None, not searching for threshold. Default is None.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>fpr</strong> (<em>float</em>): False positive rate.</li>
+<li><strong>auroc</strong> (<em>float</em>): Area under the ROC curve.</li>
+<li><strong>aupr_in</strong> (<em>float</em>): Area under the precision-recall curve 
+    for in-distribution samples.</li>
+<li><strong>aupr_out</strong> (<em>float</em>): Area under the precision-recall curve
+    for out-of-distribution</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>energy(id_gt, id_logits, ood_gt, ood_logits, tpr_th=0.95, prec_th=None)</strong></span></p>
+<p>Energy-based method for OOD detection.</p>
+<p>Energy-based Out-of-distribution Detection</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>id_gt</strong> (<em>torch.Tensor</em>): ID ground truth labels. Shape (N,).</li>
+<li><strong>id_logits</strong> (<em>torch.Tensor</em>): ID logits. Shape (N, C).</li>
+<li><strong>ood_gt</strong> (<em>torch.Tensor</em>): OOD ground truth labels. Shape (M,).</li>
+<li><strong>ood_logits</strong> (<em>torch.Tensor</em>): OOD logits. Shape (M, C).</li>
+<li><strong>tpr_th</strong> (<em>float</em>): True positive rate threshold to compute
+    false positive rate. Default is 0.95.</li>
+<li><strong>prec_th</strong> (<em>float</em>): Precision threshold for searching threshold.
+    If None, not searching for threshold. Default is None.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>fpr</strong> (<em>float</em>): False positive rate.</li>
+<li><strong>auroc</strong> (<em>float</em>): Area under the ROC curve.</li>
+<li><strong>aupr_in</strong> (<em>float</em>): Area under the precision-recall curve 
+    for in-distribution samples.</li>
+<li><strong>aupr_out</strong> (<em>float</em>): Area under the precision-recall curve
+    for out-of-distribution</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>vim(id_gt, id_logits, id_feat, ood_gt, ood_logits, ood_feat, train_logits, train_feat, tpr_th=0.95, prec_th=None)</strong></span></p>
+<p>Virtual-Logit Matching (ViM) method for OOD detection.</p>
+<p>ViM: Out-of-Distribution With Virtual-Logit Matching</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>id_gt</strong> (<em>torch.Tensor</em>): ID ground truth labels. Shape (N,).</li>
+<li><strong>id_logits</strong> (<em>torch.Tensor</em>): ID logits. Shape (N, C).</li>
+<li><strong>id_feat</strong> (<em>torch.Tensor</em>): ID features. Shape (N, D).</li>
+<li><strong>ood_gt</strong> (<em>torch.Tensor</em>): OOD ground truth labels. Shape (M,).</li>
+<li><strong>ood_logits</strong> (<em>torch.Tensor</em>): OOD logits. Shape (M, C).</li>
+<li><strong>ood_feat</strong> (<em>torch.Tensor</em>): OOD features. Shape (M, D).</li>
+<li><strong>train_logits</strong> (<em>torch.Tensor</em>): Training logits. Shape (K, C).</li>
+<li><strong>train_feat</strong> (<em>torch.Tensor</em>): Training features. Shape (K, D).</li>
+<li><strong>tpr_th</strong> (<em>float</em>): True positive rate threshold to compute
+    false positive rate. Default is 0.95.</li>
+<li><strong>prec_th</strong> (<em>float</em>): Precision threshold for searching threshold.
+    If None, not searching for threshold. Default is None.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>fpr</strong> (<em>float</em>): False positive rate.</li>
+<li><strong>auroc</strong> (<em>float</em>): Area under the ROC curve.</li>
+<li><strong>aupr_in</strong> (<em>float</em>): Area under the precision-recall curve 
+    for in-distribution samples.</li>
+<li><strong>aupr_out</strong> (<em>float</em>): Area under the precision-recall curve
+    for out-of-distribution</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>dml(id_gt, id_feat, ood_gt, ood_feat, fc_weight, tpr_th=0.95, prec_th=None)</strong></span></p>
+<p>Decoupled MaxLogit (DML) method for OOD detection.</p>
+<p>Decoupling MaxLogit for Out-of-Distribution Detection</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>id_gt</strong> (<em>torch.Tensor</em>): ID ground truth labels. Shape (N,).</li>
+<li><strong>id_feat</strong> (<em>torch.Tensor</em>): ID features. Shape (N, D).</li>
+<li><strong>ood_gt</strong> (<em>torch.Tensor</em>): OOD ground truth labels. Shape (M,).</li>
+<li><strong>ood_feat</strong> (<em>torch.Tensor</em>): OOD features. Shape (M, D).</li>
+<li><strong>fc_weight</strong> (<em>torch.Tensor</em>): FC layer weight. Shape (C, D).</li>
+<li><strong>tpr_th</strong> (<em>float</em>): True positive rate threshold to compute
+    false positive rate. Default is 0.95.</li>
+<li><strong>prec_th</strong> (<em>float</em>): Precision threshold for searching threshold.
+    If None, not searching for threshold. Default is None.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>fpr</strong> (<em>float</em>): False positive rate.</li>
+<li><strong>auroc</strong> (<em>float</em>): Area under the ROC curve.</li>
+<li><strong>aupr_in</strong> (<em>float</em>): Area under the precision-recall curve 
+    for in-distribution samples.</li>
+<li><strong>aupr_out</strong> (<em>float</em>): Area under the precision-recall curve
+    for out-of-distribution</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>dmlp(id_gt, id_logits, id_feat, ood_gt, ood_logits, ood_feat, fc_weight, prototype,tpr_th=0.95, prec_th=None)</strong></span></p>
+<p>Decoupled MaxLogit+ (DML+) method for OOD detection.</p>
+<p>Decoupling MaxLogit for Out-of-Distribution Detection</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>id_gt</strong> (<em>torch.Tensor</em>): ID ground truth labels. Shape (N,).</li>
+<li><strong>id_logits</strong> (<em>torch.Tensor</em>): ID logits. Shape (N, C).</li>
+<li><strong>id_feat</strong> (<em>torch.Tensor</em>): ID features. Shape (N, D).</li>
+<li><strong>ood_gt</strong> (<em>torch.Tensor</em>): OOD ground truth labels. Shape (M,).</li>
+<li><strong>ood_logits</strong> (<em>torch.Tensor</em>): OOD logits. Shape (M, C).</li>
+<li><strong>ood_feat</strong> (<em>torch.Tensor</em>): OOD features. Shape (M, D).</li>
+<li><strong>fc_weight</strong> (<em>torch.Tensor</em>): FC layer weight. Shape (D, C).</li>
+<li><strong>prototype</strong> (<em>torch.Tensor</em>): Prototype. Shape (D, C).</li>
+<li><strong>tpr_th</strong> (<em>float</em>): True positive rate threshold to compute
+    false positive rate. Default is 0.95.</li>
+<li><strong>prec_th</strong> (<em>float</em>): Precision threshold for searching threshold.
+    If None, not searching for threshold. Default is None.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>fpr</strong> (<em>float</em>): False positive rate.</li>
+<li><strong>auroc</strong> (<em>float</em>): Area under the ROC curve.</li>
+<li><strong>aupr_in</strong> (<em>float</em>): Area under the precision-recall curve 
+    for in-distribution samples.</li>
+<li><strong>aupr_out</strong> (<em>float</em>): Area under the precision-recall curve
+    for out-of-distribution</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>prot(id_gt, id_logits, ood_gt, ood_logits, prototypes: list, tpr_th=0.95, prec_th=None)</strong></span></p>
+<p>Prototype-based (Prot) method for OOD detection.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>id_gt</strong> (<em>torch.Tensor</em>): ID ground truth labels, shape (N,).</li>
+<li><strong>id_logits</strong> (<em>list of torch.Tensor</em>): ID logits, containing shape (N, C).</li>
+<li><strong>ood_gt</strong> (<em>torch.Tensor</em>): OOD ground truth labels, shape (M,).</li>
+<li><strong>ood_logits</strong> (<em>list of torch.Tensor</em>): OOD logits, containing shape (M, C).</li>
+<li><strong>prototypes</strong> (<em>list of torch.Tensor</em>): Prototypes, containing shape (D, C).</li>
+<li><strong>tpr_th</strong> (<em>float</em>): True positive rate threshold to compute 
+    false positive rate.</li>
+<li><strong>prec_th</strong> (<em>float</em>): Precision threshold for searching threshold.
+    If None, not searching for threshold. Default is</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>fpr</strong> (<em>float</em>): False positive rate.</li>
+<li><strong>auroc</strong> (<em>float</em>): Area under the ROC curve.</li>
+<li><strong>aupr_in</strong> (<em>float</em>): Area under the precision-recall curve 
+    for in-distribution samples.</li>
+<li><strong>aupr_out</strong> (<em>float</em>): Area under the precision-recall curve
+    for out-of-distribution</li>
+</ul>
+</li>
+</ul>
+<h3 id="ncdiaalgorithmsoodinferencepy">ncdia.algorithms.ood.inference.py</h3>
+<p>The inference version of implemented ood methods in <a href="#ncdiaalgorithmsoodmethodspy">ncdia.algorithms.ood.methods.py</a></p>
+<h3 id="ncdiaalgorithmsoodmetricspy">ncdia.algorithms.ood.metrics.py</h3>
+<ul>
+<li>
+<p><span class="highlight-text"><strong>ood_metrics(conf, label, tpr_th=0.95)</strong></span></p>
+<p>Compute OOD metrics.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>conf</strong> (<em>np.ndarray</em>): Confidence scores. Shape (N,).</li>
+<li><strong>label</strong> (<em>np.ndarray</em>): Label array. Shape (N,). Containing:
+    -1: OOD samples.
+    int &gt;= 0: ID samples with class labels</li>
+<li><strong>tpr_th</strong> (<em>float</em>): True positive rate threshold to compute 
+    false positive rate.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>fpr</strong> (<em>float</em>): False positive rate.</li>
+<li><strong>auroc</strong> (<em>float</em>): Area under the ROC curve.</li>
+<li><strong>aupr_in</strong> (<em>float</em>): Area under the precision-recall curve 
+    for in-distribution samples.</li>
+<li><strong>aupr_out</strong> (<em>float</em>): Area under the precision-recall curve
+    for out-of-distribution samples.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>search_threshold(conf, label, prec_th)</strong></span></p>
+<p>Search for the threshold for OOD detection.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>conf</strong> (<em>np.ndarray</em>): Confidence scores. Shape (N,).</li>
+<li><strong>label</strong> (<em>np.ndarray</em>): Label array. Shape (N,). Containing:
+    -1: OOD samples.
+    int &gt;= 0: ID samples with class labels</li>
+<li><strong>prec_th</strong> (<em>float</em>): Precision threshold.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>best_th</strong> (<em>float</em>): Threshold for OOD detection.</li>
+<li><strong>prec</strong> (<em>float</em>): Precision at the threshold.</li>
+<li><strong>recall</strong> (<em>float</em>): Recall at the threshold.</li>
+</ul>
+</li>
+</ul>
+<h3 id="ncdiaalgorithmssupervisedstandardpy">ncdia.algorithms.supervised.standard.py</h3>
+<p>Modules related to supervised learning</p>
+<h4 id="standardsl">StandardSL</h4>
+<p>Class inherits from <strong>BaseAlg</strong>. Standard supervised learning algorithm</p>
+<ul>
+<li>
+<p><span class="highlight-text"><strong>train_step(self, trainer, data, label, *args, **kwargs)</strong></span></p>
+<p>Training step for standard supervised learning.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>trainer</strong> (<em>object</em>): Trainer object.</li>
+<li><strong>data</strong> (<em>torch.Tensor</em>): Input data.</li>
+<li><strong>label</strong> (<em>torch.Tensor</em>): Label data.</li>
+<li><strong>args</strong> (<em>tuple</em>): Additional arguments.</li>
+<li><strong>kwargs</strong> (<em>dict</em>): Additional keyword arguments.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li>
+<p><strong>results</strong> (<em>dict</em>): Training results. Contains the following keys:</p>
+<ul>
+<li><strong>"loss"</strong>: Loss value.</li>
+<li><strong>"acc"</strong>: Accuracy value.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>val_step(self, trainer, data, label, *args, **kwargs)</strong></span></p>
+<p>Validation step for standard supervised learning.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>trainer</strong> (<em>object</em>): Trainer object.</li>
+<li><strong>data</strong> (<em>torch.Tensor</em>): Input data.</li>
+<li><strong>label</strong> (<em>torch.Tensor</em>): Label data.</li>
+<li><strong>args</strong> (<em>tuple</em>): Additional arguments.</li>
+<li><strong>kwargs</strong> (<em>dict</em>): Additional keyword arguments.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li>
+<p><strong>results</strong> (<em>dict</em>): Validation results. Contains the following:</p>
+<ul>
+<li><strong>"loss"</strong>: Loss value.</li>
+<li><strong>"acc"</strong>: Accuracy value.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>test_step(self, trainer, data, label, *args, **kwargs)</strong></span></p>
+<p>Test step for standard supervised learning.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li>trainer (object): Trainer object.</li>
+<li>data (torch.Tensor): Input data.</li>
+<li>label (torch.Tensor): Label data.</li>
+<li>args (tuple): Additional arguments.</li>
+<li>kwargs (dict): Additional keyword arguments.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li>
+<p><strong>results</strong> (<em>dict</em>): Test results. Contains the following:</p>
+<ul>
+<li><strong>"loss"</strong>: Loss value.</li>
+<li><strong>"acc"</strong>: Accuracy value.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="ncdiadataloader">ncdia.dataloader</h2>
+<h3 id="ncdiadataloaderbasepy">ncdia.dataloader.base.py</h3>
+<ul>
+<li>
+<p><span class="highlight-text"><strong>build_dataloader(kwargs)</strong></span></p>
+<p>Build data loader.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>kwargs</strong> (<em>dict</em>): Arguments for DataLoader. Contains the following:<ul>
+<li><strong>dataset</strong> (<em>dict</em>): Dataset configuration.</li>
+<li>other arguments for DataLoader, such as <strong>batch_size</strong>, <strong>shuffle</strong>, etc.</li>
+</ul>
+</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>loader</strong> (<em>DataLoader</em>): Data loader.</li>
+</ul>
+</li>
+</ul>
+<h3 id="ncdiadataloadertoolspy">ncdia.dataloader.tools.py</h3>
+<p>Implements some of the commonly used dataloaders</p>
+<h3 id="ncdiadataloaderdatasets">ncdia.dataloader.datasets</h3>
+<p>Implements some of the commonly used datasets, including:</p>
+<ul>
+<li><strong>CIFAR100</strong></li>
+<li><strong>CUB200</strong></li>
+<li><strong>Caltech101</strong></li>
+<li><strong>Food101</strong></li>
+<li><strong>ImageNet</strong></li>
+<li><strong>ImageNetR</strong></li>
+<li><strong>BM200</strong></li>
+</ul>
+<h3 id="ncdiadataloaderaugmentations">ncdia.dataloader.augmentations</h3>
+<p>Implements some of the commonly used augmentation methods.</p>
+<h2 id="ncdiamodel">ncdia.model</h2>
+<h3 id="ncdiamodelsmodelspy">ncdia.models.models.py</h3>
+<ul>
+<li>
+<p><span class="highlight-text"><strong>get_network(config)</strong></span></p>
+<p>load model.</p>
+<p><strong>Parameters:</strong>
+-<strong>trainer</strong>(<em>config</em>): model config</p>
+</li>
+</ul>
+<h3 id="ncdiamodelsnetinc_netpy">ncdia.models.net.inc_net.py</h3>
+<h4 id="basenet">BaseNet</h4>
+<p>BaseNet for incremental learning.</p>
+<ul>
+<li>
+<p><span class="highlight-text"><strong>__init__(self, network, base_classes, num_classes, att_classes, net_alice, mode)</strong></span></p>
+<p>The constructor method that initializes an instance of <strong>BaseNet</strong>.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>network</strong> (<em>config</em>): The config of the network.</li>
+<li><strong>base_classes</strong>(<em>int</em>): The number of base classes.</li>
+<li><strong>num_classes</strong>(<em>int</em>): The total class number.</li>
+<li><strong>att_classes</strong>(<em>int</em>): The attribute class number.</li>
+<li><strong>mode</strong>(<em>str</em>): classifier mode.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>feature_dim(self)</strong></span></p>
+<p>The feature dimension of the network.</p>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>out_dim</strong>(<em>int</em>) feature dimension of the network.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>extractor_vector(self, x)</strong></span></p>
+<p>get features of input x.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>x</strong>(<em>tensor</em>): input data.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>out_features</strong>(<em>tensor</em>) features of the input.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>forward(self, x)</strong></span></p>
+<p>forworad pass of the network.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>x</strong>(<em>tensor</em>): input data.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>results</strong> (<em>dict</em>): forward pass results. Contains the following keys:<ul>
+<li><strong>"fmaps"</strong>: [x_1, x_2, ..., x_n],</li>
+<li><strong>"features"</strong>: features</li>
+<li><strong>"logits"</strong>: logits</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>copy(self)</strong></span></p>
+<p>copy.</p>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>copy function</strong>.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>freeze(self)</strong></span></p>
+<p>freeze parameters.</p>
+</li>
+</ul>
+<h4 id="incrementalnet">IncrementalNet</h4>
+<p>Incremental Network which follows BaseNet.</p>
+<ul>
+<li>
+<p><span class="highlight-text"><strong>__init__(self, network, base_classes, num_classes, att_classes, net_alice, mode)</strong></span></p>
+<p>The constructor method that initializes an instance of <strong>BaseNet</strong>.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>network</strong> (<em>config</em>): The config of the network.</li>
+<li><strong>base_classes</strong>(<em>int</em>): The number of base classes.</li>
+<li><strong>num_classes</strong>(<em>int</em>): The total class number.</li>
+<li><strong>att_classes</strong>(<em>int</em>): The attribute class number.</li>
+<li><strong>mode</strong>(<em>str</em>): classifier mode.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>update_fc(self, nb_classes)</strong></span></p>
+<p>update fc parameter, generate new fc and copy old parameter.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>network</strong> (<em>int</em>): New class number.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>fc</strong>: updated fc layers.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>generate_fc(self, in_dim, out_dim)</strong></span></p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>in_dim</strong> (<em>int</em>): new fc in dimension.</li>
+<li><strong>out_dim</strong> (<em>int</em>): new fc out dimension.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>fc</strong>: new fc layers.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>forward(self, x)</strong></span></p>
+<p>forworad pass of the network.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>x</strong>(<em>tensor</em>): input data.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>results</strong> (<em>dict</em>): forward pass results. Contains the following keys:<ul>
+<li><strong>"fmaps"</strong>: [x_1, x_2, ..., x_n],</li>
+<li><strong>"features"</strong>: features</li>
+<li><strong>"logits"</strong>: logits</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>weight_align(self, increment)</strong></span></p>
+<p>normalize classifer parameters.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>increment</strong>(<em>int</em>): incremental classes.</li>
+</ul>
+</li>
+</ul>
+<h2 id="ncdiatrainers">ncdia.trainers</h2>
+<h3 id="ncdiatrainersbasepy">ncdia.trainers.base.py</h3>
+<h4 id="basetrainer">BaseTrainer</h4>
+<p>Basic trainer class for training models.</p>
+<p><strong>Attributes:</strong></p>
+<ul>
+<li><strong>model</strong> (<em>nn.Module</em>): Neural network models.</li>
+<li><strong>train_loader</strong> (<em>DataLoader</em>): DataLoader for training.</li>
+<li><strong>val_loader</strong> (<em>DataLoader</em>): DataLoader for validation.</li>
+<li><strong>test_loader</strong> (<em>DataLoader</em>): DataLoader for testing.</li>
+<li><strong>optimizer</strong> (<em>Optimizer</em>): Optimizer.</li>
+<li><strong>scheduler</strong> (<em>lr_scheduler._LRScheduler</em>): Learning rate scheduler.</li>
+<li><strong>criterion</strong> (<em>Callable</em>): Criterion for training.</li>
+<li><strong>algorithm</strong> (<em>object</em>): Algorithm for training.</li>
+<li><strong>metrics</strong> (<em>dict</em>): Metrics for evaluation and testing.</li>
+<li><strong>session</strong> (<em>int</em>): Session number.</li>
+<li><strong>max_epochs</strong> (<em>int</em>): Total epochs for training.</li>
+<li><strong>max_train_iters</strong> (<em>int</em>): Iterations on one epoch for training.</li>
+<li><strong>max_val_iters</strong> (<em>int</em>): Iterations on one epoch for validation.</li>
+<li><strong>max_test_iters</strong> (<em>int</em>): Iterations on one epoch for testing.</li>
+<li><strong>epoch</strong> (<em>int</em>): Current training epoch.</li>
+<li><strong>iter</strong> (<em>int</em>): Current iteration or index of the current batch.</li>
+<li><strong>cfg</strong> (<em>Configs</em>): Configuration for trainer.</li>
+<li><strong>hooks</strong> (<em>List[Hook]</em>): List of registered hooks.</li>
+<li><strong>logger</strong> (<em>Logger</em>): Logger for logging information.</li>
+<li><strong>device</strong> (<em>torch.device</em>): Device to use.</li>
+<li><strong>work_dir</strong> (<em>str</em>): Working directory to save logs and checkpoints.</li>
+<li><strong>exp_name</strong> (<em>str</em>): Experiment name.</li>
+<li><strong>load_from</strong> (<em>str</em>): Checkpoint file path to load.</li>
+</ul>
+<p><strong>Methods:</strong></p>
+<ul>
+<li>
+<p><span class="highlight-text"><strong> __init__(self, cfg, session, model, train_loader, val_loader, test_loader, default_hooks, custom_hooks, load_from, exp_name, work_dir)</strong></span></p>
+<p>The constructor method that initializes an instance of <strong>BaseTrainer</strong>. </p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>cfg</strong> (<em>dict, optional</em>): Configuration for trainer, Contains:<ul>
+<li><strong>'trainer'</strong> (<em>dict</em>):<ul>
+<li>'type' (<em>str</em>): Type of trainer.</li>
+</ul>
+</li>
+<li><strong>'algorithm'</strong> (<em>dict</em>):<ul>
+<li>'type' (<em>str</em>): Type of algorithm.</li>
+</ul>
+</li>
+<li><strong>'criterion'</strong> (<em>dict</em>):<ul>
+<li>'type' (<em>str</em>): Type of criterion for training.</li>
+</ul>
+</li>
+<li><strong>'optimizer'</strong>:<ul>
+<li>'type' (<em>str</em>): Name of optimizer.</li>
+<li>'param_groups' (<em>dict | None</em>): If provided, directly optimize
+    param_groups and abandon model.</li>
+<li>kwargs (<em>dict</em>) for optimizer, such as 'lr', 'weight_decay', etc.</li>
+</ul>
+</li>
+<li><strong>'scheduler'</strong>:<ul>
+<li>'type' (<em>str</em>): Name of scheduler.</li>
+<li>kwargs (<em>dict</em>) for scheduler, such as 'step_size', 'gamma', etc.</li>
+</ul>
+</li>
+<li><strong>'device' </strong>(<em>str | torch.device | None</em>): Device to use.
+    If None, use 'cuda' if available.</li>
+<li><strong>'trainloader'</strong>:<ul>
+<li>'dataset': <ul>
+<li>'type' (<em>str</em>): Type of dataset.</li>
+<li>kwargs (<em>dict</em>) for dataset, such as 'root', 'split', etc.</li>
+</ul>
+</li>
+<li>kwargs (<em>dict</em>) for DataLoader, such as 'batch_size', 'shuffle', etc.</li>
+</ul>
+</li>
+<li><strong>'valloader'</strong>:<ul>
+<li>'dataset': <ul>
+<li>'type' (<em>str</em>): Type of dataset.</li>
+<li>kwargs (<em>dict</em>) for dataset, such as 'root', 'split', etc.</li>
+</ul>
+</li>
+<li>kwargs (<em>dict</em>) for DataLoader, such as 'batch_size', 'shuffle', etc.</li>
+</ul>
+</li>
+<li><strong>'testloader'</strong>:<ul>
+<li>'dataset':<ul>
+<li>'type' (<em>str</em>): Type of dataset.</li>
+<li>kwargs (<em>dict</em>) for dataset, such as 'root', 'split', etc.</li>
+</ul>
+</li>
+<li>kwargs (<em>dict</em>) for DataLoader, such as 'batch_size', 'shuffle', etc.</li>
+</ul>
+</li>
+<li><strong>'exp_name'</strong> (<em>str</em>): Experiment name.</li>
+<li><strong>'work_dir'</strong> (<em>str</em>): Working directory to save logs and checkpoints.</li>
+</ul>
+</li>
+<li><strong>session</strong> (<em>int</em>): Session number. If == 0, execute pre-training.
+    If &gt; 0, execute incremental training.</li>
+<li><strong>model</strong> (<em>nn.Module</em>): Model to be trained.</li>
+<li><strong>train_loader</strong> (<em>DataLoader | dict, optional</em>): DataLoader for training.</li>
+<li><strong>val_loader</strong> (<em>DataLoader | dict, optional</em>): DataLoader for validation.</li>
+<li><strong>test_loader</strong> (<em>DataLoader | dict, optional</em>): DataLoader for testing.</li>
+<li><strong>default_hooks</strong> (<em>dict, optional</em>): Default hooks to be registered.</li>
+<li><strong>custom_hooks</strong> (<em>list, optional</em>): Custom hooks to be registered.</li>
+<li><strong>load_from</strong> (<em>str, optional</em>): Checkpoint file path to load.</li>
+<li><strong>work_dir</strong> (<em>str, optional</em>): Working directory to save logs and checkpoints.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong> train_step(self, batch, **kwargs)</strong></span></p>
+<p>Training step. <strong>This method should be implemented in subclasses.</strong></p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>batch</strong> (<em>dict | tuple | list</em>): A batch of data from the data loader.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li>
+<p>results (dict): Contains the following:</p>
+<p>{"key1": value1, "key2": value2,...}</p>
+<p>keys denote the description of the value, such as <strong>"loss"</strong>, <strong>"acc"</strong>, <strong>"ccr"</strong>, etc.
+values are the corresponding values of the keys, can be <em>int</em>, <em>float</em>, <em>str</em>, etc.    </p>
+</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong> val_step(self, batch, </strong>kwargs)**</span></p>
+<p>Validation step. <strong>This method should be implemented in subclasses.</strong></p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>batch</strong> (<em>dict | tuple | list</em>): A batch of data from the data loader.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li>
+<p>results (dict): Contains the following:</p>
+<p>{"key1": value1, "key2": value2,...}</p>
+<p>keys denote the description of the value, such as <strong>"loss"</strong>, <strong>"acc"</strong>, <strong>"ccr"</strong>, etc.
+values are the corresponding values of the keys, can be <em>int</em>, <em>float</em>, <em>str</em>, etc.    </p>
+</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong> test_step(self, batch, </strong>kwargs)**</span></p>
+<p>Test step. <strong>This method should be implemented in subclasses.</strong></p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>batch</strong> (<em>dict | tuple | list</em>): A batch of data from the data loader.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li>
+<p>results (dict): Contains the following:</p>
+<p>{"key1": value1, "key2": value2,...}</p>
+<p>keys denote the description of the value, such as <strong>"loss"</strong>, <strong>"acc"</strong>, <strong>"ccr"</strong>, etc.
+values are the corresponding values of the keys, can be <em>int</em>, <em>float</em>, <em>str</em>, etc.   </p>
+</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong> train(self)</strong></span></p>
+<p>Launch the training process.</p>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>model</strong> (<em>nn.Module</em>): Trained model.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong> val(self)</strong></span></p>
+</li>
+</ul>
+<p>Validation process.</p>
+<ul>
+<li><span class="highlight-text"><strong> test(self)</strong></span></li>
+</ul>
+<p>Test process.</p>
+<ul>
+<li>
+<p><span class="highlight-text"><strong> load_ckpt(self, fpath, device='cpu')</strong></span></p>
+<p>Load checkpoint from file.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>fpath</strong> (<em>str</em>): Checkpoint file path.</li>
+<li><strong>device</strong> (<em>str</em>): Device to load checkpoint. Defaults to 'cpu'.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>model</strong> (<em>nn.Module</em>): Loaded model.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong> save_ckpt(self, fpath)</strong></span></p>
+<p>Save checkpoint to file.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>fpath</strong> (<em>str</em>): Checkpoint file path.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong> call_hook(self, fn_name: str, </strong>kwargs)**</span></p>
+<p>Call all hooks with the specified function name.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li>
+<p><strong>fn_name</strong> (<em>str</em>): Function name to be called, such as:</p>
+<ul>
+<li><strong>'before_train_epoch'</strong></li>
+<li><strong>'after_train_epoch'</strong></li>
+<li><strong>'before_train_iter'</strong></li>
+<li><strong>'after_train_iter'</strong></li>
+<li><strong>'before_val_epoch'</strong></li>
+<li><strong>'after_val_epoch'</strong></li>
+<li><strong>'before_val_iter'</strong></li>
+<li><strong>'after_val_iter'</strong></li>
+</ul>
+</li>
+<li>
+<p><strong>kwargs</strong> (<em>dict</em>): Arguments for the function.</p>
+</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>register_hook(self, hook, priority=None)</strong></span></p>
+<p><strong>Register a hook into the hook list.</strong></p>
+<p>The hook will be inserted into a priority queue, with the specified priority (See :class:<code>Priority</code> for details of priorities). For hooks with the same priority, they will be triggered in the same order as they are registered. Priority of hook will be decided with the following priority:</p>
+<ul>
+<li><code>priority</code> argument. If <code>priority</code> is given, it will be priority of hook.</li>
+<li>If <code>hook</code> argument is a dict and <code>priority</code> in it, the priority will be the value of <code>hook['priority']</code>.</li>
+<li>If <code>hook</code> argument is a dict but <code>priority</code> not in it or <code>hook</code> is an instance of <code>hook</code>, the priority will be <code>hook.priority</code>.</li>
+</ul>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>hook</strong> (<em>:obj:<code>Hook</code> or dict</em>): The hook to be registered. priority (int or str or :obj:<code>Priority</code>, optional): Hook priority. Lower value means higher priority.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong> register_default_hooks(self, hooks=None)</strong></span></p>
+<p><strong>Register default hooks into hook list.</strong></p>
+<p><code>hooks</code> will be registered into runner to execute some default actions like updating model parameters or saving checkpoints.</p>
+<p>Default hooks and their priorities:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Hooks</th>
+<th style="text-align: left;">Priority</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">RuntimeInfoHook</td>
+<td style="text-align: left;">VERY_HIGH (10)</td>
+</tr>
+<tr>
+<td style="text-align: left;">IterTimerHook</td>
+<td style="text-align: left;">NORMAL (50)</td>
+</tr>
+<tr>
+<td style="text-align: left;">DistSamplerSeedHook</td>
+<td style="text-align: left;">NORMAL (50)</td>
+</tr>
+<tr>
+<td style="text-align: left;">LoggerHook</td>
+<td style="text-align: left;">BELOW_NORMAL (60)</td>
+</tr>
+<tr>
+<td style="text-align: left;">ParamSchedulerHook</td>
+<td style="text-align: left;">LOW (70)</td>
+</tr>
+<tr>
+<td style="text-align: left;">CheckpointHook</td>
+<td style="text-align: left;">VERY_LOW (90)</td>
+</tr>
+</tbody>
+</table>
+<p>If <code>hooks</code> is None, above hooks will be registered by default:</p>
+<pre><code>default_hooks = dict(
+    logger=dict(type='LoggerHook'),
+    model=dict(type='ModelHook'),
+    alg=dict(type='AlgHook'),
+    optimizer = dict(type='OptimizerHook'),
+    scheduler = dict(type='SchedulerHook'),
+    metric = dict(type='MetricHook'),
+)
+</code></pre>
+<p>If not None, <code>hooks</code> will be merged into <code>default_hooks</code>.
+If there are None value in default_hooks, the corresponding item will
+be popped from <code>default_hooks</code>:</p>
+<pre><code>hooks = dict(timer=None)
+</code></pre>
+<p>The final registered default hooks will be :obj:<code>RuntimeInfoHook</code>, :obj:<code>DistSamplerSeedHook</code>, :obj:<code>LoggerHook</code>, :obj:<code>ParamSchedulerHook</code> and :obj:<code>CheckpointHook</code>.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>hooks</strong> (<em>dict[str, Hook or dict]</em>): Default hooks or configs to be registered.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong> register_custom_hooks(self, hooks)</strong></span></p>
+<p>Register custom hooks into hook list.</p>
+<p><strong>Parameters:</strong></p>
+<p><strong>hooks</strong> (<em>list[Hook | dict]</em>): List of hooks or configs to be registered.</p>
+</li>
+<li>
+<p><span class="highlight-text"><strong> register_hooks(self, default_hooks=None, custom_hooks=None)</strong></span></p>
+<p>Register default hooks and custom hooks into hook list.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>default_hooks</strong> (<em>dict[str, dict] or dict[str, Hook]</em>): Hooks to execute default actions like updating model parameters and saving checkpoints.  Defaults to None.</li>
+<li><strong>custom_hooks</strong> (<em>list[dict] or list[Hook]</em>): Hooks to execute custom actions like visualizing images processed by pipeline. Defaults to None.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>get_hooks_info(self)</strong></span></p>
+<p>Get registered hooks information.</p>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>info</strong> (<em>str</em>): Information of registered hooks.</li>
+</ul>
+</li>
+</ul>
+<h3 id="ncdiatrainerspretrainerpy">ncdia.trainers.pretrainer.py</h3>
+<h4 id="pretrainer">PreTrainer</h4>
+<p>PreTrainer class for pre-training a model on session 0.</p>
+<p><strong>Attributes:</strong></p>
+<ul>
+<li><strong>max_epochs</strong> (<em>int</em>): Total epochs for training.</li>
+</ul>
+<p><strong>Methods:</strong></p>
+<ul>
+<li><strong>__init__(self, max_epochs=1, **kwargs):</strong> The constructor method that initializes an instance of <strong>PreTrainer</strong>. <strong>max_epochs</strong> (<em>int</em>): Total epochs for training.</li>
+<li><strong>train_step(self, batch, **kwargs):</strong> Training step.</li>
+<li><strong>val_step(self, batch, **kwargs):</strong> Validation step.</li>
+<li><strong>test_step(self, batch, **kwargs):</strong> Test step.</li>
+<li>
+<p><strong>batch_parser(batch)</strong> </p>
+<p>Parse a batch of data.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>batch</strong> (<em>dict | tuple | list</em>): A batch of data.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>data</strong> (<em>torch.Tensor | list</em>): Input data.</li>
+<li><strong>label</strong> (<em>torch.Tensor | list</em>): Label data.</li>
+<li><strong>attribute</strong> (<em>torch.Tensor | list</em>): Attribute data.</li>
+<li><strong>imgpath</strong> (<em>list of str</em>): Image path.</li>
+</ul>
+</li>
+</ul>
+<h3 id="ncdiatrainersinctrainerpy">ncdia.trainers.inctrainer.py</h3>
+<h4 id="inctrainer">IncTrainer</h4>
+<p>IncTrainer class for incremental training.</p>
+<p><strong>Attributes:</strong></p>
+<ul>
+<li><strong>sess_cfg</strong> (<em>Configs</em>): Session configuration.</li>
+<li><strong>num_sess</strong> (<em>int</em>): Number of sessions.</li>
+<li><strong>session</strong> (<em>int</em>): Session number. If == 0, execute pre-training.
+    If &gt; 0, execute incremental training.</li>
+<li><strong>hist_trainset</strong> (<em>MergedDataset</em>): Historical training dataset.</li>
+<li><strong>hist_valset</strong> (<em>MergedDataset</em>): Historical validation dataset.</li>
+<li><strong>hist_testset</strong> (<em>MergedDataset</em>): Historical testing dataset.</li>
+</ul>
+<p><strong>Methods:</strong></p>
+<ul>
+<li>
+<p><span class="highlight-text"><strong>  __init__(self, cfg=None, sess_cfg=None, ncd_cfg=None, session=0, model=None, hist_trainset=None, hist_testset=None, old_model=None, **kwargs)</strong></span></p>
+<p>The constructor method that initializes an instance of <strong>IncTrainer</strong>. </p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>model</strong> (<em>nn.Module</em>): Model to be trained.</li>
+<li><strong>cfg</strong> (<em>dict</em>): Configuration for trainer.</li>
+<li><strong>sess_cfg</strong> (<em>Configs</em>): Session configuration.</li>
+<li><strong>session</strong> (<em>int</em>): Session number. Default: 0.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong> train(self)</strong></span></p>
+<p>Incremental training. </p>
+<p><strong>self.num_sess</strong> determines the number of sessions, and session number is stored in <strong>self.session</strong>.</p>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>model</strong> (<em>nn.Module</em>): Trained model.</li>
+</ul>
+</li>
+</ul>
+<h3 id="ncdiatrainershooks">ncdia.trainers.hooks</h3>
+<p>Implements some of the commonly used hooks.</p>
+<h4 id="hook">Hook</h4>
+<p><em>ncdia.trainers.hooks.hook.py</em></p>
+<p>Base hook class. All hooks should inherit from this class.</p>
+<h4 id="alghook">AlgHook</h4>
+<p><em>ncdia.trainers.hooks.alghook.py</em></p>
+<p>A hook to modify algorithm state in the pipeline. This class is a base class for all algorithm hooks.</p>
+<h4 id="loggerhook">LoggerHook</h4>
+<p><em>ncdia.trainers.hooks.loggerhook.py</em></p>
+<p>A hook to log information during training and evaluation.</p>
+<h4 id="metrichook">MetricHook</h4>
+<p><em>ncdia.trainers.hooks.metrichook.py</em></p>
+<p>A hook to calculate metrics during evaluation and testing.</p>
+<h4 id="modelhook">ModelHook</h4>
+<p><em>ncdia.trainers.hooks.modelhook.py</em></p>
+<p>A hook to change model state in the pipeline, such as setting device, changing model to eval mode, etc.</p>
+<h4 id="ncdhook">NCDHook</h4>
+<p><em>ncdia.trainers.hooks.ncdhook.py</em></p>
+<p>A hook to execute OOD and NCD detection to relabel data</p>
+<h4 id="optimizerhook">OptimizerHook</h4>
+<p><em>ncdia.trainers.hooks.optimizerhook.py</em></p>
+<p>A hook to put optimizer to zero_grad and step during training.</p>
+<h4 id="schedulerhook">SchedulerHook</h4>
+<p><em>ncdia.trainers.hooks.schedulerhook.py</em></p>
+<p>A hook to change learning rate during training.</p>
+<h3 id="ncdiatrainersoptims">ncdia.trainers.optims</h3>
+<h4 id="ncdiatrainersoptimsoptimizerpy">ncdia.trainers.optims.optimizer.py</h4>
+<ul>
+<li>
+<p><span class="highlight-text"><strong>build_optimizer(type, model, param_groups=None, **kwargs)</strong></span></p>
+<p>Build optimizer.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>type</strong> (<em>str</em>): type of optimizer</li>
+<li><strong>model</strong> (<em>nn.Module | dict</em>): model or param_groups</li>
+<li><strong>param_groups</strong> (<em>dict | None</em>): 
+    if provided, directly optimize param_groups and abandon model</li>
+<li><strong>kwargs</strong> (<em>dict</em>): arguments for optimizer</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>optimizer</strong> (<em>torch.optim.Optimizer</em>): optimizer</li>
+</ul>
+</li>
+</ul>
+<h4 id="ncdiatrainersoptimsschedulerpy">ncdia.trainers.optims.scheduler.py</h4>
+<p>Implements some of the commonly used scheduler.</p>
+<ul>
+<li><strong>CosineWarmupLR</strong></li>
+<li><strong>LinearWarmupLR</strong></li>
+<li><strong>ConstantLR</strong></li>
+</ul>
+<p><strong>Methods:</strong></p>
+<ul>
+<li>
+<p><span class="highlight-text"><strong>build_scheduler(type, optimizer, **kwargs)</strong></span></p>
+<p>Build learning rate scheduler.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>type</strong> (<em>str</em>): type of scheduler</li>
+<li><strong>optimizer</strong> (t<em>orch.optim.Optimizer</em>): optimizer</li>
+<li><strong>kwargs</strong> (<em>dict</em>): arguments for scheduler</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>lr_scheduler</strong> (<em>torch.optim.lr_scheduler._LRScheduler</em>): learning rate scheduler</li>
+</ul>
+</li>
+</ul>
+<h3 id="ncdiatrainerspriority">ncdia.trainers.priority</h3>
+<p>Hook priority levels.</p>
+<h4 id="priority">Priority</h4>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Level</th>
+<th style="text-align: left;">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">HIGHEST</td>
+<td style="text-align: left;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;">VERY_HIGH</td>
+<td style="text-align: left;">10</td>
+</tr>
+<tr>
+<td style="text-align: left;">HIGH</td>
+<td style="text-align: left;">30</td>
+</tr>
+<tr>
+<td style="text-align: left;">ABOVE_NORMAL</td>
+<td style="text-align: left;">40</td>
+</tr>
+<tr>
+<td style="text-align: left;">NORMAL</td>
+<td style="text-align: left;">50</td>
+</tr>
+<tr>
+<td style="text-align: left;">BELOW_NORMAL</td>
+<td style="text-align: left;">60</td>
+</tr>
+<tr>
+<td style="text-align: left;">LOW</td>
+<td style="text-align: left;">70</td>
+</tr>
+<tr>
+<td style="text-align: left;">VERY_LOW</td>
+<td style="text-align: left;">90</td>
+</tr>
+<tr>
+<td style="text-align: left;">LOWEST</td>
+<td style="text-align: left;">100</td>
+</tr>
+</tbody>
+</table>
+<h2 id="ncdiautils">ncdia.utils</h2>
+<h3 id="ncdiautilsmetrics">ncdia.utils.metrics</h3>
+<h4 id="ncdiautilsmetricsaccuracypy">ncdia.utils.metrics.accuracy.py</h4>
+<ul>
+<li>
+<p><span class="highlight-text"><strong>accuracy(output, target, topk=(1,))</strong></span></p>
+<p>Computes the accuracy over the k-top predictions for the specified values of k.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>output</strong> (<em>torch.Tensor</em>): model output, shape (batch_size, num_classes)</li>
+<li><strong>target</strong> (<em>torch.Tensor</em>): target labels, shape (batch_size)</li>
+<li><strong>topk</strong> (<em>tuple</em>): top-k values, default is (1,)</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>acc</strong> (<em>list</em>): accuracy values for each k in topk</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>per_class_accuracy(output, target, topk=(1, ))</strong></span></p>
+<p>Compute per class accuracy over the k-top predictions for the specified values of k </p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>output</strong> (<em>torch.Tensor</em>): model output, shape (batch_size, num_classes)</li>
+<li><strong>target</strong> (<em>torch.Tensor</em>): target labels, shape (batch_size)</li>
+<li><strong>topk</strong> (<em>tuple</em>): top-k values, default is (1,)</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>acc</strong> (<em>list</em>): accuracy values for each k in topk</li>
+</ul>
+</li>
+</ul>
+<h4 id="ncdiautilsmetricsmeterpy">ncdia.utils.metrics.meter.py</h4>
+<p><strong>AverageMeter</strong></p>
+<p>Computes and stores the average and current value.</p>
+<h3 id="ncdiautilslosses">ncdia.utils.losses</h3>
+<h4 id="crossentropyloss">CrossEntropyLoss</h4>
+<p>In <em>crossentropy.py</em>. CrossEntropyLoss with label smoothing.</p>
+<h4 id="angularpenaltysmloss">AngularPenaltySMLoss</h4>
+<p>In <em>angular.py</em>. Angular Penalty Softmax Loss. Three 'loss_types' available: ['arcface', 'sphereface', 'cosface']</p>
+<h3 id="ncdiautilscfgpy">ncdia.utils.cfg.py</h3>
+<h4 id="configs">Configs</h4>
+<p>Include implementation of setup and use of configs.</p>
+<h3 id="ncdiautilsloggerpy">ncdia.utils.logger.py</h3>
+<p>Include implementation of loggers to write output to console and external text file.</p>
+<h3 id="ncdiautilsregistrypy">ncdia.utils.registry.py</h3>
+<h4 id="registry">Registry</h4>
+<p>A registry to map strings to classes or functions.</p>
+<p><strong>Examples:</strong></p>
+<pre><code>&gt;&gt;&gt; REGISTRY = Registry()
+&gt;&gt;&gt; @REGISTRY
+&gt;&gt;&gt; def foo():
+&gt;&gt;&gt;     return 'foo'
+&gt;&gt;&gt; @REGISTRY.register
+&gt;&gt;&gt; def bar():
+&gt;&gt;&gt;     return 'bar'
+
+&gt;&gt;&gt; print(REGISTRY['foo']())
+foo
+&gt;&gt;&gt; print(REGISTRY['bar']())
+bar
+
+&gt;&gt;&gt; print(REGISTRY)
+{'foo': &lt;function foo at 0x7f9b1c0e0d30&gt;, 'bar': &lt;function bar at 0x7f9b1c0e0e18&gt;}
+&gt;&gt;&gt; print(REGISTRY['foo'])
+&lt;function foo at 0x7f9b1c0e0d30&gt;
+&gt;&gt;&gt; print(REGISTRY['bar'])
+&lt;function bar at 0x7f9b1c0e0e18&gt;
+
+&gt;&gt;&gt; print('foo' in REGISTRY)
+True
+&gt;&gt;&gt; print('bar' in REGISTRY)
+True
+&gt;&gt;&gt; print('foobar' in REGISTRY)
+False
+
+&gt;&gt;&gt; print(REGISTRY.keys())
+dict_keys(['foo', 'bar'])
+&gt;&gt;&gt; print(REGISTRY.values())
+dict_values([&lt;function foo at 0x7f9b1c0e0d30&gt;, &lt;function bar at 0x7f9b1c0e0e18&gt;])
+&gt;&gt;&gt; print(REGISTRY.items())
+dict_items([('foo', &lt;function foo at 0x7f9b1c0e0d30&gt;), ('bar', &lt;function bar at 0x7f9b1c0e0e18&gt;)])
+&gt;&gt;&gt; print(len(REGISTRY))
+2
+</code></pre>
+<ul>
+<li>
+<p><span class="highlight-text"><strong>register_callable(self, target: callable)</strong></span></p>
+<p>Register a target.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>target</strong> (<em>callable</em>): callable target to be registered.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>register_dict(self, target)</strong></span></p>
+<p>Register a dict.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>target</strong> (<em>dict</em>): A dict to be registered. All its values should be callable.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>register(self, target)</strong></span></p>
+<p>Register a target.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>target</strong> (<em>callable | dict</em>): target to be registered.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>target</strong> (<em>object</em>): Registered target.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>build(self, target: dict | Configs, **kwargs)</strong></span></p>
+<p>Build a target with configs.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>target</strong> (<em>dict | Configs</em>): A dict to be built. It should have a key 'type' to specify the target type. It may have other keys to specify the target configs.</li>
+<li><strong>kwargs</strong> (<em>dict</em>): Additional keyword arguments.</li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><strong>target</strong> (<em>object</em>): A built target.</li>
+</ul>
+</li>
+</ul>
+<h3 id="ncdiautilstoolspy">ncdia.utils.tools.py</h3>
+<ul>
+<li>
+<p><span class="highlight-text"><strong>mkdir_if_missing(dirname)</strong></span></p>
+<p>Create dirname if it is missing.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>dirname</strong> (<em>str</em>): directory path</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>auto_device(device)</strong></span></p>
+<p>Automatically set the device for the input tensor.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>device</strong> (<em>str | torch.device | None</em>): device name or device object. If None, return torch.device('cuda') if available, otherwise return torch.device('cpu').</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>set_random_seed(seed)</strong></span></p>
+<p>Set random seed for reproducibility.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><strong>seed</strong> (<em>int</em>): random seed</li>
+</ul>
+</li>
+</ul>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../config/" class="btn btn-neutral float-left" title="config"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../scripts/" class="btn btn-neutral float-right" title="scripts">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2025 <a href="https://github.com/HAIV-Lab" target="_blank">HAIV Lab</a>. Licensed under the <a href="https://opensource.org/licenses/MIT" target="_blank">MIT License</a>.</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../config/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../scripts/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

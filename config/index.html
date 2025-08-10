@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>config - OpenHAIV</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../stylesheets/custom.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "config";
+        var mkdocs_page_input_path = "config.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> OpenHAIV
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Get Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="..">Introduction</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../quik/">Quik Start</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../methods/">Reproduced Methods</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../results/">Results</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Documentation</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../overview/">Overview</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">config</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#configuration-file-structure">Configuration File Structure</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#configuration-modules-in-detail">Configuration Modules in Detail</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#configalgorithms">config.algorithms</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#supervised-learning-algorithms">Supervised Learning Algorithms</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#class-incremental-learning-algorithms">Class-incremental Learning Algorithms</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#few-shot-class-incremental-learning-algorithms">Few-shot Class-incremental Learning Algorithms</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#out-of-distribution-detection-algorithms">Out-of-Distribution Detection Algorithms</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#configdataloader">config.dataloader</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#configmodel">config.model</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#configpipeline">config.pipeline</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#how-to-use-configurations">How to Use Configurations</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#configuration-inheritance-mechanism">Configuration Inheritance Mechanism</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#configuration-best-practices">Configuration Best Practices</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../ncdia/">ncdia</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../scripts/">scripts</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">More Information</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../people/">People</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../contributing/">Contributing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../citation/">Citation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../acknowledgment/">Acknowledgment</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">OpenHAIV</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Documentation</li>
+      <li class="breadcrumb-item active">config</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="configuration-system">Configuration System</h1>
+<p>The OpenHAIV framework uses a flexible YAML-based configuration system that allows users to easily define and modify various experimental parameters without changing the code. This document provides detailed information about the structure, usage, and major components of the configuration files.</p>
+<h2 id="configuration-file-structure">Configuration File Structure</h2>
+<p>OpenHAIV configuration files follow a hierarchical structure, mainly divided into the following sections:</p>
+<ol>
+<li><strong>Base Configuration</strong>: Defines basic parameters for experiments, such as random seed, device, output directory, etc.</li>
+<li><strong>Trainer Configuration</strong>: Defines parameters for the training process</li>
+<li><strong>Model Configuration</strong>: Defines model architecture and related parameters</li>
+<li><strong>Algorithm Configuration</strong>: Defines specific algorithms and methods</li>
+<li><strong>Data Loader Configuration</strong>: Defines datasets and data loading parameters</li>
+<li><strong>Optimizer Configuration</strong>: Defines optimization algorithms and related parameters</li>
+<li><strong>Scheduler Configuration</strong>: Defines learning rate scheduling strategies</li>
+</ol>
+<p>Configuration files can inherit from other configuration files through the <code>_base_</code> field, enabling modular and reusable configurations.</p>
+<h2 id="configuration-modules-in-detail">Configuration Modules in Detail</h2>
+<h3 id="configalgorithms">config.algorithms</h3>
+<p>Algorithm configurations define the specific algorithms and methods used in experiments, including:</p>
+<h4 id="supervised-learning-algorithms">Supervised Learning Algorithms</h4>
+<pre><code class="language-yaml">algorithm:
+  type: StandardSL  # Standard supervised learning
+</code></pre>
+<h4 id="class-incremental-learning-algorithms">Class-incremental Learning Algorithms</h4>
+<pre><code class="language-yaml">algorithm:
+  type: LwF  # Learning without Forgetting
+  # Algorithm-specific parameters
+  temperature: 2.0
+  alpha: 1.0
+</code></pre>
+<p>Other supported class-incremental learning algorithms include: <code>Finetune</code>, <code>Joint</code>, <code>iCaRL</code>, <code>EWC</code>, <code>BiC</code>, <code>WA</code>, <code>DER</code>, <code>Coil</code>, <code>FOSTER</code>, <code>SSRE</code>, <code>FeTrIL</code>, <code>MEMO</code>, etc.</p>
+<h4 id="few-shot-class-incremental-learning-algorithms">Few-shot Class-incremental Learning Algorithms</h4>
+<pre><code class="language-yaml">algorithm:
+  type: SAVC  # Few-shot class-incremental learning algorithm
+  # Algorithm-specific parameters
+  alpha: 1.0
+  beta: 0.1
+</code></pre>
+<h4 id="out-of-distribution-detection-algorithms">Out-of-Distribution Detection Algorithms</h4>
+<pre><code class="language-yaml">algorithm:
+  type: MSP  # Maximum Softmax Probability
+  # or
+  type: MLS  # Maximum Logit Score
+  # or
+  type: MCM  # Maximum Concept Matching
+</code></pre>
+<p>Other supported out-of-distribution detection algorithms include: <code>ODIN</code>, <code>VIM</code>, <code>MDS</code>, <code>DML</code>, <code>FDBD</code>, <code>GODIN</code>, <code>MCM</code>, <code>GL-MCM</code>, etc.</p>
+<h3 id="configdataloader">config.dataloader</h3>
+<p>Data loader configurations define the datasets and data loading parameters used in experiments:</p>
+<pre><code class="language-yaml">_base_: configs/dataloader/OES/oes.yaml  # Inherit base dataset configuration
+
+dataloader:
+  train:
+    dataset:
+      type: OES  # Dataset type
+      root: /path/to/dataset  # Dataset path
+      split: train  # Dataset split
+    batch_size: 128  # Batch size
+    num_workers: 4  # Number of data loading worker threads
+    shuffle: True  # Whether to shuffle data
+
+  val:  # Validation set configuration
+    dataset:
+      type: OES
+      root: /path/to/dataset
+      split: val
+    batch_size: 128
+    num_workers: 4
+    shuffle: False
+</code></pre>
+<p>Supported datasets include: <code>OES</code>, <code>CIFAR10</code>, <code>CIFAR100</code>, <code>ImageNet</code>, <code>ImageNetR</code>, <code>CUB200</code>, <code>Remote</code>, <code>Food101</code>, <code>Caltech101</code>, etc.</p>
+<h3 id="configmodel">config.model</h3>
+<p>Model configurations define the model architecture and related parameters used in experiments:</p>
+<pre><code class="language-yaml">model:
+  type: ResNet18  # Model type
+  # Or use a more complex definition
+  type: ResNet_Base
+  network:
+    type: ResNet18
+    num_classes: 94
+  checkpoint: &quot;/path/to/checkpoint.pth&quot;  # Pre-trained model path
+  loss: CrossEntropyLoss  # Loss function type
+</code></pre>
+<p>Supported models include:
+- Standard CNN models: <code>ResNet18</code>, <code>ResNet34</code>, <code>ResNet50</code>, <code>ResNet101</code>
+- Vision-language models: <code>CLIP-B/16</code>, <code>CLIP-B/32</code>, <code>RSCLIP-B/16</code>, <code>RSCLIP-B/32</code>
+- Algorithm-specific models: <code>AliceNET</code>, <code>CoOp</code>, <code>LoCoOp</code>, <code>SCT</code>, <code>DPM</code></p>
+<h3 id="configpipeline">config.pipeline</h3>
+<p>Pipeline configuration files integrate all of the above components into a complete experiment configuration, for example, a supervised learning pipeline configuration:</p>
+<pre><code class="language-yaml">_base_: configs/dataloader/OES/oes.yaml  # Inherit data loader configuration
+
+trainer:
+  type: PreTrainer  # Trainer type
+  max_epochs: 10  # Maximum training epochs
+
+algorithm:
+  type: StandardSL  # Algorithm type
+
+model:
+  type: ResNet18  # Model type
+
+criterion:
+  type: CrossEntropyLoss  # Loss function
+
+optimizer:
+  type: Adam  # Optimizer
+  lr: 0.0003  # Learning rate
+  weight_decay: 0.0001  # Weight decay
+
+scheduler:
+  type: Constant  # Scheduler type
+
+seed: 0  # Random seed
+device: cuda  # Device
+
+exp_name: exp  # Experiment name
+work_dir: ./output/supervised/sl_oes_rn18  # Output directory
+</code></pre>
+<h2 id="how-to-use-configurations">How to Use Configurations</h2>
+<p>Configuration files can be passed to the training script via command line:</p>
+<pre><code class="language-bash">python ncdia/train.py --cfg configs/pipeline/supervised_learning/sl_oes_rn18.yaml --opts device='cuda:0'
+</code></pre>
+<p>The <code>--opts</code> parameter allows overriding any parameter in the configuration file.</p>
+<h2 id="configuration-inheritance-mechanism">Configuration Inheritance Mechanism</h2>
+<p>OpenHAIV's configuration system supports composition based on inheritance, making configurations more modular and reusable:</p>
+<pre><code class="language-yaml">_base_: [
+  configs/dataloader/OES/oesfull.yaml,  # Inherit data loader configuration
+  configs/algorithms/ood_detection/dml.yaml,  # Inherit algorithm configuration
+]
+
+# Override or add specific parameters
+trainer:
+  type: DetTrainer
+  max_epochs: 10
+
+model:
+  type: ResNet_Base
+  network:
+    type: ResNet18
+    num_classes: 94
+</code></pre>
+<p>Through the inheritance mechanism, repetitive configurations can be avoided, improving the maintainability of configuration files.</p>
+<h2 id="configuration-best-practices">Configuration Best Practices</h2>
+<ol>
+<li><strong>Modular Configuration</strong>: Extract common configurations as base configuration files, and combine them through inheritance</li>
+<li><strong>Use Relative Paths</strong>: Paths in configuration files should use paths relative to the project root directory when possible</li>
+<li><strong>Comment Key Parameters</strong>: Add comments to important parameters to improve readability</li>
+<li><strong>Parameter Tuning</strong>: For new tasks, start with existing configurations and gradually adjust parameters</li>
+<li><strong>Version Control</strong>: Configuration files for important experiments should be version controlled to reproduce results</li>
+</ol>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../overview/" class="btn btn-neutral float-left" title="Overview"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../ncdia/" class="btn btn-neutral float-right" title="ncdia">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2025 <a href="https://github.com/HAIV-Lab" target="_blank">HAIV Lab</a>. Licensed under the <a href="https://opensource.org/licenses/MIT" target="_blank">MIT License</a>.</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../overview/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../ncdia/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

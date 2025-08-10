@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Results - OpenHAIV</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../stylesheets/custom.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Results";
+        var mkdocs_page_input_path = "results.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> OpenHAIV
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Get Started</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="..">Introduction</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../quik/">Quik Start</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../methods/">Reproduced Methods</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Results</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#open-world-learning">🌍 Open World Learning</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#incremental-learning">🌱 Incremental Learning</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#few-shot-class-incremental-learning">🧩 Few-Shot Class-Incremental Learning</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#out-of-distribution-detection">🚨 Out-of-Distribution Detection</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#cnn-based-methods">CNN-based Methods</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#clip-based-methods">CLIP-based Methods</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Documentation</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../overview/">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../config/">config</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../ncdia/">ncdia</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../scripts/">scripts</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">More Information</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../people/">People</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../contributing/">Contributing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../citation/">Citation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../acknowledgment/">Acknowledgment</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">OpenHAIV</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Get Started</li>
+      <li class="breadcrumb-item active">Results</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="results">📊 Results</h1>
+<h2 id="open-world-learning">🌍 Open World Learning</h2>
+<p><strong>Table 1.  The experiments of OWL on OpenEarthSensing dataset. ID Acc and ODD Acc are the in-distribution and out-of-distribution performance, respectively, and Avg denotes the average performance of each session.</strong></p>
+<table>
+<thead>
+<tr>
+<th>OOD Method</th>
+<th>CIL Method</th>
+<th>ID Acc</th>
+<th>OOD Acc</th>
+<th>Session 1</th>
+<th>Session 2</th>
+<th>Avg</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MSP</td>
+<td>LwF</td>
+<td>91.17</td>
+<td>55.01</td>
+<td>91.27</td>
+<td>42.11</td>
+<td>66.69</td>
+</tr>
+<tr>
+<td></td>
+<td>EWC</td>
+<td>91.17</td>
+<td>55.01</td>
+<td>91.27</td>
+<td>28.89</td>
+<td>60.08</td>
+</tr>
+<tr>
+<td></td>
+<td>iCaRL</td>
+<td>91.17</td>
+<td>55.01</td>
+<td>91.27</td>
+<td>50.29</td>
+<td>70.78</td>
+</tr>
+<tr>
+<td>MLS</td>
+<td>LwF</td>
+<td>90.6</td>
+<td>63.85</td>
+<td>91.27</td>
+<td>44.09</td>
+<td>67.68</td>
+</tr>
+<tr>
+<td></td>
+<td>EWC</td>
+<td>90.6</td>
+<td>63.85</td>
+<td>91.27</td>
+<td>29.83</td>
+<td>60.55</td>
+</tr>
+<tr>
+<td></td>
+<td>iCaRL</td>
+<td>90.6</td>
+<td>63.85</td>
+<td>91.27</td>
+<td>51.33</td>
+<td>71.30</td>
+</tr>
+<tr>
+<td>VIM</td>
+<td>LwF</td>
+<td>93.5</td>
+<td>59.99</td>
+<td>91.27</td>
+<td>43.49</td>
+<td>67.38</td>
+</tr>
+<tr>
+<td></td>
+<td>EWC</td>
+<td>93.5</td>
+<td>59.99</td>
+<td>91.27</td>
+<td>31.33</td>
+<td>61.30</td>
+</tr>
+<tr>
+<td></td>
+<td>iCaRL</td>
+<td>93.5</td>
+<td>59.99</td>
+<td>91.27</td>
+<td>33.78</td>
+<td>62.52</td>
+</tr>
+</tbody>
+</table>
+<h3 id="incremental-learning">🌱 Incremental Learning</h3>
+<p><strong>Fig 1. Experimental results of CIL. The left figure presents results in randomized order, while the right figure displays systematically organized results arranged from coarse to fine granularity.</strong></p>
+<p><img alt="CIL" src="../images/in-exp.png" /></p>
+<h3 id="few-shot-class-incremental-learning">🧩 Few-Shot Class-Incremental Learning</h3>
+<p><strong>Table 2. The experimental results of few-shot class-incremental learning on the OpenEarthSensing dataset. Shots denote the training samples for each category.</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>50-shot</th>
+<th></th>
+<th>10-shot</th>
+<th></th>
+<th>5-shot</th>
+<th></th>
+<th>1-shot</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td>Last</td>
+<td>Avg</td>
+<td>Last</td>
+<td>Avg</td>
+<td>Last</td>
+<td>Avg</td>
+<td>Last</td>
+<td>Avg</td>
+</tr>
+<tr>
+<td>Alice</td>
+<td>59.54</td>
+<td>64.66</td>
+<td>59.17</td>
+<td>68.64</td>
+<td>58.82</td>
+<td>68.35</td>
+<td>58.94</td>
+<td>68.4</td>
+</tr>
+<tr>
+<td>FACT</td>
+<td>46.42</td>
+<td>49.21</td>
+<td>46.38</td>
+<td>49.15</td>
+<td>46.36</td>
+<td>49.15</td>
+<td>46.37</td>
+<td>49.15</td>
+</tr>
+<tr>
+<td>SAVC</td>
+<td>71.71</td>
+<td>79.55</td>
+<td>72.23</td>
+<td>80.07</td>
+<td>66.61</td>
+<td>75.17</td>
+<td>59.63</td>
+<td>76.77</td>
+</tr>
+</tbody>
+</table>
+<h3 id="out-of-distribution-detection">🚨 Out-of-Distribution Detection</h3>
+<h4 id="cnn-based-methods">CNN-based Methods</h4>
+<p><strong>Table 3. OOD detection performance on OES benchmark. 'Near' represents the average AUROC for Near-OOD datasets, 'Far' indicates the average AUROC for Far-OOD datasets.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Standard</th>
+<th></th>
+<th>Res Bias</th>
+<th></th>
+<th>Aerial</th>
+<th></th>
+<th>MSRGB</th>
+<th></th>
+<th>IR</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td>Near</td>
+<td>Far</td>
+<td>Near</td>
+<td>Far</td>
+<td>Near</td>
+<td>Far</td>
+<td>Near</td>
+<td>Far</td>
+<td>Near</td>
+<td>Far</td>
+</tr>
+<tr>
+<td>MSP</td>
+<td>88.42</td>
+<td>93.91</td>
+<td>66.51</td>
+<td>78.4</td>
+<td>54.38</td>
+<td>56.85</td>
+<td>65.50</td>
+<td>66.92</td>
+<td>61.47</td>
+<td>65.35</td>
+</tr>
+<tr>
+<td>ODIN</td>
+<td>87.14</td>
+<td>95.79</td>
+<td>67.09</td>
+<td>75.2</td>
+<td>52.85</td>
+<td>57.04</td>
+<td>66.55</td>
+<td>61.55</td>
+<td>62.11</td>
+<td>73.28</td>
+</tr>
+<tr>
+<td>MDS</td>
+<td>83.15</td>
+<td>96.54</td>
+<td>53.86</td>
+<td>84.71</td>
+<td>48.79</td>
+<td>54.76</td>
+<td>66.31</td>
+<td>81.78</td>
+<td>83.64</td>
+<td>57.74</td>
+</tr>
+<tr>
+<td>MLS</td>
+<td>88.59</td>
+<td>96.12</td>
+<td>66.44</td>
+<td>83.17</td>
+<td>53.93</td>
+<td>59.78</td>
+<td>64.46</td>
+<td>63.37</td>
+<td>62.49</td>
+<td>67.06</td>
+</tr>
+<tr>
+<td>VIM</td>
+<td>90.35</td>
+<td>98.75</td>
+<td>60.33</td>
+<td>83.93</td>
+<td>50.69</td>
+<td>59.72</td>
+<td>64.90</td>
+<td>81.75</td>
+<td>57.65</td>
+<td>51.08</td>
+</tr>
+<tr>
+<td>FBDB</td>
+<td>90.24</td>
+<td>98.17</td>
+<td>66.64</td>
+<td>87.87</td>
+<td>54.49</td>
+<td>60.41</td>
+<td>59.45</td>
+<td>74.49</td>
+<td>61.40</td>
+<td>68.62</td>
+</tr>
+<tr>
+<td>VOS</td>
+<td>86.19</td>
+<td>95.68</td>
+<td>63.37</td>
+<td>81.32</td>
+<td>51.10</td>
+<td>60.01</td>
+<td>59.77</td>
+<td>58.72</td>
+<td>59.47</td>
+<td>60.26</td>
+</tr>
+<tr>
+<td>LogiNorm</td>
+<td>89.00</td>
+<td>95.15</td>
+<td>68.80</td>
+<td>80.29</td>
+<td>53.25</td>
+<td>56.72</td>
+<td>77.69</td>
+<td>55.43</td>
+<td>64.12</td>
+<td>63.97</td>
+</tr>
+<tr>
+<td>DML</td>
+<td>84.38</td>
+<td>90.36</td>
+<td>65.78</td>
+<td>76.16</td>
+<td>52.89</td>
+<td>58.60</td>
+<td>62.56</td>
+<td>50.68</td>
+<td>60.39</td>
+<td>50.56</td>
+</tr>
+</tbody>
+</table>
+<h4 id="clip-based-methods">CLIP-based Methods</h4>
+<p><strong>Table 4. CLIP based methods' performance on OES benchmark. 'Near' represents the average AUROC for Near-OOD datasets, 'Far' indicates the average AUROC for Far-OOD datasets.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Standard</th>
+<th></th>
+<th>Res Bias</th>
+<th></th>
+<th>Aerial</th>
+<th></th>
+<th>MSRGB</th>
+<th></th>
+<th>IR</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td>Near</td>
+<td>Far</td>
+<td>Near</td>
+<td>Far</td>
+<td>Near</td>
+<td>Far</td>
+<td>Near</td>
+<td>Far</td>
+<td>Near</td>
+<td>Far</td>
+</tr>
+<tr>
+<td>MaxLogits</td>
+<td>53.31</td>
+<td>43.95</td>
+<td>68.99</td>
+<td>63.32</td>
+<td>64.73</td>
+<td>40.46</td>
+<td>68.22</td>
+<td>9.34</td>
+<td>62.73</td>
+<td>37.00</td>
+</tr>
+<tr>
+<td>MCM</td>
+<td>61.79</td>
+<td>52.60</td>
+<td>59.97</td>
+<td>51.94</td>
+<td>66.07</td>
+<td>67.85</td>
+<td>58.90</td>
+<td>55.89</td>
+<td>54.41</td>
+<td>40.43</td>
+</tr>
+<tr>
+<td>GLMCM</td>
+<td>62.07</td>
+<td>52.33</td>
+<td>59.20</td>
+<td>51.57</td>
+<td>65.20</td>
+<td>67.42</td>
+<td>57.32</td>
+<td>56.89</td>
+<td>51.75</td>
+<td>42.30</td>
+</tr>
+<tr>
+<td>CoOp</td>
+<td>86.04</td>
+<td>94.21</td>
+<td>64.09</td>
+<td>73.36</td>
+<td>61.22</td>
+<td>76.40</td>
+<td>66.73</td>
+<td>90.22</td>
+<td>61.30</td>
+<td>45.16</td>
+</tr>
+<tr>
+<td>LoCoOp</td>
+<td>85.71</td>
+<td>90.94</td>
+<td>66.20</td>
+<td>71.67</td>
+<td>64.18</td>
+<td>76.52</td>
+<td>69.64</td>
+<td>86.28</td>
+<td>61.41</td>
+<td>43.33</td>
+</tr>
+<tr>
+<td>SCT</td>
+<td>85.56</td>
+<td>90.78</td>
+<td>65.37</td>
+<td>70.30</td>
+<td>64.14</td>
+<td>77.67</td>
+<td>68.58</td>
+<td>86.41</td>
+<td>60.81</td>
+<td>42.48</td>
+</tr>
+<tr>
+<td>DPM</td>
+<td>91.19</td>
+<td>99.24</td>
+<td>68.60</td>
+<td>92.61</td>
+<td>60.50</td>
+<td>71.26</td>
+<td>74.66</td>
+<td>93.56</td>
+<td>65.11</td>
+<td>75.10</td>
+</tr>
+</tbody>
+</table>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../methods/" class="btn btn-neutral float-left" title="Reproduced Methods"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../overview/" class="btn btn-neutral float-right" title="Overview">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2025 <a href="https://github.com/HAIV-Lab" target="_blank">HAIV Lab</a>. Licensed under the <a href="https://opensource.org/licenses/MIT" target="_blank">MIT License</a>.</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../methods/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../overview/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
