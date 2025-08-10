@@ -1,7 +1,7 @@
 <div align="center">
   <h1>🌍 OpenHAIV</h1>
   <p>A Framework for <b>Open-World Learning</b></p>
-  <p></p>p
+  <p>[Manual](https://haiv-lab.github.io/ncdia)</p>
 </div>
 <div align="center">
 
