@@ -8,7 +8,7 @@
 
 <!-- [![method](https://img.shields.io/badge/Reproduced-20-success)](your_link) -->
 
-[[Manual]](https://haiv-lab.github.io/ncdia)
+[[Manual]](https://haiv-lab.github.io/openhaiv)
 [[Arxiv]]()
 [[Dataset]](https://haiv-lab.github.io/OES)
 
