@@ -11,6 +11,7 @@
 [[Manual]](https://haiv-lab.github.io/openhaiv)
 [[Arxiv]]()
 [[Dataset]](https://haiv-lab.github.io/OES)
+[[Forum]](https://haiv-lab.github.io/low-altitude)
 
 </div>
 
