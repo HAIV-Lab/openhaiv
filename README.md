@@ -1,6 +1,7 @@
 <div align="center">
   <h1>🌍 OpenHAIV</h1>
   <p>A Framework for <b>Open-World Learning</b></p>
+  <p></p>p
 </div>
 <div align="center">
 
@@ -76,8 +77,8 @@ The framework adopts a modular design overall, which is reflected in two key asp
 - [✉️Contact](#️contact)
 
 ### 🎉 News
-<!-- [xx/2025] 🌟 Our paper "OpenHAIV: A Framework Towards Practical Open-World Learning" has been accepted by MACHINE VISION AND APPLICATIONS. -->
-<!-- [xx/2025] 🌟 The code repository is is now publicly available. -->
+<!-- [08/2025] 🌟 Our paper "OpenHAIV: A Framework Towards Practical Open-World Learning" is available at Arxiv. -->
+<!-- [08/2025] 🌟 The code repository is is now publicly available. -->
 [09/2024] 🌟 The code repository is created.
 
 ### 📋 TODO List
