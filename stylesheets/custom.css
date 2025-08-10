@@ -28,3 +28,9 @@
 .md-nav__item .md-nav__list {
     display: block !important;
 }
+
+.wy-menu-vertical a[href^="http"] {
+    color: #55a5d9 !important;  /* 你可以换成你想要的蓝色 */
+    font-weight: bold;
+    text-transform: uppercase;  /* 添加大写字母效果 */
+}
