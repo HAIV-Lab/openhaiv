@@ -9,7 +9,7 @@
 <!-- [![method](https://img.shields.io/badge/Reproduced-20-success)](your_link) -->
 
 [[Manual]](https://haiv-lab.github.io/openhaiv)
-[[Arxiv]]()
+[[Arxiv]](https://arxiv.org/abs/2508.07270)
 [[Dataset]](https://haiv-lab.github.io/OES)
 [[Forum]](https://haiv-lab.github.io/low-altitude)
 
@@ -56,14 +56,14 @@ The framework adopts a modular design overall, which is reflected in two key asp
 
 ### 📑 Table of Contents
 
-- [👋 Introduction](#-welcome-to-openhaiv)
+- [👋 Welcome to OpenHAIV](#-welcome-to-openhaiv)
 - [📑 Table of Contents](#-table-of-contents)
 - [🎉 News](#-news)
 - [📋 TODO List](#-todo-list)
 - [🚀 Getting Started](#-getting-started)
   - [📦 Installation](#-installation)
   - [🔧 Environment Setup](#-environment-setup)
-  - [🏃‍♂️ Running Examples](#-running-examples)
+  - [🏃‍♂️ Running Examples](#️-running-examples)
 - [🤖 Supported Models](#-supported-models)
 - [📚 Supported Methods](#-supported-methods)
   - [🌱 Class-incremental learning](#-class-incremental-learning)
@@ -81,8 +81,8 @@ The framework adopts a modular design overall, which is reflected in two key asp
 - [✉️Contact](#️contact)
 
 ### 🎉 News
-<!-- [08/2025] 🌟 Our paper "OpenHAIV: A Framework Towards Practical Open-World Learning" is available at Arxiv. -->
-<!-- [08/2025] 🌟 The code repository is is now publicly available. -->
+[08/2025] 🌟 Our paper "OpenHAIV: A Framework Towards Practical Open-World Learning" is available at [[Arxiv]](https://arxiv.org/abs/2508.07270).
+[08/2025] 🌟 The code repository is is now publicly available.
 [09/2024] 🌟 The code repository is created.
 
 ### 📋 TODO List
@@ -407,17 +407,15 @@ Xiang Xiang, Qinhao Zhou, Jing Ma, Zhuo Xu, Jiaxin Dai, Yifan Liang, Hanlin Li, 
 
 If you find our repository useful for your research, please consider citing these papers:
 
+
 ```bibtex
-@article{openhaiv2025,
-  title={OpenHAIV:A Framework Towards Practical Open-World Learning},
-  author={Xiang Xiang, Qinhao Zhou, Zhuo Xu, Jing Ma, Jiaxin Dai, Yifan Liang, Hanlin Li},
-  journal={Journal Name},
+@article{xiang2025openhaiv,
+  title={OpenHAIV: A Framework Towards Practical Open-World Learning},
+  author={Xiang, Xiang and Zhou, Qinhao and Xu, Zhuo and Ma, Jing and Dai, Jiaxin and Liang, Yifan and Li, Hanlin},
+  journal={arXiv preprint arXiv:2508.07270},
   year={2025},
-  volume={XX},
-  number={YY},
-  pages={ZZZ},
-  doi={10.xxxx/your-doi},
-  url={https://arxiv.org/abs/your-arxiv-id}
+  url={https://arxiv.org/abs/2508.07270},
+  doi={10.48550/arXiv.2508.07270}
 }
 ```
 
