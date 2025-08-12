@@ -13,6 +13,8 @@
 [[Dataset]](https://haiv-lab.github.io/OES)
 [[Forum]](https://haiv-lab.github.io/low-altitude)
 
+Star to bookmark, fork if you use, and welcome to contribute!
+
 </div>
 
 ### 👋 Welcome to OpenHAIV
