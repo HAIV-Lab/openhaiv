@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://haiv-lab.github.io/openhaiv/scripts/">
+        <link rel="canonical" href="https://haiv-lab.github.io/openhaiv/ncdia_trainers/">
       
       
-        <link rel="prev" href="../config/">
+        <link rel="prev" href="../ncdia_model/">
       
       
-        <link rel="next" href="../people/">
+        <link rel="next" href="../ncdia_utils/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>📜 Scripts - OpenHAIV</title>
+        <title>ncdia.trainers - OpenHAIV</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#scripts" class="md-skip">
+        <a href="#ncdiatrainers" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              📜 Scripts
+              ncdia.trainers
             
           </span>
         </div>
@@ -617,8 +617,10 @@
                 
   
   
+    
   
   
+  
     
     
     
@@ -627,13 +629,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" checked>
         
           
           <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
@@ -649,7 +649,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4_1">
             <span class="md-nav__icon md-icon"></span>
             🧩 ncdia
@@ -752,10 +752,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../ncdia_trainers/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    ncdia.trainers
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -766,6 +786,255 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ncdiatrainers" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.trainers
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ncdia.trainers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ncdiatrainersbasepy" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.trainers.base.py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ncdia.trainers.base.py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basetrainer" class="md-nav__link">
+    <span class="md-ellipsis">
+      BaseTrainer
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ncdiatrainerspretrainerpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.trainers.pretrainer.py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ncdia.trainers.pretrainer.py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pretrainer" class="md-nav__link">
+    <span class="md-ellipsis">
+      PreTrainer
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ncdiatrainersinctrainerpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.trainers.inctrainer.py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ncdia.trainers.inctrainer.py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#inctrainer" class="md-nav__link">
+    <span class="md-ellipsis">
+      IncTrainer
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ncdiatrainershooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.trainers.hooks
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ncdia.trainers.hooks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hook" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hook
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alghook" class="md-nav__link">
+    <span class="md-ellipsis">
+      AlgHook
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#loggerhook" class="md-nav__link">
+    <span class="md-ellipsis">
+      LoggerHook
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metrichook" class="md-nav__link">
+    <span class="md-ellipsis">
+      MetricHook
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modelhook" class="md-nav__link">
+    <span class="md-ellipsis">
+      ModelHook
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ncdhook" class="md-nav__link">
+    <span class="md-ellipsis">
+      NCDHook
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optimizerhook" class="md-nav__link">
+    <span class="md-ellipsis">
+      OptimizerHook
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schedulerhook" class="md-nav__link">
+    <span class="md-ellipsis">
+      SchedulerHook
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ncdiatrainersoptims" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.trainers.optims
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ncdia.trainers.optims">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ncdiatrainersoptimsoptimizerpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.trainers.optims.optimizer.py
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ncdiatrainersoptimsschedulerpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.trainers.optims.scheduler.py
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ncdiatrainerspriority" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.trainers.priority
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ncdia.trainers.priority">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#priority" class="md-nav__link">
+    <span class="md-ellipsis">
+      Priority
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -829,32 +1098,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    📜 Scripts
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../scripts/" class="md-nav__link">
         
   
   
@@ -865,185 +1112,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#script-directory-structure" class="md-nav__link">
-    <span class="md-ellipsis">
-      Script Directory Structure
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Script Directory Structure">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#naming-conventions" class="md-nav__link">
-    <span class="md-ellipsis">
-      Naming Conventions
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#script-types" class="md-nav__link">
-    <span class="md-ellipsis">
-      Script Types
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Script Types">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#supervised-learning-scripts-sl" class="md-nav__link">
-    <span class="md-ellipsis">
-      Supervised Learning Scripts (sl/)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#incremental-learning-scripts-inc" class="md-nav__link">
-    <span class="md-ellipsis">
-      Incremental Learning Scripts (inc/)
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Incremental Learning Scripts (inc/)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#class-incremental-learning" class="md-nav__link">
-    <span class="md-ellipsis">
-      Class-incremental Learning
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#few-shot-class-incremental-learning" class="md-nav__link">
-    <span class="md-ellipsis">
-      Few-shot Class-incremental Learning
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#out-of-distribution-detection-scripts-ood" class="md-nav__link">
-    <span class="md-ellipsis">
-      Out-of-Distribution Detection Scripts (ood/)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#batch-processing-scripts" class="md-nav__link">
-    <span class="md-ellipsis">
-      Batch Processing Scripts
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#customizing-scripts" class="md-nav__link">
-    <span class="md-ellipsis">
-      Customizing Scripts
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#running-scripts" class="md-nav__link">
-    <span class="md-ellipsis">
-      Running Scripts
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#advanced-usage" class="md-nav__link">
-    <span class="md-ellipsis">
-      Advanced Usage
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Advanced Usage">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#gpu-selection" class="md-nav__link">
-    <span class="md-ellipsis">
-      GPU Selection
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#multi-stage-training" class="md-nav__link">
-    <span class="md-ellipsis">
-      Multi-stage Training
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#running-on-multiple-gpus" class="md-nav__link">
-    <span class="md-ellipsis">
-      Running on Multiple GPUs
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1215,8 +1283,6 @@
   
   
   
-    
-  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -1225,71 +1291,29 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#script-directory-structure" class="md-nav__link">
+  <a href="#ncdiatrainers" class="md-nav__link">
     <span class="md-ellipsis">
-      Script Directory Structure
+      ncdia.trainers
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Script Directory Structure">
+    <nav class="md-nav" aria-label="ncdia.trainers">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#naming-conventions" class="md-nav__link">
+  <a href="#ncdiatrainersbasepy" class="md-nav__link">
     <span class="md-ellipsis">
-      Naming Conventions
+      ncdia.trainers.base.py
     </span>
   </a>
   
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#script-types" class="md-nav__link">
-    <span class="md-ellipsis">
-      Script Types
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Script Types">
+    <nav class="md-nav" aria-label="ncdia.trainers.base.py">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#supervised-learning-scripts-sl" class="md-nav__link">
+  <a href="#basetrainer" class="md-nav__link">
     <span class="md-ellipsis">
-      Supervised Learning Scripts (sl/)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#incremental-learning-scripts-inc" class="md-nav__link">
-    <span class="md-ellipsis">
-      Incremental Learning Scripts (inc/)
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Incremental Learning Scripts (inc/)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#class-incremental-learning" class="md-nav__link">
-    <span class="md-ellipsis">
-      Class-incremental Learning
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#few-shot-class-incremental-learning" class="md-nav__link">
-    <span class="md-ellipsis">
-      Few-shot Class-incremental Learning
+      BaseTrainer
     </span>
   </a>
   
@@ -1301,18 +1325,19 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#out-of-distribution-detection-scripts-ood" class="md-nav__link">
+  <a href="#ncdiatrainerspretrainerpy" class="md-nav__link">
     <span class="md-ellipsis">
-      Out-of-Distribution Detection Scripts (ood/)
+      ncdia.trainers.pretrainer.py
     </span>
   </a>
   
-</li>
+    <nav class="md-nav" aria-label="ncdia.trainers.pretrainer.py">
+      <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#batch-processing-scripts" class="md-nav__link">
+  <a href="#pretrainer" class="md-nav__link">
     <span class="md-ellipsis">
-      Batch Processing Scripts
+      PreTrainer
     </span>
   </a>
   
@@ -1322,59 +1347,172 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#customizing-scripts" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#ncdiatrainersinctrainerpy" class="md-nav__link">
     <span class="md-ellipsis">
-      Customizing Scripts
+      ncdia.trainers.inctrainer.py
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#running-scripts" class="md-nav__link">
-    <span class="md-ellipsis">
-      Running Scripts
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#advanced-usage" class="md-nav__link">
-    <span class="md-ellipsis">
-      Advanced Usage
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Advanced Usage">
+    <nav class="md-nav" aria-label="ncdia.trainers.inctrainer.py">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#gpu-selection" class="md-nav__link">
+  <a href="#inctrainer" class="md-nav__link">
     <span class="md-ellipsis">
-      GPU Selection
+      IncTrainer
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ncdiatrainershooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.trainers.hooks
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ncdia.trainers.hooks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hook" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hook
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#multi-stage-training" class="md-nav__link">
+  <a href="#alghook" class="md-nav__link">
     <span class="md-ellipsis">
-      Multi-stage Training
+      AlgHook
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#running-on-multiple-gpus" class="md-nav__link">
+  <a href="#loggerhook" class="md-nav__link">
     <span class="md-ellipsis">
-      Running on Multiple GPUs
+      LoggerHook
     </span>
   </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metrichook" class="md-nav__link">
+    <span class="md-ellipsis">
+      MetricHook
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modelhook" class="md-nav__link">
+    <span class="md-ellipsis">
+      ModelHook
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ncdhook" class="md-nav__link">
+    <span class="md-ellipsis">
+      NCDHook
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optimizerhook" class="md-nav__link">
+    <span class="md-ellipsis">
+      OptimizerHook
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schedulerhook" class="md-nav__link">
+    <span class="md-ellipsis">
+      SchedulerHook
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ncdiatrainersoptims" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.trainers.optims
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ncdia.trainers.optims">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ncdiatrainersoptimsoptimizerpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.trainers.optims.optimizer.py
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ncdiatrainersoptimsschedulerpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.trainers.optims.scheduler.py
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ncdiatrainerspriority" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.trainers.priority
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ncdia.trainers.priority">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#priority" class="md-nav__link">
+    <span class="md-ellipsis">
+      Priority
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -1402,213 +1540,517 @@
   
 
 
-<h1 id="scripts">📜 <strong>Scripts</strong><a class="headerlink" href="#scripts" title="Permanent link">&para;</a></h1>
-<p>The OpenHAIV framework provides a comprehensive set of shell scripts that help users quickly execute various experiments. These scripts are organized by task type and provide a convenient way to run experiments with pre-configured settings. This document explains the script directory structure, naming conventions, and how to use and customize these scripts.</p>
-<h2 id="script-directory-structure"><strong>Script Directory Structure</strong><a class="headerlink" href="#script-directory-structure" title="Permanent link">&para;</a></h2>
-<p>The scripts are organized in the following directory structure:</p>
-<div class="highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Text Only</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span>
-<span class="normal"><a href="#__codelineno-0-2">2</a></span>
-<span class="normal"><a href="#__codelineno-0-3">3</a></span>
-<span class="normal"><a href="#__codelineno-0-4">4</a></span>
-<span class="normal"><a href="#__codelineno-0-5">5</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1"></a>scripts/
-<a id="__codelineno-0-2" name="__codelineno-0-2"></a>├── sl/           # Supervised Learning scripts
-<a id="__codelineno-0-3" name="__codelineno-0-3"></a>├── inc/          # Incremental Learning scripts
-<a id="__codelineno-0-4" name="__codelineno-0-4"></a>├── ood/          # Out-of-Distribution Detection scripts
-<a id="__codelineno-0-5" name="__codelineno-0-5"></a>└── ncdia_*.sh    # Neural Component Decoupling scripts
-</code></pre></div></td></tr></table></div>
-<h3 id="naming-conventions"><strong>Naming Conventions</strong><a class="headerlink" href="#naming-conventions" title="Permanent link">&para;</a></h3>
-<p>Scripts follow a consistent naming pattern that indicates:</p>
-<ol>
-<li>The task type (e.g., <code>sl_</code>, <code>inc_</code>, <code>det_</code>)</li>
-<li>The dataset (e.g., <code>oes_</code>, <code>cifar10_</code>, <code>cub_</code>)</li>
-<li>The model architecture (e.g., <code>rn18</code>, <code>coop-b16</code>)</li>
-<li>The algorithm or method (e.g., <code>msp</code>, <code>lwf</code>, <code>savc</code>)</li>
-</ol>
-<p>Example: <code>sl_oes_coop-b16.sh</code> indicates a Supervised Learning task on the OES dataset using CoOp-CLIP-B/16 model.</p>
-<h2 id="script-types"><strong>Script Types</strong><a class="headerlink" href="#script-types" title="Permanent link">&para;</a></h2>
-<h3 id="supervised-learning-scripts-sl"><strong>Supervised Learning Scripts</strong> (<code>sl/</code>)<a class="headerlink" href="#supervised-learning-scripts-sl" title="Permanent link">&para;</a></h3>
-<p>These scripts train models in a standard supervised learning setting. They typically use the <code>PreTrainer</code> trainer and standard classification losses.</p>
-<p>Example:</p>
-<div class="highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-1-1">1</a></span>
-<span class="normal"><a href="#__codelineno-1-2">2</a></span>
-<span class="normal"><a href="#__codelineno-1-3">3</a></span>
-<span class="normal"><a href="#__codelineno-1-4">4</a></span>
-<span class="normal"><a href="#__codelineno-1-5">5</a></span>
-<span class="normal"><a href="#__codelineno-1-6">6</a></span>
-<span class="normal"><a href="#__codelineno-1-7">7</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="c1"># Benchmark: OES</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2"></a><span class="c1"># Model: ResNet18</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3"></a><span class="c1"># Method: Cross-Entropy</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4"></a><span class="c1"># Task: Supervised Learning</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5"></a>python<span class="w"> </span>ncdia/train.py<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6"></a><span class="w">    </span>--cfg<span class="w"> </span>configs/pipeline/supervised_learning/sl_oes_rn18.yaml<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7"></a><span class="w">    </span>--opts<span class="w"> </span><span class="nv">device</span><span class="o">=</span><span class="s1">&#39;cuda:0&#39;</span>
-</code></pre></div></td></tr></table></div>
-<p>Common supervised learning scripts include:</p>
+  <h1>ncdia.trainers</h1>
+
+<h2 id="ncdiatrainers">ncdia.trainers<a class="headerlink" href="#ncdiatrainers" title="Permanent link">&para;</a></h2>
+<h3 id="ncdiatrainersbasepy">ncdia.trainers.base.py<a class="headerlink" href="#ncdiatrainersbasepy" title="Permanent link">&para;</a></h3>
+<h4 id="basetrainer">BaseTrainer<a class="headerlink" href="#basetrainer" title="Permanent link">&para;</a></h4>
+<p>Basic trainer class for training models.</p>
+<p><strong>Attributes:</strong></p>
 <ul>
-<li><code>sl_oes_rn18.sh</code>: Training a ResNet18 model on OES dataset</li>
-<li><code>sl_cifar10_rn18.sh</code>: Training a ResNet18 model on CIFAR10 dataset</li>
-<li><code>sl_oes_coop-b16.sh</code>: Training a CoOp-CLIP-B/16 model on OES dataset</li>
+<li><strong>model</strong> (<em>nn.Module</em>): Neural network models.</li>
+<li><strong>train_loader</strong> (<em>DataLoader</em>): DataLoader for training.</li>
+<li><strong>val_loader</strong> (<em>DataLoader</em>): DataLoader for validation.</li>
+<li><strong>test_loader</strong> (<em>DataLoader</em>): DataLoader for testing.</li>
+<li><strong>optimizer</strong> (<em>Optimizer</em>): Optimizer.</li>
+<li><strong>scheduler</strong> (<em>lr_scheduler._LRScheduler</em>): Learning rate scheduler.</li>
+<li><strong>criterion</strong> (<em>Callable</em>): Criterion for training.</li>
+<li><strong>algorithm</strong> (<em>object</em>): Algorithm for training.</li>
+<li><strong>metrics</strong> (<em>dict</em>): Metrics for evaluation and testing.</li>
+<li><strong>session</strong> (<em>int</em>): Session number.</li>
+<li><strong>max_epochs</strong> (<em>int</em>): Total epochs for training.</li>
+<li><strong>max_train_iters</strong> (<em>int</em>): Iterations on one epoch for training.</li>
+<li><strong>max_val_iters</strong> (<em>int</em>): Iterations on one epoch for validation.</li>
+<li><strong>max_test_iters</strong> (<em>int</em>): Iterations on one epoch for testing.</li>
+<li><strong>epoch</strong> (<em>int</em>): Current training epoch.</li>
+<li><strong>iter</strong> (<em>int</em>): Current iteration or index of the current batch.</li>
+<li><strong>cfg</strong> (<em>Configs</em>): Configuration for trainer.</li>
+<li><strong>hooks</strong> (<em>List[Hook]</em>): List of registered hooks.</li>
+<li><strong>logger</strong> (<em>Logger</em>): Logger for logging information.</li>
+<li><strong>device</strong> (<em>torch.device</em>): Device to use.</li>
+<li><strong>work_dir</strong> (<em>str</em>): Working directory to save logs and checkpoints.</li>
+<li><strong>exp_name</strong> (<em>str</em>): Experiment name.</li>
+<li><strong>load_from</strong> (<em>str</em>): Checkpoint file path to load.</li>
 </ul>
-<h3 id="incremental-learning-scripts-inc"><strong>Incremental Learning Scripts</strong> (<code>inc/</code>)<a class="headerlink" href="#incremental-learning-scripts-inc" title="Permanent link">&para;</a></h3>
-<p>These scripts train models in an incremental learning setting, where new classes are introduced over time. There are two main subtypes:</p>
-<h4 id="class-incremental-learning"><strong>Class-incremental Learning</strong><a class="headerlink" href="#class-incremental-learning" title="Permanent link">&para;</a></h4>
-<p>Example:</p>
-<div class="highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-2-1">1</a></span>
-<span class="normal"><a href="#__codelineno-2-2">2</a></span>
-<span class="normal"><a href="#__codelineno-2-3">3</a></span>
-<span class="normal"><a href="#__codelineno-2-4">4</a></span>
-<span class="normal"><a href="#__codelineno-2-5">5</a></span>
-<span class="normal"><a href="#__codelineno-2-6">6</a></span>
-<span class="normal"><a href="#__codelineno-2-7">7</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1"></a><span class="c1"># Benchmark: CUB200</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2"></a><span class="c1"># Model: ResNet18</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3"></a><span class="c1"># Method: LwF</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4"></a><span class="c1"># Task: Class-incremental Learning</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5"></a>python<span class="w"> </span>ncdia/train.py<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6"></a><span class="w">    </span>--cfg<span class="w"> </span>configs/pipeline/incremental_learning/inc_cub_lwf.yaml<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7"></a><span class="w">    </span>--opts<span class="w"> </span><span class="nv">device</span><span class="o">=</span><span class="s1">&#39;cuda:0&#39;</span>
-</code></pre></div></td></tr></table></div>
-<h4 id="few-shot-class-incremental-learning"><strong>Few-shot Class-incremental Learning</strong><a class="headerlink" href="#few-shot-class-incremental-learning" title="Permanent link">&para;</a></h4>
-<p>Example:</p>
-<div class="highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-3-1">1</a></span>
-<span class="normal"><a href="#__codelineno-3-2">2</a></span>
-<span class="normal"><a href="#__codelineno-3-3">3</a></span>
-<span class="normal"><a href="#__codelineno-3-4">4</a></span>
-<span class="normal"><a href="#__codelineno-3-5">5</a></span>
-<span class="normal"><a href="#__codelineno-3-6">6</a></span>
-<span class="normal"><a href="#__codelineno-3-7">7</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="c1"># Benchmark: BM200</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2"></a><span class="c1"># Model: ResNet18</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3"></a><span class="c1"># Method: SAVC</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4"></a><span class="c1"># Task: Few-shot Class-incremental Learning</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5"></a>python<span class="w"> </span>ncdia/train.py<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6"></a><span class="w">    </span>--cfg<span class="w"> </span>configs/pipeline/incremental_learning/inc_BM200_savc.yaml<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7"></a><span class="w">    </span>--opts<span class="w"> </span><span class="nv">device</span><span class="o">=</span><span class="s1">&#39;cuda:0&#39;</span>
-</code></pre></div></td></tr></table></div>
-<p>Common incremental learning scripts include:</p>
+<p><strong>Methods:</strong></p>
 <ul>
-<li><code>inc_cub_lwf.sh</code>: Learning without Forgetting on CUB200 dataset</li>
-<li><code>inc_cub_icarl.sh</code>: iCaRL method on CUB200 dataset</li>
-<li><code>inc_BM200_savc.sh</code>: SAVC method on BM200 dataset (few-shot setting)</li>
-</ul>
-<h3 id="out-of-distribution-detection-scripts-ood"><strong>Out-of-Distribution Detection Scripts</strong> (<code>ood/</code>)<a class="headerlink" href="#out-of-distribution-detection-scripts-ood" title="Permanent link">&para;</a></h3>
-<p>These scripts train and evaluate models for out-of-distribution detection, identifying samples that don't belong to the training distribution.</p>
-<p>Example:</p>
-<div class="highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-4-1">1</a></span>
-<span class="normal"><a href="#__codelineno-4-2">2</a></span>
-<span class="normal"><a href="#__codelineno-4-3">3</a></span>
-<span class="normal"><a href="#__codelineno-4-4">4</a></span>
-<span class="normal"><a href="#__codelineno-4-5">5</a></span>
-<span class="normal"><a href="#__codelineno-4-6">6</a></span>
-<span class="normal"><a href="#__codelineno-4-7">7</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="c1"># Benchmark: OES</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2"></a><span class="c1"># Model: ResNet50</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3"></a><span class="c1"># Method: MSP</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4"></a><span class="c1"># Task: Out-of-Distribution Detection</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5"></a>python<span class="w"> </span>ncdia/train.py<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6"></a><span class="w">    </span>--cfg<span class="w"> </span>configs/pipeline/ood_detection/det_oes_rn50_msp.yaml<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-4-7" name="__codelineno-4-7"></a><span class="w">    </span>--opts<span class="w"> </span><span class="nv">device</span><span class="o">=</span><span class="s1">&#39;cuda:0&#39;</span>
-</code></pre></div></td></tr></table></div>
-<p>Common OOD detection scripts include:</p>
+<li>
+<p><span class="highlight-text"><strong> __init__(self, cfg, session, model, train_loader, val_loader, test_loader, default_hooks, custom_hooks, load_from, exp_name, work_dir)</strong></span></p>
+<p>The constructor method that initializes an instance of <strong>BaseTrainer</strong>. </p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
 <ul>
-<li><code>det_oes_rn50_msp.sh</code>: Maximum Softmax Probability method with ResNet50 on OES dataset</li>
-<li><code>det_oes_rn50_mls.sh</code>: Maximum Logit Score method with ResNet50 on OES dataset</li>
-<li><code>det_oes_clip-b16_glmcm.sh</code>: GL-MCM method with CLIP-B/16 on OES dataset</li>
+<li><strong>cfg</strong> (<em>dict, optional</em>): Configuration for trainer, Contains:<ul>
+<li><strong>'trainer'</strong> (<em>dict</em>):<ul>
+<li>'type' (<em>str</em>): Type of trainer.</li>
 </ul>
-<h3 id="batch-processing-scripts"><strong>Batch Processing Scripts</strong><a class="headerlink" href="#batch-processing-scripts" title="Permanent link">&para;</a></h3>
-<p>Some scripts are designed to run multiple related experiments in sequence:</p>
-<p>Example:</p>
-<div class="highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-5-1"> 1</a></span>
-<span class="normal"><a href="#__codelineno-5-2"> 2</a></span>
-<span class="normal"><a href="#__codelineno-5-3"> 3</a></span>
-<span class="normal"><a href="#__codelineno-5-4"> 4</a></span>
-<span class="normal"><a href="#__codelineno-5-5"> 5</a></span>
-<span class="normal"><a href="#__codelineno-5-6"> 6</a></span>
-<span class="normal"><a href="#__codelineno-5-7"> 7</a></span>
-<span class="normal"><a href="#__codelineno-5-8"> 8</a></span>
-<span class="normal"><a href="#__codelineno-5-9"> 9</a></span>
-<span class="normal"><a href="#__codelineno-5-10">10</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1"></a><span class="c1"># Benchmark: OES</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2"></a><span class="c1"># Model: Multiple CLIP-based Models</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3"></a><span class="c1"># Method: Multiple Detection Methods</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4"></a><span class="c1"># Task: Out-of-Distribution Detection (With Training)</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5"></a>
-<a id="__codelineno-5-6" name="__codelineno-5-6"></a>bash<span class="w"> </span>scripts/ood/det_oes_coop-b16_mcm.sh
-<a id="__codelineno-5-7" name="__codelineno-5-7"></a>bash<span class="w"> </span>scripts/ood/det_oes_locoop-b16_glmcm.sh
-<a id="__codelineno-5-8" name="__codelineno-5-8"></a>bash<span class="w"> </span>scripts/ood/det_oes_sct-b16_glmcm.sh
-<a id="__codelineno-5-9" name="__codelineno-5-9"></a>bash<span class="w"> </span>scripts/ood/det_oes_dpm-b16_dpm.sh
-<a id="__codelineno-5-10" name="__codelineno-5-10"></a><span class="c1"># More scripts...</span>
+</li>
+<li><strong>'algorithm'</strong> (<em>dict</em>):<ul>
+<li>'type' (<em>str</em>): Type of algorithm.</li>
+</ul>
+</li>
+<li><strong>'criterion'</strong> (<em>dict</em>):<ul>
+<li>'type' (<em>str</em>): Type of criterion for training.</li>
+</ul>
+</li>
+<li><strong>'optimizer'</strong>:<ul>
+<li>'type' (<em>str</em>): Name of optimizer.</li>
+<li>'param_groups' (<em>dict | None</em>): If provided, directly optimize
+    param_groups and abandon model.</li>
+<li>kwargs (<em>dict</em>) for optimizer, such as 'lr', 'weight_decay', etc.</li>
+</ul>
+</li>
+<li><strong>'scheduler'</strong>:<ul>
+<li>'type' (<em>str</em>): Name of scheduler.</li>
+<li>kwargs (<em>dict</em>) for scheduler, such as 'step_size', 'gamma', etc.</li>
+</ul>
+</li>
+<li><strong>'device' </strong>(<em>str | torch.device | None</em>): Device to use.
+    If None, use 'cuda' if available.</li>
+<li><strong>'trainloader'</strong>:<ul>
+<li>'dataset': <ul>
+<li>'type' (<em>str</em>): Type of dataset.</li>
+<li>kwargs (<em>dict</em>) for dataset, such as 'root', 'split', etc.</li>
+</ul>
+</li>
+<li>kwargs (<em>dict</em>) for DataLoader, such as 'batch_size', 'shuffle', etc.</li>
+</ul>
+</li>
+<li><strong>'valloader'</strong>:<ul>
+<li>'dataset': <ul>
+<li>'type' (<em>str</em>): Type of dataset.</li>
+<li>kwargs (<em>dict</em>) for dataset, such as 'root', 'split', etc.</li>
+</ul>
+</li>
+<li>kwargs (<em>dict</em>) for DataLoader, such as 'batch_size', 'shuffle', etc.</li>
+</ul>
+</li>
+<li><strong>'testloader'</strong>:<ul>
+<li>'dataset':<ul>
+<li>'type' (<em>str</em>): Type of dataset.</li>
+<li>kwargs (<em>dict</em>) for dataset, such as 'root', 'split', etc.</li>
+</ul>
+</li>
+<li>kwargs (<em>dict</em>) for DataLoader, such as 'batch_size', 'shuffle', etc.</li>
+</ul>
+</li>
+<li><strong>'exp_name'</strong> (<em>str</em>): Experiment name.</li>
+<li><strong>'work_dir'</strong> (<em>str</em>): Working directory to save logs and checkpoints.</li>
+</ul>
+</li>
+<li><strong>session</strong> (<em>int</em>): Session number. If == 0, execute pre-training.
+    If &gt; 0, execute incremental training.</li>
+<li><strong>model</strong> (<em>nn.Module</em>): Model to be trained.</li>
+<li><strong>train_loader</strong> (<em>DataLoader | dict, optional</em>): DataLoader for training.</li>
+<li><strong>val_loader</strong> (<em>DataLoader | dict, optional</em>): DataLoader for validation.</li>
+<li><strong>test_loader</strong> (<em>DataLoader | dict, optional</em>): DataLoader for testing.</li>
+<li><strong>default_hooks</strong> (<em>dict, optional</em>): Default hooks to be registered.</li>
+<li><strong>custom_hooks</strong> (<em>list, optional</em>): Custom hooks to be registered.</li>
+<li><strong>load_from</strong> (<em>str, optional</em>): Checkpoint file path to load.</li>
+<li><strong>work_dir</strong> (<em>str, optional</em>): Working directory to save logs and checkpoints.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong> train_step(self, batch, **kwargs)</strong></span></p>
+<p>Training step. <strong>This method should be implemented in subclasses.</strong></p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>batch</strong> (<em>dict | tuple | list</em>): A batch of data from the data loader.</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li>
+<p>results (dict): Contains the following:</p>
+<p>{"key1": value1, "key2": value2,...}</p>
+<p>keys denote the description of the value, such as <strong>"loss"</strong>, <strong>"acc"</strong>, <strong>"ccr"</strong>, etc.
+values are the corresponding values of the keys, can be <em>int</em>, <em>float</em>, <em>str</em>, etc.    </p>
+</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong> val_step(self, batch, </strong>kwargs)**</span></p>
+<p>Validation step. <strong>This method should be implemented in subclasses.</strong></p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>batch</strong> (<em>dict | tuple | list</em>): A batch of data from the data loader.</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li>
+<p>results (dict): Contains the following:</p>
+<p>{"key1": value1, "key2": value2,...}</p>
+<p>keys denote the description of the value, such as <strong>"loss"</strong>, <strong>"acc"</strong>, <strong>"ccr"</strong>, etc.
+values are the corresponding values of the keys, can be <em>int</em>, <em>float</em>, <em>str</em>, etc.    </p>
+</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong> test_step(self, batch, </strong>kwargs)**</span></p>
+<p>Test step. <strong>This method should be implemented in subclasses.</strong></p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>batch</strong> (<em>dict | tuple | list</em>): A batch of data from the data loader.</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li>
+<p>results (dict): Contains the following:</p>
+<p>{"key1": value1, "key2": value2,...}</p>
+<p>keys denote the description of the value, such as <strong>"loss"</strong>, <strong>"acc"</strong>, <strong>"ccr"</strong>, etc.
+values are the corresponding values of the keys, can be <em>int</em>, <em>float</em>, <em>str</em>, etc.   </p>
+</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong> train(self)</strong></span></p>
+<p>Launch the training process.</p>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li><strong>model</strong> (<em>nn.Module</em>): Trained model.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong> val(self)</strong></span></p>
+</li>
+</ul>
+<p>Validation process.</p>
+<ul>
+<li><span class="highlight-text"><strong> test(self)</strong></span></li>
+</ul>
+<p>Test process.</p>
+<ul>
+<li>
+<p><span class="highlight-text"><strong> load_ckpt(self, fpath, device='cpu')</strong></span></p>
+<p>Load checkpoint from file.</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>fpath</strong> (<em>str</em>): Checkpoint file path.</li>
+<li><strong>device</strong> (<em>str</em>): Device to load checkpoint. Defaults to 'cpu'.</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li><strong>model</strong> (<em>nn.Module</em>): Loaded model.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong> save_ckpt(self, fpath)</strong></span></p>
+<p>Save checkpoint to file.</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>fpath</strong> (<em>str</em>): Checkpoint file path.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong> call_hook(self, fn_name: str, </strong>kwargs)**</span></p>
+<p>Call all hooks with the specified function name.</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li>
+<p><strong>fn_name</strong> (<em>str</em>): Function name to be called, such as:</p>
+<ul>
+<li><strong>'before_train_epoch'</strong></li>
+<li><strong>'after_train_epoch'</strong></li>
+<li><strong>'before_train_iter'</strong></li>
+<li><strong>'after_train_iter'</strong></li>
+<li><strong>'before_val_epoch'</strong></li>
+<li><strong>'after_val_epoch'</strong></li>
+<li><strong>'before_val_iter'</strong></li>
+<li><strong>'after_val_iter'</strong></li>
+</ul>
+</li>
+<li>
+<p><strong>kwargs</strong> (<em>dict</em>): Arguments for the function.</p>
+</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>register_hook(self, hook, priority=None)</strong></span></p>
+<p><strong>Register a hook into the hook list.</strong></p>
+<p>The hook will be inserted into a priority queue, with the specified priority (See :class:<code>Priority</code> for details of priorities). For hooks with the same priority, they will be triggered in the same order as they are registered. Priority of hook will be decided with the following priority:</p>
+<ul>
+<li><code>priority</code> argument. If <code>priority</code> is given, it will be priority of hook.</li>
+<li>If <code>hook</code> argument is a dict and <code>priority</code> in it, the priority will be the value of <code>hook['priority']</code>.</li>
+<li>If <code>hook</code> argument is a dict but <code>priority</code> not in it or <code>hook</code> is an instance of <code>hook</code>, the priority will be <code>hook.priority</code>.</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>hook</strong> (<em>:obj:<code>Hook</code> or dict</em>): The hook to be registered. priority (int or str or :obj:<code>Priority</code>, optional): Hook priority. Lower value means higher priority.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong> register_default_hooks(self, hooks=None)</strong></span></p>
+<p><strong>Register default hooks into hook list.</strong></p>
+<p><code>hooks</code> will be registered into runner to execute some default actions like updating model parameters or saving checkpoints.</p>
+<p>Default hooks and their priorities:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Hooks</th>
+<th style="text-align: left;">Priority</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">RuntimeInfoHook</td>
+<td style="text-align: left;">VERY_HIGH (10)</td>
+</tr>
+<tr>
+<td style="text-align: left;">IterTimerHook</td>
+<td style="text-align: left;">NORMAL (50)</td>
+</tr>
+<tr>
+<td style="text-align: left;">DistSamplerSeedHook</td>
+<td style="text-align: left;">NORMAL (50)</td>
+</tr>
+<tr>
+<td style="text-align: left;">LoggerHook</td>
+<td style="text-align: left;">BELOW_NORMAL (60)</td>
+</tr>
+<tr>
+<td style="text-align: left;">ParamSchedulerHook</td>
+<td style="text-align: left;">LOW (70)</td>
+</tr>
+<tr>
+<td style="text-align: left;">CheckpointHook</td>
+<td style="text-align: left;">VERY_LOW (90)</td>
+</tr>
+</tbody>
+</table>
+<p>If <code>hooks</code> is None, above hooks will be registered by default:</p>
+<div class="highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Text Only</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span>
+<span class="normal">5</span>
+<span class="normal">6</span>
+<span class="normal">7</span>
+<span class="normal">8</span></pre></div></td><td class="code"><div><pre><span></span><code>default_hooks = dict(
+    logger=dict(type=&#39;LoggerHook&#39;),
+    model=dict(type=&#39;ModelHook&#39;),
+    alg=dict(type=&#39;AlgHook&#39;),
+    optimizer = dict(type=&#39;OptimizerHook&#39;),
+    scheduler = dict(type=&#39;SchedulerHook&#39;),
+    metric = dict(type=&#39;MetricHook&#39;),
+)
 </code></pre></div></td></tr></table></div>
-<h2 id="customizing-scripts"><strong>Customizing Scripts</strong><a class="headerlink" href="#customizing-scripts" title="Permanent link">&para;</a></h2>
-<p>You can customize existing scripts or create new ones by following these steps:</p>
-<ol>
-<li><strong>Copy an Existing Script</strong>:</li>
-</ol>
-<div class="highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-6-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1"></a>cp<span class="w"> </span>scripts/sl/sl_oes_rn18.sh<span class="w"> </span>scripts/sl/sl_oes_mymodel.sh
+<p>If not None, <code>hooks</code> will be merged into <code>default_hooks</code>.
+If there are None value in default_hooks, the corresponding item will
+be popped from <code>default_hooks</code>:</p>
+<div class="highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Text Only</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code>hooks = dict(timer=None)
 </code></pre></div></td></tr></table></div>
-<ol>
-<li><strong>Modify the Configuration Path</strong>:</li>
-</ol>
-<div class="highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-7-1">1</a></span>
-<span class="normal"><a href="#__codelineno-7-2">2</a></span>
-<span class="normal"><a href="#__codelineno-7-3">3</a></span>
-<span class="normal"><a href="#__codelineno-7-4">4</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1"></a><span class="c1"># Change this line</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2"></a>--cfg<span class="w"> </span>configs/pipeline/supervised_learning/sl_oes_rn18.yaml<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3"></a><span class="c1"># To point to your custom configuration</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4"></a>--cfg<span class="w"> </span>configs/pipeline/supervised_learning/sl_oes_mymodel.yaml<span class="w"> </span><span class="se">\</span>
-</code></pre></div></td></tr></table></div>
-<ol>
-<li><strong>Update the Script Comments</strong> to reflect your experiment:</li>
-</ol>
-<div class="highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-8-1">1</a></span>
-<span class="normal"><a href="#__codelineno-8-2">2</a></span>
-<span class="normal"><a href="#__codelineno-8-3">3</a></span>
-<span class="normal"><a href="#__codelineno-8-4">4</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1"></a><span class="c1"># Benchmark: OES</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2"></a><span class="c1"># Model: MyModel</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3"></a><span class="c1"># Method: MyMethod</span>
-<a id="__codelineno-8-4" name="__codelineno-8-4"></a><span class="c1"># Task: Supervised Learning</span>
-</code></pre></div></td></tr></table></div>
-<h2 id="running-scripts"><strong>Running Scripts</strong><a class="headerlink" href="#running-scripts" title="Permanent link">&para;</a></h2>
-<p>To run a script, simply execute it with bash:</p>
-<div class="highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-9-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1"></a>bash<span class="w"> </span>scripts/sl/sl_oes_rn18.sh
-</code></pre></div></td></tr></table></div>
-<p>You can also override configuration parameters directly from the command line:</p>
-<div class="highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-10-1">1</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1"></a>bash<span class="w"> </span>scripts/sl/sl_oes_rn18.sh<span class="w"> </span>--opts<span class="w"> </span><span class="nv">device</span><span class="o">=</span><span class="s1">&#39;cuda:1&#39;</span><span class="w"> </span>trainer.max_epochs<span class="o">=</span><span class="m">20</span>
-</code></pre></div></td></tr></table></div>
-<h2 id="advanced-usage"><strong>Advanced Usage</strong><a class="headerlink" href="#advanced-usage" title="Permanent link">&para;</a></h2>
-<h3 id="gpu-selection"><strong>GPU Selection</strong><a class="headerlink" href="#gpu-selection" title="Permanent link">&para;</a></h3>
-<p>Most scripts allow specifying the GPU device using the <code>device</code> parameter:</p>
-<div class="highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-11-1">1</a></span>
-<span class="normal"><a href="#__codelineno-11-2">2</a></span>
-<span class="normal"><a href="#__codelineno-11-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1"></a>python<span class="w"> </span>ncdia/train.py<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2"></a><span class="w">    </span>--cfg<span class="w"> </span>configs/pipeline/supervised_learning/sl_oes_rn18.yaml<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-11-3" name="__codelineno-11-3"></a><span class="w">    </span>--opts<span class="w"> </span><span class="nv">device</span><span class="o">=</span><span class="s1">&#39;cuda:0&#39;</span><span class="w">  </span><span class="c1"># Use the first GPU</span>
-</code></pre></div></td></tr></table></div>
-<p>To use a different GPU, change <code>cuda:0</code> to the desired GPU index (e.g., <code>cuda:1</code>).</p>
-<h3 id="multi-stage-training"><strong>Multi-stage Training</strong><a class="headerlink" href="#multi-stage-training" title="Permanent link">&para;</a></h3>
-<p>Some scripts implement multi-stage training, where different phases (e.g., training, testing) are executed sequentially:</p>
-<div class="highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-12-1">1</a></span>
-<span class="normal"><a href="#__codelineno-12-2">2</a></span>
-<span class="normal"><a href="#__codelineno-12-3">3</a></span>
-<span class="normal"><a href="#__codelineno-12-4">4</a></span>
-<span class="normal"><a href="#__codelineno-12-5">5</a></span>
-<span class="normal"><a href="#__codelineno-12-6">6</a></span>
-<span class="normal"><a href="#__codelineno-12-7">7</a></span>
-<span class="normal"><a href="#__codelineno-12-8">8</a></span>
-<span class="normal"><a href="#__codelineno-12-9">9</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1"></a><span class="c1"># Training phase</span>
-<a id="__codelineno-12-2" name="__codelineno-12-2"></a>python<span class="w"> </span>ncdia/train.py<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-12-3" name="__codelineno-12-3"></a><span class="w">    </span>--cfg<span class="w"> </span>configs/pipeline/ood_detection/msp/det_oes_rn50_msp_train.yaml<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-12-4" name="__codelineno-12-4"></a><span class="w">    </span>--opts<span class="w"> </span><span class="nv">device</span><span class="o">=</span><span class="s1">&#39;cuda:0&#39;</span>
-<a id="__codelineno-12-5" name="__codelineno-12-5"></a>
-<a id="__codelineno-12-6" name="__codelineno-12-6"></a><span class="c1"># Testing phase</span>
-<a id="__codelineno-12-7" name="__codelineno-12-7"></a>python<span class="w"> </span>ncdia/train.py<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-12-8" name="__codelineno-12-8"></a><span class="w">    </span>--cfg<span class="w"> </span>configs/pipeline/ood_detection/msp/det_oes_rn50_msp_test.yaml<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-12-9" name="__codelineno-12-9"></a><span class="w">    </span>--opts<span class="w"> </span><span class="nv">device</span><span class="o">=</span><span class="s1">&#39;cuda:0&#39;</span>
-</code></pre></div></td></tr></table></div>
-<h3 id="running-on-multiple-gpus"><strong>Running on Multiple GPUs</strong><a class="headerlink" href="#running-on-multiple-gpus" title="Permanent link">&para;</a></h3>
-<p>For multi-GPU training, you can use the <code>CUDA_VISIBLE_DEVICES</code> environment variable:</p>
-<div class="highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">Bash</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-13-1">1</a></span>
-<span class="normal"><a href="#__codelineno-13-2">2</a></span>
-<span class="normal"><a href="#__codelineno-13-3">3</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1"></a><span class="nv">CUDA_VISIBLE_DEVICES</span><span class="o">=</span><span class="m">0</span>,1,2,3<span class="w"> </span>python<span class="w"> </span>ncdia/train.py<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-13-2" name="__codelineno-13-2"></a><span class="w">    </span>--cfg<span class="w"> </span>configs/pipeline/supervised_learning/sl_oes_rn18.yaml<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-13-3" name="__codelineno-13-3"></a><span class="w">    </span>--opts<span class="w"> </span><span class="nv">device</span><span class="o">=</span><span class="s1">&#39;cuda&#39;</span><span class="w"> </span>trainer.distributed<span class="o">=</span>True
-</code></pre></div></td></tr></table></div>
+<p>The final registered default hooks will be :obj:<code>RuntimeInfoHook</code>, :obj:<code>DistSamplerSeedHook</code>, :obj:<code>LoggerHook</code>, :obj:<code>ParamSchedulerHook</code> and :obj:<code>CheckpointHook</code>.</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>hooks</strong> (<em>dict[str, Hook or dict]</em>): Default hooks or configs to be registered.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong> register_custom_hooks(self, hooks)</strong></span></p>
+<p>Register custom hooks into hook list.</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<p><strong>hooks</strong> (<em>list[Hook | dict]</em>): List of hooks or configs to be registered.</p>
+</li>
+<li>
+<p><span class="highlight-text"><strong> register_hooks(self, default_hooks=None, custom_hooks=None)</strong></span></p>
+<p>Register default hooks and custom hooks into hook list.</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>default_hooks</strong> (<em>dict[str, dict] or dict[str, Hook]</em>): Hooks to execute default actions like updating model parameters and saving checkpoints.  Defaults to None.</li>
+<li><strong>custom_hooks</strong> (<em>list[dict] or list[Hook]</em>): Hooks to execute custom actions like visualizing images processed by pipeline. Defaults to None.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong>get_hooks_info(self)</strong></span></p>
+<p>Get registered hooks information.</p>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li><strong>info</strong> (<em>str</em>): Information of registered hooks.</li>
+</ul>
+</li>
+</ul>
+<h3 id="ncdiatrainerspretrainerpy">ncdia.trainers.pretrainer.py<a class="headerlink" href="#ncdiatrainerspretrainerpy" title="Permanent link">&para;</a></h3>
+<h4 id="pretrainer">PreTrainer<a class="headerlink" href="#pretrainer" title="Permanent link">&para;</a></h4>
+<p>PreTrainer class for pre-training a model on session 0.</p>
+<p><strong>Attributes:</strong></p>
+<ul>
+<li><strong>max_epochs</strong> (<em>int</em>): Total epochs for training.</li>
+</ul>
+<p><strong>Methods:</strong></p>
+<ul>
+<li><strong>__init__(self, max_epochs=1, **kwargs):</strong> The constructor method that initializes an instance of <strong>PreTrainer</strong>. <strong>max_epochs</strong> (<em>int</em>): Total epochs for training.</li>
+<li><strong>train_step(self, batch, **kwargs):</strong> Training step.</li>
+<li><strong>val_step(self, batch, **kwargs):</strong> Validation step.</li>
+<li><strong>test_step(self, batch, **kwargs):</strong> Test step.</li>
+<li>
+<p><strong>batch_parser(batch)</strong> </p>
+<p>Parse a batch of data.</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>batch</strong> (<em>dict | tuple | list</em>): A batch of data.</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li><strong>data</strong> (<em>torch.Tensor | list</em>): Input data.</li>
+<li><strong>label</strong> (<em>torch.Tensor | list</em>): Label data.</li>
+<li><strong>attribute</strong> (<em>torch.Tensor | list</em>): Attribute data.</li>
+<li><strong>imgpath</strong> (<em>list of str</em>): Image path.</li>
+</ul>
+</li>
+</ul>
+<h3 id="ncdiatrainersinctrainerpy">ncdia.trainers.inctrainer.py<a class="headerlink" href="#ncdiatrainersinctrainerpy" title="Permanent link">&para;</a></h3>
+<h4 id="inctrainer">IncTrainer<a class="headerlink" href="#inctrainer" title="Permanent link">&para;</a></h4>
+<p>IncTrainer class for incremental training.</p>
+<p><strong>Attributes:</strong></p>
+<ul>
+<li><strong>sess_cfg</strong> (<em>Configs</em>): Session configuration.</li>
+<li><strong>num_sess</strong> (<em>int</em>): Number of sessions.</li>
+<li><strong>session</strong> (<em>int</em>): Session number. If == 0, execute pre-training.
+    If &gt; 0, execute incremental training.</li>
+<li><strong>hist_trainset</strong> (<em>MergedDataset</em>): Historical training dataset.</li>
+<li><strong>hist_valset</strong> (<em>MergedDataset</em>): Historical validation dataset.</li>
+<li><strong>hist_testset</strong> (<em>MergedDataset</em>): Historical testing dataset.</li>
+</ul>
+<p><strong>Methods:</strong></p>
+<ul>
+<li>
+<p><span class="highlight-text"><strong>  __init__(self, cfg=None, sess_cfg=None, ncd_cfg=None, session=0, model=None, hist_trainset=None, hist_testset=None, old_model=None, **kwargs)</strong></span></p>
+<p>The constructor method that initializes an instance of <strong>IncTrainer</strong>. </p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>model</strong> (<em>nn.Module</em>): Model to be trained.</li>
+<li><strong>cfg</strong> (<em>dict</em>): Configuration for trainer.</li>
+<li><strong>sess_cfg</strong> (<em>Configs</em>): Session configuration.</li>
+<li><strong>session</strong> (<em>int</em>): Session number. Default: 0.</li>
+</ul>
+</li>
+<li>
+<p><span class="highlight-text"><strong> train(self)</strong></span></p>
+<p>Incremental training. </p>
+<p><strong>self.num_sess</strong> determines the number of sessions, and session number is stored in <strong>self.session</strong>.</p>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li><strong>model</strong> (<em>nn.Module</em>): Trained model.</li>
+</ul>
+</li>
+</ul>
+<h3 id="ncdiatrainershooks">ncdia.trainers.hooks<a class="headerlink" href="#ncdiatrainershooks" title="Permanent link">&para;</a></h3>
+<p>Implements some of the commonly used hooks.</p>
+<h4 id="hook">Hook<a class="headerlink" href="#hook" title="Permanent link">&para;</a></h4>
+<p><em>ncdia.trainers.hooks.hook.py</em></p>
+<p>Base hook class. All hooks should inherit from this class.</p>
+<h4 id="alghook">AlgHook<a class="headerlink" href="#alghook" title="Permanent link">&para;</a></h4>
+<p><em>ncdia.trainers.hooks.alghook.py</em></p>
+<p>A hook to modify algorithm state in the pipeline. This class is a base class for all algorithm hooks.</p>
+<h4 id="loggerhook">LoggerHook<a class="headerlink" href="#loggerhook" title="Permanent link">&para;</a></h4>
+<p><em>ncdia.trainers.hooks.loggerhook.py</em></p>
+<p>A hook to log information during training and evaluation.</p>
+<h4 id="metrichook">MetricHook<a class="headerlink" href="#metrichook" title="Permanent link">&para;</a></h4>
+<p><em>ncdia.trainers.hooks.metrichook.py</em></p>
+<p>A hook to calculate metrics during evaluation and testing.</p>
+<h4 id="modelhook">ModelHook<a class="headerlink" href="#modelhook" title="Permanent link">&para;</a></h4>
+<p><em>ncdia.trainers.hooks.modelhook.py</em></p>
+<p>A hook to change model state in the pipeline, such as setting device, changing model to eval mode, etc.</p>
+<h4 id="ncdhook">NCDHook<a class="headerlink" href="#ncdhook" title="Permanent link">&para;</a></h4>
+<p><em>ncdia.trainers.hooks.ncdhook.py</em></p>
+<p>A hook to execute OOD and NCD detection to relabel data</p>
+<h4 id="optimizerhook">OptimizerHook<a class="headerlink" href="#optimizerhook" title="Permanent link">&para;</a></h4>
+<p><em>ncdia.trainers.hooks.optimizerhook.py</em></p>
+<p>A hook to put optimizer to zero_grad and step during training.</p>
+<h4 id="schedulerhook">SchedulerHook<a class="headerlink" href="#schedulerhook" title="Permanent link">&para;</a></h4>
+<p><em>ncdia.trainers.hooks.schedulerhook.py</em></p>
+<p>A hook to change learning rate during training.</p>
+<h3 id="ncdiatrainersoptims">ncdia.trainers.optims<a class="headerlink" href="#ncdiatrainersoptims" title="Permanent link">&para;</a></h3>
+<h4 id="ncdiatrainersoptimsoptimizerpy">ncdia.trainers.optims.optimizer.py<a class="headerlink" href="#ncdiatrainersoptimsoptimizerpy" title="Permanent link">&para;</a></h4>
+<ul>
+<li>
+<p><span class="highlight-text"><strong>build_optimizer(type, model, param_groups=None, **kwargs)</strong></span></p>
+<p>Build optimizer.</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>type</strong> (<em>str</em>): type of optimizer</li>
+<li><strong>model</strong> (<em>nn.Module | dict</em>): model or param_groups</li>
+<li><strong>param_groups</strong> (<em>dict | None</em>): 
+    if provided, directly optimize param_groups and abandon model</li>
+<li><strong>kwargs</strong> (<em>dict</em>): arguments for optimizer</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li><strong>optimizer</strong> (<em>torch.optim.Optimizer</em>): optimizer</li>
+</ul>
+</li>
+</ul>
+<h4 id="ncdiatrainersoptimsschedulerpy">ncdia.trainers.optims.scheduler.py<a class="headerlink" href="#ncdiatrainersoptimsschedulerpy" title="Permanent link">&para;</a></h4>
+<p>Implements some of the commonly used scheduler.</p>
+<ul>
+<li><strong>CosineWarmupLR</strong></li>
+<li><strong>LinearWarmupLR</strong></li>
+<li><strong>ConstantLR</strong></li>
+</ul>
+<p><strong>Methods:</strong></p>
+<ul>
+<li>
+<p><span class="highlight-text"><strong>build_scheduler(type, optimizer, **kwargs)</strong></span></p>
+<p>Build learning rate scheduler.</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>type</strong> (<em>str</em>): type of scheduler</li>
+<li><strong>optimizer</strong> (t<em>orch.optim.Optimizer</em>): optimizer</li>
+<li><strong>kwargs</strong> (<em>dict</em>): arguments for scheduler</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li><strong>lr_scheduler</strong> (<em>torch.optim.lr_scheduler._LRScheduler</em>): learning rate scheduler</li>
+</ul>
+</li>
+</ul>
+<h3 id="ncdiatrainerspriority">ncdia.trainers.priority<a class="headerlink" href="#ncdiatrainerspriority" title="Permanent link">&para;</a></h3>
+<p>Hook priority levels.</p>
+<h4 id="priority">Priority<a class="headerlink" href="#priority" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Level</th>
+<th style="text-align: left;">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">HIGHEST</td>
+<td style="text-align: left;">0</td>
+</tr>
+<tr>
+<td style="text-align: left;">VERY_HIGH</td>
+<td style="text-align: left;">10</td>
+</tr>
+<tr>
+<td style="text-align: left;">HIGH</td>
+<td style="text-align: left;">30</td>
+</tr>
+<tr>
+<td style="text-align: left;">ABOVE_NORMAL</td>
+<td style="text-align: left;">40</td>
+</tr>
+<tr>
+<td style="text-align: left;">NORMAL</td>
+<td style="text-align: left;">50</td>
+</tr>
+<tr>
+<td style="text-align: left;">BELOW_NORMAL</td>
+<td style="text-align: left;">60</td>
+</tr>
+<tr>
+<td style="text-align: left;">LOW</td>
+<td style="text-align: left;">70</td>
+</tr>
+<tr>
+<td style="text-align: left;">VERY_LOW</td>
+<td style="text-align: left;">90</td>
+</tr>
+<tr>
+<td style="text-align: left;">LOWEST</td>
+<td style="text-align: left;">100</td>
+</tr>
+</tbody>
+</table>
 
 
 
@@ -1644,7 +2086,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../config/" class="md-footer__link md-footer__link--prev" aria-label="Previous: ⚙️ Config">
+          <a href="../ncdia_model/" class="md-footer__link md-footer__link--prev" aria-label="Previous: ncdia.model">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1654,20 +2096,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                ⚙️ Config
+                ncdia.model
               </div>
             </div>
           </a>
         
         
           
-          <a href="../people/" class="md-footer__link md-footer__link--next" aria-label="Next: 🧑‍🤝‍🧑 People">
+          <a href="../ncdia_utils/" class="md-footer__link md-footer__link--next" aria-label="Next: ncdia.utils">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                🧑‍🤝‍🧑 People
+                ncdia.utils
               </div>
             </div>
             <div class="md-footer__button md-icon">

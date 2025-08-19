@@ -1,0 +1,2026 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://haiv-lab.github.io/openhaiv/ncdia_algorithms/">
+      
+      
+        <link rel="prev" href="../overview/">
+      
+      
+        <link rel="next" href="../ncdia_dataloader/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.16">
+    
+    
+      
+        <title>ncdia.algorithms - OpenHAIV</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.7e37652d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/custom.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ncdiaalgorithms" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="OpenHAIV" class="md-header__button md-logo" aria-label="OpenHAIV" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            OpenHAIV
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              ncdia.algorithms
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="cyan"  aria-label="切换至夜间模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换至夜间模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="cyan"  aria-label="切换至日间模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换至日间模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/HAIV-Lab/openhaiv" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    HAIV-LAB/OpenHAIV
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="https://github.com/HAIV-Lab/openhaiv" class="md-tabs__link">
+        
+  
+  
+    
+  
+  💻 Code Repo
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="https://arxiv.org/abs/2508.07270" class="md-tabs__link">
+        
+  
+  
+    
+  
+  📄 Paper Link
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href=".." class="md-tabs__link">
+          
+  
+  
+  ✨ Get Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../overview/" class="md-tabs__link">
+          
+  
+  
+  📖 Documentation
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../people/" class="md-tabs__link">
+          
+  
+  
+  ℹ️ About
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="OpenHAIV" class="md-nav__button md-logo" aria-label="OpenHAIV" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    OpenHAIV
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/HAIV-Lab/openhaiv" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    HAIV-LAB/OpenHAIV
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/HAIV-Lab/openhaiv" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    💻 Code Repo
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://arxiv.org/abs/2508.07270" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    📄 Paper Link
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    ✨ Get Started
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            ✨ Get Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    👋 Introduction
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quik/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    🚀 Quik Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../methods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    📚 Supported Methods
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    📊 Results
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    📖 Documentation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            📖 Documentation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    🧩 ncdia
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            🧩 ncdia
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    ncdia.algorithms
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    ncdia.algorithms
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ncdiaalgorithmsbase" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.algorithms.base
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ncdia.algorithms.base">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basealg" class="md-nav__link">
+    <span class="md-ellipsis">
+      BaseAlg
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ncdiaalgorithmsincremental" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.algorithms.incremental
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ncdiaalgorithmsncdautoncd" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.algorithms.ncd.autoncd
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ncdia.algorithms.ncd.autoncd">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#autoncd" class="md-nav__link">
+    <span class="md-ellipsis">
+      AutoNCD
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ncdiaalgorithmsoodautoood" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.algorithms.ood.autoood
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ncdia.algorithms.ood.autoood">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#autoood" class="md-nav__link">
+    <span class="md-ellipsis">
+      AutoOOD
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ncdiaalgorithmsoodmethods" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.algorithms.ood.methods
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ncdiaalgorithmsoodinference" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.algorithms.ood.inference
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ncdiaalgorithmsoodmetrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.algorithms.ood.metrics
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ncdiaalgorithmssupervisedstandard" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.algorithms.supervised.standard
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ncdia.algorithms.supervised.standard">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#standardsl" class="md-nav__link">
+    <span class="md-ellipsis">
+      StandardSL
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ncdia_dataloader/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ncdia.dataloader
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ncdia_model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ncdia.model
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ncdia_trainers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ncdia.trainers
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ncdia_utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ncdia.utils
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ⚙️ Config
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scripts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    📜 Scripts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    ℹ️ About
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            ℹ️ About
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../people/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    🧑‍🤝‍🧑 People
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    🛠️ Contributing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../citation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    📖 Citation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../acknowledgment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    🙏 Acknowledgment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#ncdiaalgorithmsbase" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.algorithms.base
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ncdia.algorithms.base">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basealg" class="md-nav__link">
+    <span class="md-ellipsis">
+      BaseAlg
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ncdiaalgorithmsincremental" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.algorithms.incremental
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ncdiaalgorithmsncdautoncd" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.algorithms.ncd.autoncd
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ncdia.algorithms.ncd.autoncd">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#autoncd" class="md-nav__link">
+    <span class="md-ellipsis">
+      AutoNCD
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ncdiaalgorithmsoodautoood" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.algorithms.ood.autoood
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ncdia.algorithms.ood.autoood">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#autoood" class="md-nav__link">
+    <span class="md-ellipsis">
+      AutoOOD
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ncdiaalgorithmsoodmethods" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.algorithms.ood.methods
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ncdiaalgorithmsoodinference" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.algorithms.ood.inference
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ncdiaalgorithmsoodmetrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.algorithms.ood.metrics
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ncdiaalgorithmssupervisedstandard" class="md-nav__link">
+    <span class="md-ellipsis">
+      ncdia.algorithms.supervised.standard
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ncdia.algorithms.supervised.standard">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#standardsl" class="md-nav__link">
+    <span class="md-ellipsis">
+      StandardSL
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="ncdiaalgorithms"><strong>ncdia.algorithms</strong><a class="headerlink" href="#ncdiaalgorithms" title="Permanent link">&para;</a></h1>
+<h2 id="ncdiaalgorithmsbase"><strong>ncdia.algorithms.base</strong><a class="headerlink" href="#ncdiaalgorithmsbase" title="Permanent link">&para;</a></h2>
+<h3 id="basealg"><strong>BaseAlg</strong><a class="headerlink" href="#basealg" title="Permanent link">&para;</a></h3>
+<p>Basic algorithm class to define the interface of an algorithm.</p>
+<p><span class="highlight-text"><strong>__init__(self, trainer)</strong></span></p>
+<p>The constructor method that initializes an instance of <strong>BaseAlg</strong>.</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>trainer</strong> (<em>object</em>): Trainer object.</li>
+</ul>
+<p><span class="highlight-text"><strong>train_step(self, trainer, data, label, *args, </strong>kwargs)**</span></p>
+<p>Training step.</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>trainer</strong> (<em>object</em>): Trainer object.</li>
+<li><strong>data</strong> (<em>torch.Tensor</em>): Input data.</li>
+<li><strong>label</strong> (<em>torch.Tensor</em>): Label data.</li>
+<li><strong>args</strong> (<em>tuple</em>): Additional arguments.</li>
+<li><strong>kwargs</strong> (<em>dict</em>): Additional keyword arguments.</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li><strong>results</strong> (<em>dict</em>): Training results. Contains the following keys:<ul>
+<li><strong>"loss"</strong>: Loss value.</li>
+<li><strong>"acc"</strong>: Accuracy value.</li>
+<li><strong>other</strong> "key:value" pairs.</li>
+</ul>
+</li>
+</ul>
+<p><span class="highlight-text"><strong>val_step(self, trainer, data, label, *args, </strong>kwargs)**</span></p>
+<p>Validation step.</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>trainer</strong> (<em>object</em>): Trainer object.</li>
+<li><strong>data</strong> (<em>torch.Tensor</em>): Input data.</li>
+<li><strong>label</strong> (<em>torch.Tensor</em>): Label data.</li>
+<li><strong>args</strong> (<em>tuple</em>): Additional arguments.</li>
+<li><strong>kwargs</strong> (<em>dict</em>): Additional keyword arguments.</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li><strong>results</strong> (<em>dict</em>): Validation results. Contains the following keys:<ul>
+<li><strong>"loss"</strong>: Loss value.</li>
+<li><strong>"acc"</strong>: Accuracy value.</li>
+<li><strong>other</strong> "key:value" pairs.</li>
+</ul>
+</li>
+</ul>
+<p><span class="highlight-text"><strong>test_step(self, trainer, data, label, *args, </strong>kwargs)**</span></p>
+<p>Test step.</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>trainer</strong> (<em>object</em>): Trainer object.</li>
+<li><strong>data</strong> (<em>torch.Tensor</em>): Input data.</li>
+<li><strong>label</strong> (<em>torch.Tensor</em>): Label data.</li>
+<li><strong>args</strong> (<em>tuple</em>): Additional arguments.</li>
+<li><strong>kwargs</strong> (<em>dict</em>): Additional keyword arguments.</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li><strong>results</strong> (<em>dict</em>): Test results. Contains the following keys:<ul>
+<li><strong>"loss"</strong>: Loss value.</li>
+<li><strong>"acc"</strong>: Accuracy value.</li>
+<li><strong>other</strong> "key:value" pairs.</li>
+</ul>
+</li>
+</ul>
+<h2 id="ncdiaalgorithmsincremental"><strong>ncdia.algorithms.incremental</strong><a class="headerlink" href="#ncdiaalgorithmsincremental" title="Permanent link">&para;</a></h2>
+<p>Include implementation of Class Incremental Learning (CIL) and Few-shot Class Incremental Learning (FSCIL) algorithm.</p>
+<ul>
+<li><strong>CIL</strong><ul>
+<li><strong><code>Finetune</code></strong></li>
+<li><strong><code>LwF</code></strong></li>
+<li><strong><code>EwC</code></strong></li>
+<li><strong><code>iCarL</code></strong></li>
+<li><strong><code>IL2A</code></strong></li>
+<li><strong><code>WA</code></strong>    </li>
+</ul>
+</li>
+<li><strong>FSCIL</strong><ul>
+<li><strong><code>ALICE</code></strong></li>
+<li><strong><code>FACT</code></strong></li>
+<li><strong><code>SAVC</code></strong></li>
+</ul>
+</li>
+</ul>
+<h2 id="ncdiaalgorithmsncdautoncd"><strong>ncdia.algorithms.ncd.autoncd</strong><a class="headerlink" href="#ncdiaalgorithmsncdautoncd" title="Permanent link">&para;</a></h2>
+<p>Modules related to novel class discovery.</p>
+<h3 id="autoncd"><strong>AutoNCD</strong><a class="headerlink" href="#autoncd" title="Permanent link">&para;</a></h3>
+<p>Class for evaluating with OOD metrics and relabeling the OOD dataset for the next session.</p>
+<p><span class="highlight-text"><strong>__init__(self, model, train_loader, test_loader, device=None, verbose=False)</strong></span></p>
+<p>The constructor method that initializes an instance of <strong>AutoNCD</strong>. </p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>model</strong> (<em>nn.Module</em>): model to be evaluated.</li>
+<li><strong>train_loader</strong> (<em>DataLoader</em>): train dataloader.</li>
+<li><strong>test_loader</strong> (<em>DataLoader</em>): test dataloader.</li>
+<li><strong>device</strong> (<em>torch.device, optional</em>): device to run the evaluation. Default to <code>None</code>.</li>
+<li><strong>verbose</strong> (<em>bool, optional</em>): print the progress bar. Default to <code>False</code>. </li>
+</ul>
+<p><span class="highlight-text"><strong>inference(self, dataloader, split='train')</strong></span></p>
+<p>Inference the model on the dataloader and return relevant information. If split is <code>train</code>, return the prototype of the training data. </p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>dataloader</strong> (<em>DataLoader</em>): dataloader for evaluation.</li>
+<li><strong>split</strong> (<em>str, optional</em>): train or test. Defaults to <code>train</code>.</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<p>If split is 'train':</p>
+<ul>
+<li>
+<p><strong>features</strong> (<em>torch.Tensor</em>): feature vectors, <span class="arithmatex">\((N, D)\)</span>.</p>
+</li>
+<li>
+<p><strong>logits</strong> (<em>torch.Tensor</em>): logit vectors, <span class="arithmatex">\((N, C)\)</span>.</p>
+</li>
+<li>
+<p><strong>prototype_cls</strong> (<em>torch.Tensor</em>): prototype vectors, <span class="arithmatex">\((C, D)\)</span>.</p>
+</li>
+</ul>
+<p>If split is 'test':</p>
+<ul>
+<li>
+<p><strong>imgpaths</strong> (<em>list</em>): image paths (list).</p>
+</li>
+<li>
+<p><strong>features</strong> (<em>torch.Tensor</em>): feature vectors, <span class="arithmatex">\((N, D)\)</span>.</p>
+</li>
+<li>
+<p><strong>logits</strong> (<em>torch.Tensor</em>): logit vectors, <span class="arithmatex">\((N, C)\)</span>.</p>
+</li>
+<li>
+<p><strong>preds</strong> (<em>torch.Tensor</em>): prediction labels, <span class="arithmatex">\((N,)\)</span>.</p>
+</li>
+<li>
+<p><strong>labels</strong> (<em>torch.Tensor</em>): ground truth labels, <span class="arithmatex">\((N,)\)</span>.</p>
+</li>
+</ul>
+<p><span class="highlight-text"><strong>relabel(self, ood_loader, metrics=[], tpr_th=0.95, prec_th=None)</strong></span></p>
+<p>Relabel the OOD dataset for the next session.</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>ood_loader</strong> (<em>DataLoader</em>): OOD dataloader for relabeling.</li>
+<li><strong>metrics</strong> (<em>list, optional</em>): metrics to evaluate the OOD dataset. Defaults to [].</li>
+<li><strong>tpr_th</strong> (<em>float, optional</em>): True positive rate threshold. Defaults to 0.95.</li>
+<li><strong>prec_th</strong> (<em>float, optional</em>): Precision threshold. Defaults to <code>None</code>.</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li><strong>ood_loader</strong> (<em>DataLoader</em>): relabeled OOD dataloader.</li>
+</ul>
+<p><span class="highlight-text"><strong>_split_cluster_label(self, y_label, y_pred, ood_class)</strong></span></p>
+<p>Calculate clustering accuracy. Require scikit-learn installed. First compute linear assignment on all data, then look at how good the accuracy is on subsets.</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>y_label</strong> (<em>numpy.array</em>): true labels, (n_samples,)</li>
+<li><strong>y_pred</strong> (<em>numpy.array</em>): predicted labels (n_samples,)</li>
+<li><strong>ood_class</strong>: out-of-distribution class labels</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li><strong>cluster_label</strong>: cluster label</li>
+</ul>
+<p><span class="highlight-text"><strong>search_discrete_point(self, novel_feat, novel_target)</strong></span></p>
+<p><span style="color: red;"><strong>TODO</strong></span></p>
+<h2 id="ncdiaalgorithmsoodautoood"><strong>ncdia.algorithms.ood.autoood</strong><a class="headerlink" href="#ncdiaalgorithmsoodautoood" title="Permanent link">&para;</a></h2>
+<h3 id="autoood"><strong>AutoOOD</strong><a class="headerlink" href="#autoood" title="Permanent link">&para;</a></h3>
+<p>Class for evaluating OOD detection methods.</p>
+<p><span class="highlight-text"><strong>eval(prototype_cls, fc_weight, train_feats, train_logits, id_feats, id_logits, id_labels, ood_feats, ood_logits, ood_labels, metrics=[], tpr_th=0.95, prec_th=None, id_attrs=None, ood_attrs=None, prototype_att=None)</strong></span></p>
+<p>Evaluate the OOD detection methods and return OOD scores.</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>prototype_cls</strong> (<em>np.ndarray</em>): prototype of training data</li>
+<li><strong>fc_weight</strong> (<em>np.ndarray</em>): weight of the last layer</li>
+<li><strong>train_feats</strong> (<em>np.ndarray</em>): feature of training data</li>
+<li><strong>train_logits</strong> (<em>np.ndarray</em>): logits of training data</li>
+<li><strong>id_feats</strong> (<em>np.ndarray</em>): feature of ID data</li>
+<li><strong>id_logits</strong> (<em>np.ndarray</em>): logits of ID data</li>
+<li><strong>id_labels</strong> (<em>np.ndarray</em>): labels of ID data</li>
+<li><strong>ood_feats</strong> (<em>np.ndarray</em>): feature of OOD data</li>
+<li><strong>ood_logits</strong> (<em>np.ndarray</em>): logits of OOD data</li>
+<li><strong>ood_labels</strong> (<em>np.ndarray</em>): labels of OOD data</li>
+<li><strong>metrics</strong> (<em>list, optional</em>): list of OOD detection methods to evaluate. Defaults to [].</li>
+<li><strong>tpr_th</strong> (<em>float, optional</em>): True positive rate threshold. Defaults to 0.95.</li>
+<li><strong>prec_th</strong> (<em>float, optional</em>): Precision threshold. Defaults to <code>None</code>.</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li><strong>ood_scores</strong> (<em>dict</em>): OOD scores, keys are the names of the OOD detection methods, values are the OOD scores and search threshold. Each value is a tuple containing the following:</li>
+<li><strong>ood metrics</strong> (<em>tuple</em>):</li>
+<li><strong>fpr</strong> (<em>float</em>): false positive rate</li>
+<li><strong>auroc</strong> (<em>float</em>): area under the ROC curve</li>
+<li><strong>aupr_in</strong> (<em>float</em>): area under the precision-recall curve for in-distribution samples</li>
+<li><strong>aupr_out</strong> (<em>float</em>): area under the precision-recall curve for out-of-distribution samples</li>
+<li><strong>search threshold</strong> (<em>tuple</em>): threshold for OOD detection if prec_th is not <code>None</code></li>
+<li><strong>best_th</strong> (<em>float</em>): best threshold for OOD detection</li>
+<li><strong>conf</strong> (<em>torch.Tensor</em>): confidence scores</li>
+<li><strong>label</strong> (<em>torch.Tensor</em>): label array</li>
+<li><strong>precisions</strong> (<em>float</em>): precision when precisions &gt;= prec_th</li>
+<li><strong>recalls</strong> (<em>float</em>): recall when precisions &gt;= prec_th</li>
+</ul>
+<p><span class="highlight-text"><strong>inference(metrics, logits, feat, train_logits, train_feat, fc_weight, prototype, logits_att=None, prototype_att=None)</strong></span></p>
+<p>Inferencec method for OOD detection</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>metrics</strong> (<em>list</em>): the ood metrics used for inference.</li>
+<li><strong>logits</strong> (<em>np.ndarray</em>): logits of inference data.</li>
+<li><strong>feat</strong> (<em>np.ndarray</em>): features of inference data.</li>
+<li><strong>train_logits</strong> (<em>np.ndarray</em>): logits of training data.</li>
+<li><strong>train_feat</strong> (<em>np.ndarray</em>): features of training data.</li>
+<li><strong>fc_weight</strong> (<em>np.ndarray</em>): weight of the last layer.</li>
+<li><strong>prototype</strong> (<em>np.ndarray</em>): prototypes of training data.</li>
+<li><strong>logits_att</strong> (<em>np.ndarray, optional</em>): logits of attribute.</li>
+<li><strong>prototype_att</strong> (<em>np.ndarray, optional</em>): prototypes of attribute. </li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li><strong>conf</strong> (<em>dict</em>): contains the confidence using different metrics, <strong>conf[metric]</strong> (<em>torch.Tensor</em>) is the confidence using specific metric.</li>
+</ul>
+<h2 id="ncdiaalgorithmsoodmethods">ncdia.algorithms.ood.methods<a class="headerlink" href="#ncdiaalgorithmsoodmethods" title="Permanent link">&para;</a></h2>
+<p><span class="highlight-text"><strong>msp(id_gt, id_logits, ood_gt, ood_logits, tpr_th=0.95, prec_th=None)</strong></span></p>
+<p>Maximum Softmax Probability (MSP) method for OOD detection.</p>
+<p>A Baseline for Detecting Misclassified and Out-of-Distribution Examples in Neural Networks.</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>id_gt</strong> (<em>torch.Tensor</em>): ID ground truth labels. Shape <span class="arithmatex">\((N,)\)</span>.</li>
+<li><strong>id_logits</strong> (<em>torch.Tensor</em>): ID logits. Shape <span class="arithmatex">\((N, C)\)</span>.</li>
+<li><strong>ood_gt</strong> (<em>torch.Tensor</em>): OOD ground truth labels. Shape <span class="arithmatex">\((M,)\)</span>.</li>
+<li><strong>ood_logits</strong> (<em>torch.Tensor</em>): OOD logits. Shape <span class="arithmatex">\((M, C)\)</span>.</li>
+<li><strong>tpr_th</strong> (<em>float</em>): True positive rate threshold to compute
+        false positive rate. Default is 0.95.</li>
+<li><strong>prec_th</strong> (<em>float</em>): Precision threshold for searching - threshold.
+        If <code>None</code>, not searching for threshold. Default is <code>None</code>.</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li><strong>conf</strong> (<em>np.ndarray</em>): Confidence scores. Shape <span class="arithmatex">\((N + M,)\)</span>.</li>
+<li><strong>label</strong> (<em>np.ndarray</em>): Label array. Shape <span class="arithmatex">\((N + M,)\)</span>.</li>
+<li><strong>fpr</strong> (<em>float</em>): False positive rate.</li>
+<li><strong>auroc</strong> (<em>float</em>): Area under the ROC curve.</li>
+<li><strong>aupr_in</strong> (<em>float</em>): Area under the precision-recall curve 
+        for in-distribution samples.</li>
+<li><strong>aupr_out</strong> (<em>float</em>): Area under the precision-recall curve
+        for out-of-distribution</li>
+<li><strong>best_th</strong> (<em>float</em>): Threshold for OOD detection. If prec_th is <code>None</code>, <code>None</code>.</li>
+<li><strong>prec</strong> (<em>float</em>): Precision at the threshold. If prec_th is <code>None</code>, <code>None</code>.</li>
+<li><strong>recall</strong> (<em>float</em>): Recall at the threshold. If prec_th is <code>None</code>, <code>None</code>.</li>
+</ul>
+<p><span class="highlight-text"><strong>mcm(id_gt, id_logits, ood_gt, ood_logits, T=2, tpr_th=0.95, prec_th=None)</strong></span></p>
+<p>Maximum Concept Matching (MCM) method for OOD detection.</p>
+<p>Delving into Out-of-Distribution Detection with Vision-Language Representations</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>id_gt</strong> (<em>torch.Tensor</em>): ID ground truth labels. Shape <span class="arithmatex">\((N,)\)</span>.</li>
+<li><strong>id_logits</strong> (<em>torch.Tensor</em>): ID logits. Shape <span class="arithmatex">\((N, C)\)</span>.</li>
+<li><strong>ood_gt</strong> (<em>torch.Tensor</em>): OOD ground truth labels. Shape <span class="arithmatex">\((M,)\)</span>.</li>
+<li><strong>ood_logits</strong> (<em>torch.Tensor</em>): OOD logits. Shape <span class="arithmatex">\((M, C)\)</span>.</li>
+<li><strong>T</strong> (<em>int</em>): Temperature for softmax.</li>
+<li><strong>tpr_th</strong> (<em>float</em>): True positive rate threshold to compute
+        false positive rate. Default is 0.95.</li>
+<li><strong>prec_th</strong> (<em>float</em>): Precision threshold for searching threshold.
+        If <code>None</code>, not searching for threshold. Default is <code>None</code>.</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li><strong>fpr</strong> (<em>float</em>): False positive rate.</li>
+<li><strong>auroc</strong> (<em>float</em>): Area under the ROC curve.</li>
+<li><strong>aupr_in</strong> (<em>float</em>): Area under the precision-recall curve 
+        for in-distribution samples.</li>
+<li><strong>aupr_out</strong> (<em>float</em>): Area under the precision-recall curve
+        for out-of-distribution.</li>
+</ul>
+<p><span class="highlight-text"><strong>max_logit(id_gt, id_logits, ood_gt, ood_logits, tpr_th=0.95, prec_th=None)</strong></span></p>
+<p>Maximum Logit (MaxLogit) method for OOD detection.</p>
+<p>Scaling Out-of-Distribution Detection for Real-World Settings</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>id_gt</strong> (<em>torch.Tensor</em>): ID ground truth labels. Shape <span class="arithmatex">\((N,)\)</span>.</li>
+<li><strong>id_logits</strong> (<em>torch.Tensor</em>): ID logits. Shape <span class="arithmatex">\((N, C)\)</span>.</li>
+<li><strong>ood_gt</strong> (<em>torch.Tensor</em>): OOD ground truth labels. Shape <span class="arithmatex">\((M,)\)</span>.</li>
+<li><strong>ood_logits</strong> (<em>torch.Tensor</em>): OOD logits. Shape <span class="arithmatex">\((M, C)\)</span>.</li>
+<li><strong>tpr_th</strong> (<em>float</em>): True positive rate threshold to compute
+        false positive rate. Default is 0.95.</li>
+<li><strong>prec_th</strong> (<em>float</em>): Precision threshold for searching threshold.
+        If <code>None</code>, not searching for threshold. Default is <code>None</code>.</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li><strong>fpr</strong> (<em>float</em>): False positive rate.</li>
+<li><strong>auroc</strong> (<em>float</em>): Area under the ROC curve.</li>
+<li><strong>aupr_in</strong> (<em>float</em>): Area under the precision-recall curve 
+        for in-distribution samples.</li>
+<li><strong>aupr_out</strong> (<em>float</em>): Area under the precision-recall curve
+        for out-of-distribution</li>
+</ul>
+<p><span class="highlight-text"><strong>energy(id_gt, id_logits, ood_gt, ood_logits, tpr_th=0.95, prec_th=None)</strong></span></p>
+<p>Energy-based method for OOD detection.</p>
+<p>Energy-based Out-of-distribution Detection</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>id_gt</strong> (<em>torch.Tensor</em>): ID ground truth labels. Shape <span class="arithmatex">\((N,)\)</span>.</li>
+<li><strong>id_logits</strong> (<em>torch.Tensor</em>): ID logits. Shape <span class="arithmatex">\((N, C)\)</span>.</li>
+<li><strong>ood_gt</strong> (<em>torch.Tensor</em>): OOD ground truth labels. Shape <span class="arithmatex">\((M,)\)</span>.</li>
+<li><strong>ood_logits</strong> (<em>torch.Tensor</em>): OOD logits. Shape <span class="arithmatex">\((M, C)\)</span>.</li>
+<li><strong>tpr_th</strong> (<em>float</em>): True positive rate threshold to compute
+        false positive rate. Default is 0.95.</li>
+<li><strong>prec_th</strong> (<em>float</em>): Precision threshold for searching threshold.
+        If <code>None</code>, not searching for threshold. Default is <code>None</code>.</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li><strong>fpr</strong> (<em>float</em>): False positive rate.</li>
+<li><strong>auroc</strong> (<em>float</em>): Area under the ROC curve.</li>
+<li><strong>aupr_in</strong> (<em>float</em>): Area under the precision-recall curve 
+    for in-distribution samples.</li>
+<li><strong>aupr_out</strong> (<em>float</em>): Area under the precision-recall curve
+    for out-of-distribution</li>
+</ul>
+<p><span class="highlight-text"><strong>vim(id_gt, id_logits, id_feat, ood_gt, ood_logits, ood_feat, train_logits, train_feat, tpr_th=0.95, prec_th=None)</strong></span></p>
+<p>Virtual-Logit Matching (ViM) method for OOD detection.</p>
+<p>ViM: Out-of-Distribution With Virtual-Logit Matching</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>id_gt</strong> (<em>torch.Tensor</em>): ID ground truth labels. Shape <span class="arithmatex">\((N,)\)</span>.</li>
+<li><strong>id_logits</strong> (<em>torch.Tensor</em>): ID logits. Shape <span class="arithmatex">\((N, C)\)</span>.</li>
+<li><strong>id_feat</strong> (<em>torch.Tensor</em>): ID features. Shape <span class="arithmatex">\((N, D)\)</span>.</li>
+<li><strong>ood_gt</strong> (<em>torch.Tensor</em>): OOD ground truth labels. Shape <span class="arithmatex">\((M,)\)</span>.</li>
+<li><strong>ood_logits</strong> (<em>torch.Tensor</em>): OOD logits. Shape <span class="arithmatex">\((M, C)\)</span>.</li>
+<li><strong>ood_feat</strong> (<em>torch.Tensor</em>): OOD features. Shape <span class="arithmatex">\((M, D)\)</span>.</li>
+<li><strong>train_logits</strong> (<em>torch.Tensor</em>): Training logits. Shape <span class="arithmatex">\((K, C)\)</span>.</li>
+<li><strong>train_feat</strong> (<em>torch.Tensor</em>): Training features. Shape <span class="arithmatex">\((K, D)\)</span>.</li>
+<li><strong>tpr_th</strong> (<em>float</em>): True positive rate threshold to compute
+        false positive rate. Default is 0.95.</li>
+<li><strong>prec_th</strong> (<em>float</em>): Precision threshold for searching threshold.
+        If <code>None</code>, not searching for threshold. Default is <code>None</code>.</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li><strong>fpr</strong> (<em>float</em>): False positive rate.</li>
+<li><strong>auroc</strong> (<em>float</em>): Area under the ROC curve.</li>
+<li><strong>aupr_in</strong> (<em>float</em>): Area under the precision-recall curve 
+        for in-distribution samples.</li>
+<li><strong>aupr_out</strong> (<em>float</em>): Area under the precision-recall curve
+        for out-of-distribution</li>
+</ul>
+<p><span class="highlight-text"><strong>dml(id_gt, id_feat, ood_gt, ood_feat, fc_weight, tpr_th=0.95, prec_th=None)</strong></span></p>
+<p>Decoupled MaxLogit (DML) method for OOD detection.</p>
+<p>Decoupling MaxLogit for Out-of-Distribution Detection</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>id_gt</strong> (<em>torch.Tensor</em>): ID ground truth labels. Shape <span class="arithmatex">\((N,)\)</span>.</li>
+<li><strong>id_feat</strong> (<em>torch.Tensor</em>): ID features. Shape <span class="arithmatex">\((N, D)\)</span>.</li>
+<li><strong>ood_gt</strong> (<em>torch.Tensor</em>): OOD ground truth labels. Shape <span class="arithmatex">\((M,)\)</span>.</li>
+<li><strong>ood_feat</strong> (<em>torch.Tensor</em>): OOD features. Shape <span class="arithmatex">\((M, D)\)</span>.</li>
+<li><strong>fc_weight</strong> (<em>torch.Tensor</em>): FC layer weight. Shape <span class="arithmatex">\((C, D)\)</span>.</li>
+<li><strong>tpr_th</strong> (<em>float</em>): True positive rate threshold to compute
+        false positive rate. Default is 0.95.</li>
+<li><strong>prec_th</strong> (<em>float</em>): Precision threshold for searching threshold.
+        If <code>None</code>, not searching for threshold. Default is <code>None</code>.</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li><strong>fpr</strong> (<em>float</em>): False positive rate.</li>
+<li><strong>auroc</strong> (<em>float</em>): Area under the ROC curve.</li>
+<li><strong>aupr_in</strong> (<em>float</em>): Area under the precision-recall curve 
+        for in-distribution samples.</li>
+<li><strong>aupr_out</strong> (<em>float</em>): Area under the precision-recall curve
+        for out-of-distribution</li>
+</ul>
+<p><span class="highlight-text"><strong>dmlp(id_gt, id_logits, id_feat, ood_gt, ood_logits, ood_feat, fc_weight, prototype,tpr_th=0.95, prec_th=None)</strong></span></p>
+<p>Decoupled MaxLogit+ (DML+) method for OOD detection.</p>
+<p>Decoupling MaxLogit for Out-of-Distribution Detection</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>id_gt</strong> (<em>torch.Tensor</em>): ID ground truth labels. Shape (N,).</li>
+<li><strong>id_logits</strong> (<em>torch.Tensor</em>): ID logits. Shape (N, C).</li>
+<li><strong>id_feat</strong> (<em>torch.Tensor</em>): ID features. Shape (N, D).</li>
+<li><strong>ood_gt</strong> (<em>torch.Tensor</em>): OOD ground truth labels. Shape (M,).</li>
+<li><strong>ood_logits</strong> (<em>torch.Tensor</em>): OOD logits. Shape (M, C).</li>
+<li><strong>ood_feat</strong> (<em>torch.Tensor</em>): OOD features. Shape (M, D).</li>
+<li><strong>fc_weight</strong> (<em>torch.Tensor</em>): FC layer weight. Shape (D, C).</li>
+<li><strong>prototype</strong> (<em>torch.Tensor</em>): Prototype. Shape (D, C).</li>
+<li><strong>tpr_th</strong> (<em>float</em>): True positive rate threshold to compute
+        false positive rate. Default is 0.95.</li>
+<li><strong>prec_th</strong> (<em>float</em>): Precision threshold for searching threshold.
+        If <code>None</code>, not searching for threshold. Default is <code>None</code>.</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li><strong>fpr</strong> (<em>float</em>): False positive rate.</li>
+<li><strong>auroc</strong> (<em>float</em>): Area under the ROC curve.</li>
+<li><strong>aupr_in</strong> (<em>float</em>): Area under the precision-recall curve 
+        for in-distribution samples.</li>
+<li><strong>aupr_out</strong> (<em>float</em>): Area under the precision-recall curve
+        for out-of-distribution</li>
+</ul>
+<p><span class="highlight-text"><strong>prot(id_gt, id_logits, ood_gt, ood_logits, prototypes: list, tpr_th=0.95, prec_th=None)</strong></span></p>
+<p>Prototype-based (Prot) method for OOD detection.</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>id_gt</strong> (<em>torch.Tensor</em>): ID ground truth labels, shape <span class="arithmatex">\((N,)\)</span>.</li>
+<li><strong>id_logits</strong> (<em>list of torch.Tensor</em>): ID logits, containing shape <span class="arithmatex">\((N, C)\)</span>.</li>
+<li><strong>ood_gt</strong> (<em>torch.Tensor</em>): OOD ground truth labels, shape <span class="arithmatex">\((M,)\)</span>.</li>
+<li><strong>ood_logits</strong> (<em>list of torch.Tensor</em>): OOD logits, containing shape <span class="arithmatex">\((M, C)\)</span>.</li>
+<li><strong>prototypes</strong> (<em>list of torch.Tensor</em>): Prototypes, containing shape <span class="arithmatex">\((D, C)\)</span>.</li>
+<li><strong>tpr_th</strong> (<em>float</em>): True positive rate threshold to compute 
+        false positive rate.</li>
+<li><strong>prec_th</strong> (<em>float</em>): Precision threshold for searching threshold.
+        If <code>None</code>, not searching for threshold. Default is <code>None</code>.</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li><strong>fpr</strong> (<em>float</em>): False positive rate.</li>
+<li><strong>auroc</strong> (<em>float</em>): Area under the ROC curve.</li>
+<li><strong>aupr_in</strong> (<em>float</em>): Area under the precision-recall curve 
+        for in-distribution samples.</li>
+<li><strong>aupr_out</strong> (<em>float</em>): Area under the precision-recall curve
+        for out-of-distribution</li>
+</ul>
+<h2 id="ncdiaalgorithmsoodinference">ncdia.algorithms.ood.inference<a class="headerlink" href="#ncdiaalgorithmsoodinference" title="Permanent link">&para;</a></h2>
+<p>The inference version of implemented ood methods in <a href="#ncdiaalgorithmsoodmethodspy">ncdia.algorithms.ood.methods.py</a></p>
+<h2 id="ncdiaalgorithmsoodmetrics">ncdia.algorithms.ood.metrics<a class="headerlink" href="#ncdiaalgorithmsoodmetrics" title="Permanent link">&para;</a></h2>
+<p><span class="highlight-text"><strong>ood_metrics(conf, label, tpr_th=0.95)</strong></span></p>
+<p>Compute OOD metrics.</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>conf</strong> (<em>np.ndarray</em>): Confidence scores. Shape <span class="arithmatex">\((N,)\)</span>.</li>
+<li><strong>label</strong> (<em>np.ndarray</em>): Label array. Shape <span class="arithmatex">\((N,)\)</span>. Containing:
+        -1: OOD samples.
+        int &gt;= 0: ID samples with class labels</li>
+<li><strong>tpr_th</strong> (<em>float</em>): True positive rate threshold to compute 
+        false positive rate.</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li><strong>fpr</strong> (<em>float</em>): False positive rate.</li>
+<li><strong>auroc</strong> (<em>float</em>): Area under the ROC curve.</li>
+<li><strong>aupr_in</strong> (<em>float</em>): Area under the precision-recall curve 
+        for in-distribution samples.</li>
+<li><strong>aupr_out</strong> (<em>float</em>): Area under the precision-recall curve
+        for out-of-distribution samples.</li>
+</ul>
+<p><span class="highlight-text"><strong>search_threshold(conf, label, prec_th)</strong></span></p>
+<p>Search for the threshold for OOD detection.</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>conf</strong> (<em>np.ndarray</em>): Confidence scores. Shape <span class="arithmatex">\((N,)\)</span>.</li>
+<li><strong>label</strong> (<em>np.ndarray</em>): Label array. Shape <span class="arithmatex">\((N,)\)</span>. Containing:
+        -1: OOD samples.
+        int &gt;= 0: ID samples with class labels</li>
+<li><strong>prec_th</strong> (<em>float</em>): Precision threshold.</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li><strong>best_th</strong> (<em>float</em>): Threshold for OOD detection.</li>
+<li><strong>prec</strong> (<em>float</em>): Precision at the threshold.</li>
+<li><strong>recall</strong> (<em>float</em>): Recall at the threshold.</li>
+</ul>
+<h2 id="ncdiaalgorithmssupervisedstandard">ncdia.algorithms.supervised.standard<a class="headerlink" href="#ncdiaalgorithmssupervisedstandard" title="Permanent link">&para;</a></h2>
+<p>Modules related to supervised learning</p>
+<h3 id="standardsl">StandardSL<a class="headerlink" href="#standardsl" title="Permanent link">&para;</a></h3>
+<p>Class inherits from <strong>BaseAlg</strong>. Standard supervised learning algorithm</p>
+<p><span class="highlight-text"><strong>train_step(self, trainer, data, label, *args, **kwargs)</strong></span></p>
+<p>Training step for standard supervised learning.</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>trainer</strong> (<em>object</em>): Trainer object.</li>
+<li><strong>data</strong> (<em>torch.Tensor</em>): Input data.</li>
+<li><strong>label</strong> (<em>torch.Tensor</em>): Label data.</li>
+<li><strong>args</strong> (<em>tuple</em>): Additional arguments.</li>
+<li><strong>kwargs</strong> (<em>dict</em>): Additional keyword arguments.</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li>
+<p><strong>results</strong> (<em>dict</em>): Training results. Contains the following keys:</p>
+<ul>
+<li><strong>"loss"</strong>: Loss value.</li>
+<li><strong>"acc"</strong>: Accuracy value.</li>
+</ul>
+</li>
+</ul>
+<p><span class="highlight-text"><strong>val_step(self, trainer, data, label, *args, **kwargs)</strong></span></p>
+<p>Validation step for standard supervised learning.</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li><strong>trainer</strong> (<em>object</em>): Trainer object.</li>
+<li><strong>data</strong> (<em>torch.Tensor</em>): Input data.</li>
+<li><strong>label</strong> (<em>torch.Tensor</em>): Label data.</li>
+<li><strong>args</strong> (<em>tuple</em>): Additional arguments.</li>
+<li><strong>kwargs</strong> (<em>dict</em>): Additional keyword arguments.</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li>
+<p><strong>results</strong> (<em>dict</em>): Validation results. Contains the following:</p>
+<ul>
+<li><strong>"loss"</strong>: Loss value.</li>
+<li><strong>"acc"</strong>: Accuracy value.</li>
+</ul>
+</li>
+</ul>
+<p><span class="highlight-text"><strong>test_step(self, trainer, data, label, *args, **kwargs)</strong></span></p>
+<p>Test step for standard supervised learning.</p>
+<p><strong><span class="highlight-text-grey"> Parameters: </span></strong></p>
+<ul>
+<li>trainer (object): Trainer object.</li>
+<li>data (torch.Tensor): Input data.</li>
+<li>label (torch.Tensor): Label data.</li>
+<li>args (tuple): Additional arguments.</li>
+<li>kwargs (dict): Additional keyword arguments.</li>
+</ul>
+<p><strong><span class="highlight-text-grey"> Returns: </span></strong></p>
+<ul>
+<li>
+<p><strong>results</strong> (<em>dict</em>): Test results. Contains the following:</p>
+<ul>
+<li><strong>"loss"</strong>: Loss value.</li>
+<li><strong>"acc"</strong>: Accuracy value.</li>
+</ul>
+</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../overview/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Overview">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Overview
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../ncdia_dataloader/" class="md-footer__link md-footer__link--next" aria-label="Next: ncdia.dataloader">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                ncdia.dataloader
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 <a href="https://github.com/HAIV-Lab" target="_blank">HAIV Lab</a>. Licensed under the <a href="https://opensource.org/licenses/MIT" target="_blank">MIT License</a>.
+    </div>
+  
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/HAIV-Lab" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://haivlab.wixsite.com/home" target="_blank" rel="noopener" title="haivlab.wixsite.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="mailto:<xex@hust.edu.cn>" target="_blank" rel="noopener" title="" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m20 8-8 5-8-5V6l8 5 8-5m0-2H4c-1.11 0-2 .89-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://space.bilibili.com/1716209957?spm_id_from=333.337.0.0" target="_blank" rel="noopener" title="space.bilibili.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M488.6 104.1c16.7 18.1 24.4 39.7 23.3 65.7v202.4c-.4 26.4-9.2 48.1-26.5 65.1-17.2 17-39.1 25.9-65.5 26.7H92c-26.4-.8-48.2-9.8-65.3-27.2S.7 396.5 0 368.2V169.8c.8-26 9.7-47.6 26.7-65.7C43.8 87.8 65.5 78.8 92 78h29.4L96 52.2c-5.7-5.7-8.6-13-8.6-21.8S90.3 14.3 96 8.6 109 0 117.9 0s16.1 2.9 21.9 8.6L213.1 78h88l74.5-69.4C381.7 2.9 389.2 0 398 0s16.1 2.9 21.9 8.6c5.7 5.7 8.6 13 8.6 21.8s-2.9 16.1-8.6 21.8L394.6 78h29.3c26.4.8 48 9.8 64.7 26.1m-38.8 69.7c-.4-9.6-3.7-17.4-10.7-23.5-5.2-6.1-14-9.4-22.7-9.8H96c-9.6.4-17.4 3.7-23.6 9.8-6.1 6.1-9.4 13.9-9.8 23.5v194.4c0 9.2 3.3 17 9.8 23.5s14.4 9.8 23.6 9.8h320.4c9.2 0 17-3.3 23.3-9.8s9.7-14.3 10.1-23.5zm-264.3 42.7c6.3 6.3 9.7 14.1 10.1 23.2V273c-.4 9.2-3.7 16.9-9.8 23.2-6.2 6.3-14 9.5-23.6 9.5s-17.5-3.2-23.6-9.5-9.4-14-9.8-23.2v-33.3c.4-9.1 3.8-16.9 10.1-23.2s13.2-9.6 23.3-10c9.2.4 17 3.7 23.3 10m191.5 0c6.3 6.3 9.7 14.1 10.1 23.2V273c-.4 9.2-3.7 16.9-9.8 23.2s-14 9.5-23.6 9.5-17.4-3.2-23.6-9.5c-7-6.3-9.4-14-9.7-23.2v-33.3c.3-9.1 3.7-16.9 10-23.2s14.1-9.6 23.3-10c9.2.4 17 3.7 23.3 10"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "navigation.tabs", "navigation.instant", "navigation.top", "navigation.expand", "navigation.tabs.sticky", "navigation.tracking", "navigation.footer", "search.suggest", "search.highlight", "search.share", "announce.dismiss"], "search": "../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.50899def.min.js"></script>
+      
+        <script src="../javascripts/extra.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
