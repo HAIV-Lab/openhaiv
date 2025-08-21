@@ -224,6 +224,30 @@ inference_1.py
 test_data.py
 train_detect.py
 
+ncdia/models/clip_based/calip.py
+ncdia/dataloader/datasets/remote.py
+ncdia/inference/
+ncdia/trainers/inference.py
+
+scripts/sl/sl_remote_rn18.sh
+scripts/inc/inc_remote_alice.sh
+scripts/inc/inc_remote_fact.sh
+scripts/inc/inc_remote_savc.sh
+scripts/inference.sh
+scripts/ncdia_remote_alice.sh
+scripts/ncdia_remote_fact.sh
+scripts/ncdia_remote_savc.sh
+
+configs/pipeline/ncdia/
+configs/pipeline/inference/inference.yaml
+configs/pipeline/supervised_learning/sl_remote_rn18.yaml
+configs/pipeline/incremental_leanring/inc_remote_alice.yaml
+configs/pipeline/incremental_leanring/inc_remote_fact.yaml
+configs/pipeline/incremental_leanring/inc_remote_savc.yaml
+configs/pipeline/incremental_leanring/inc_remote_ssre.yaml
+configs/dataloader/remote.yaml
+configs/dataloader/remote/
+
 # not used docs
 mkdocs.yml
 docs/
