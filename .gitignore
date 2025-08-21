@@ -218,6 +218,7 @@ ncdia/utils/losses/rd4ad.py
 runs
 
 # not used code
+configs/pipeline/ncdia
 data_cp.py
 inference.py
 inference_1.py
