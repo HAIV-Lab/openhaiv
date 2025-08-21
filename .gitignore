@@ -217,4 +217,13 @@ ncdia/utils/losses/rd4ad.py
 # some checkpoint files
 runs
 
+# not used code
 data_cp.py
+inference.py
+inference_1.py
+test_data.py
+train_detect.py
+
+# not used docs
+mkdocs.yml
+docs/

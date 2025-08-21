@@ -1,1 +1,0 @@
-::: ncdia.models.vit.weights

@@ -20,13 +20,13 @@ Star to bookmark, fork & cite if you use, and welcome to contribute!
 ### 👋 Welcome to OpenHAIV
 
 <div align="center">
-  <img src="docs/images/intro.png" alt="intro" width="60%"/>
+  <img src="images/intro.png" alt="intro" width="60%"/>
 </div>
 
 **OpenHAIV** is a comprehensive framework for open-world object recognition, supporting ***out-of-distribution detection***, ***novel class discovery***, and ***incremental learning***. It is designed to enable robust and flexible object recognition in unconstrained environments.
 
 <div align="center">
-  <img src="docs/images/pipeline.png" alt="pipeline" width="60%"/>
+  <img src="images/pipeline.png" alt="pipeline" width="60%"/>
 </div>
 
 The framework adopts a modular design overall, which is reflected in two key aspects.
