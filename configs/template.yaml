@@ -5,7 +5,7 @@ trainer:
       trainloader:
         dataset:
           type: ImageNet
-          root: /data/hdd/datasets/ImageNet
+          root: your dataset path
           split: train
         batch_size: 128
         num_workers: 4
@@ -14,7 +14,7 @@ trainer:
       valloader:
         dataset:
           type: ImageNet
-          root: /data/hdd/datasets/ImageNet
+          root: your dataset path
           split: val
         batch_size: 128
         num_workers: 4
@@ -23,7 +23,7 @@ trainer:
       testloader:
         dataset:
           type: ImageNet
-          root: /data/hdd/datasets/ImageNet
+          root: your dataset path
           split: val
         batch_size: 128
         num_workers: 4

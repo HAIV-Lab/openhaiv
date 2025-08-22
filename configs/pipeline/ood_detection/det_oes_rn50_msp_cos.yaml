@@ -15,8 +15,7 @@ model:
   network:
     type: ResNet50
     num_classes: 94
-  checkpoint: 
-  #/data/zqh/xz/openhaiv-ood_xz/output/ood/det_oes_rn18_mls/exp/latest.pth
+  checkpoint: your checkpoint here
   loss: CrossEntropyLoss
   
 criterion:

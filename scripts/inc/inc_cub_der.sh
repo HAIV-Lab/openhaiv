@@ -2,6 +2,6 @@
 # Model: ResNet18
 # Method: DER
 # Task: Class-incremental Learning
-python ncdia/train.py \
+python train.py \
     --cfg configs/pipeline/incremental_leanring/inc_cub_der.yaml \
     --opts device='cuda:0'

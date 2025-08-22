@@ -17,7 +17,7 @@ model:
   type: CustomCLIP_ZeroShot_w_local
   num_classes: 94
   backbone: 'ViT-B/16'
-  local_path: "/new_data/lyf/checkpoint/RS5M_ViT-B-32.pt"
+  local_path: "checkpoint/RS5M_ViT-B-32.pt"
   dataset: 'oes'
   text_prompt: 'simple'
 

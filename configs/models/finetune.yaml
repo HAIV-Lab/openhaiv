@@ -6,8 +6,7 @@ model:
   base_classes: 94
   num_classes: 189
   att_classes: 86
-  # need to be hiden
-  checkpoint: /data/zqh/openhaiv/output/supervised/inc_BM200_finetune_1/exp/task_0.pth
+  checkpoint: your checkpoint path
   net_alice:
     moco_dim: 128
     moco_k: 65536

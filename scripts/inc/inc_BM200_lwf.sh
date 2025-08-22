@@ -2,6 +2,6 @@
 # Model: ResNet18
 # Method: LwF
 # Task: Class-incremental Learning
-python ncdia/train.py \
+python train.py \
     --cfg configs/pipeline/incremental_leanring/inc_BM200_lwf.yaml \
     --opts device='cuda:0'

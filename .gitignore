@@ -202,22 +202,11 @@ cluster_images/
 
 # End of https://www.toptal.com/developers/gitignore/api/python,linux
 
-# something related to ood
-ncdia/models/clip_based/todolist.md
-ncdia/models/clip_based/open_clip
-ncdia/models/clip_based/clip_maple
-ncdia/models/net/conf_branch_net.py
-ncdia/algorithms/ood/neglabel.py
-ncdia/utils/losses/ece.py
-ncdia/utils/losses/negpromptloss.py
-ncdia/utils/losses/ssim.py
-ncdia/utils/losses/kdad.py
-ncdia/utils/losses/rd4ad.py
-
 # some checkpoint files
 runs
 
 # not used code
+ncdia/train.py
 configs/pipeline/ncdia
 data_cp.py
 inference.py
@@ -225,10 +214,20 @@ inference_1.py
 test_data.py
 train_detect.py
 
+ncdia/models/clip_based/todolist.md
+ncdia/models/clip_based/open_clip
+ncdia/models/clip_based/clip_maple
+ncdia/models/net/conf_branch_net.py
 ncdia/models/clip_based/calip.py
+ncdia/algorithms/ood/neglabel.py
+ncdia/utils/losses/ece.py
+ncdia/utils/losses/negpromptloss.py
+ncdia/utils/losses/ssim.py
+ncdia/utils/losses/kdad.py
+ncdia/utils/losses/rd4ad.py
+ncdia/trainers/inference.py
 ncdia/dataloader/datasets/remote.py
 ncdia/inference/
-ncdia/trainers/inference.py
 
 scripts/sl/sl_remote_rn18.sh
 scripts/inc/inc_remote_alice.sh
