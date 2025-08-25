@@ -42,6 +42,8 @@ class AdaptiveNet(nn.Module):
         self.aux_fc = None
         self.task_sizes = []
 
+        for i in self.num_classes:
+            self.update_fc(i)
 
         self.AdaptiveExtractors = nn.ModuleList()
 
