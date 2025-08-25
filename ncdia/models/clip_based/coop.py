@@ -1,4 +1,4 @@
-clip_locoopfrom .clip import clip
+from .clip import clip
 from .clip_dpm import clip_dpm
 from .clip_locoop import clip_locoop
 
