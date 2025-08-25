@@ -50,7 +50,6 @@ class DERNET(nn.Module):
         network: Configs,
         base_classes,
         num_classes,
-        att_classes,
         net_alice,
         mode="ft_cos",
     ) -> None:
@@ -66,13 +65,10 @@ class DERNET(nn.Module):
         self.aux_fc = None
 
         print("cur_class: ", self.cur_class)
-        self.att_classes = att_classes
 
         self.task_sizes = []
         self.convnets = nn.ModuleList()
 
-        for i in self.att_classes:
-            self.update_fc(i)
 
     @property
     def feature_dim(self):
