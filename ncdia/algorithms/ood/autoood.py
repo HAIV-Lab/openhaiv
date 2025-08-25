@@ -38,9 +38,6 @@ class AutoOOD(object):
         metrics: list = [],
         tpr_th: float = 0.95,
         prec_th: float = None,
-        id_attrs=None,
-        ood_attrs=None,
-        prototype_att=None,
     ) -> dict:
         """Evaluate the OOD detection methods and return OOD scores.
 

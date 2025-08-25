@@ -203,7 +203,8 @@ cluster_images/
 # End of https://www.toptal.com/developers/gitignore/api/python,linux
 
 # some checkpoint files
-runs
+runs/
+checkpoint/
 
 # not used code
 ncdia/train.py

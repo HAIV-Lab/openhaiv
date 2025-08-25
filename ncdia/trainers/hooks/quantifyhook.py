@@ -32,7 +32,7 @@ class QuantifyHook(AlgHook):
         self.save_stats = save_stats
         self.verbose = verbose
 
-    def gather_stats(self, model, dataloader, device, verbose=False) -> dict:
+    def gather_stats(self, model, dataloader, device, id_acc=False, verbose=False) -> dict:
         """Calculate the statistics of dataset.
 
         Args:
@@ -85,6 +85,19 @@ class QuantifyHook(AlgHook):
             local_features = torch.cat(local_features, dim=0)
             local_logits = torch.cat(local_logits, dim=0)
 
+        # Optionally calculate ID accuracies (top1/top5)
+        if id_acc:
+            _, preds = logits.topk(5, dim=1)  # Get top-5 predictions
+            correct = preds.eq(labels.view(-1, 1).expand_as(preds))
+
+            # Top-1 accuracy
+            top1_correct = correct[:, 0].sum().item()
+            top1_acc = top1_correct / labels.size(0) * 100
+
+            # Top-5 accuracy
+            top5_correct = correct.any(dim=1).sum().item()
+            top5_acc = top5_correct / labels.size(0) * 100
+
         # Calculate the prototypes
         prototypes = []
         for cls in torch.unique(labels):
@@ -100,6 +113,8 @@ class QuantifyHook(AlgHook):
             "prototypes": prototypes,
             "local_features": local_features if local_preds is not None else None,
             "local_logits": local_logits if local_logits is not None else None,
+            "top1_acc": top1_acc if id_acc else None,
+            "top5_acc": top5_acc if id_acc else None,
         }
 
     def after_train(self, trainer) -> None:

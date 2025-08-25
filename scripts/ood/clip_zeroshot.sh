@@ -1,5 +1,5 @@
 # Benchmark: OES
-# Model: CLIP-B/16 & CLIP-RN50x16/32
+# Model: CLIP-B/16 & RSCLIP-B/32
 # Method: Multiple Detection Methods
 # Task: Out-of-Distribution Detection (Zero-shot)
 

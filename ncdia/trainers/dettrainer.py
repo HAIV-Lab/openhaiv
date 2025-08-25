@@ -182,13 +182,13 @@ class DetTrainer(PreTrainer):
             )
 
             scores = self.algorithm.eval(
-                id_gt=test_stats["labels"],
-                id_logits=test_stats["logits"],
-                id_feat=test_stats["features"],
-                ood_logits=eval_stats["logits"],
-                ood_feat=eval_stats["features"],
-                train_logits=train_stats["logits"],
-                train_feat=train_stats["features"],
+                id_gt=(test_stats.get("labels") if test_stats else None),
+                id_logits=(test_stats.get("logits") if test_stats else None),
+                id_feat=(test_stats.get("features") if test_stats else None),
+                ood_logits=eval_stats.get("logits") if eval_stats else None,
+                ood_feat=eval_stats.get("features") if eval_stats else None,
+                train_logits=(train_stats.get("logits") if train_stats else None),
+                train_feat=(train_stats.get("features") if train_stats else None),
                 tpr_th=tpr_th,
                 prec_th=prec_th,
                 hyparameters=(
@@ -258,29 +258,29 @@ class DetTrainer(PreTrainer):
                             verbose=self.verbose,
                         )
                         scores = self.algorithm.eval(
-                            id_gt=test_stats["labels"],
-                            id_logits=test_stats["logits"],
-                            id_local_logits=test_stats["local_logits"],
-                            id_feat=test_stats["features"],
-                            id_local_feat=test_stats["local_features"],
-                            ood_logits=eval_stats["logits"],
-                            ood_local_logits=eval_stats["local_logits"],
-                            ood_feat=eval_stats["features"],
-                            ood_local_feat=eval_stats["local_features"],
-                            train_gt=train_stats["labels"] if train_stats else None,
-                            train_logits=train_stats["logits"] if train_stats else None,
+                            id_gt=(test_stats.get("labels") if test_stats else None),
+                            id_logits=(test_stats.get("logits") if test_stats else None),
+                            id_local_logits=(test_stats.get("local_logits") if test_stats else None),
+                            id_feat=(test_stats.get("features") if test_stats else None),
+                            id_local_feat=(test_stats.get("local_features") if test_stats else None),
+                            ood_logits=(eval_stats.get("logits") if eval_stats else None),
+                            ood_local_logits=(eval_stats.get("local_logits") if eval_stats else None),
+                            ood_feat=(eval_stats.get("features") if eval_stats else None),
+                            ood_local_feat=(eval_stats.get("local_features") if eval_stats else None),
+                            train_gt=(train_stats.get("labels") if train_stats else None),
+                            train_logits=(train_stats.get("logits") if train_stats else None),
                             train_local_logits=(
-                                train_stats["local_logits"] if train_stats else None
+                                train_stats.get("local_logits") if train_stats else None
                             ),
-                            train_feat=train_stats["features"] if train_stats else None,
+                            train_feat=(train_stats.get("features") if train_stats else None),
                             train_local_feat=(
-                                train_stats["local_features"] if train_stats else None
+                                train_stats.get("local_features") if train_stats else None
                             ),
                             prototypes=(
-                                train_stats["prototypes"] if train_stats else None
+                                train_stats.get("prototypes") if train_stats else None
                             ),
                             s_prototypes=(
-                                train_stats["s_prototypes"] if train_stats else None
+                                train_stats.get("s_prototypes") if train_stats else None
                             ),
                             tpr_th=tpr_th,
                             prec_th=prec_th,
