@@ -24,7 +24,6 @@ class BaseNet(nn.Module):
         network: Configs,
         base_classes,
         num_classes,
-        att_classes,
         net_alice,
         mode="ft_cos",
     ) -> None:
@@ -91,12 +90,11 @@ class IncrementalNet(BaseNet):
         network: Configs,
         base_classes,
         num_classes,
-        att_classes,
         net_alice,
         mode="ft_cos",
     ) -> None:
         super().__init__(
-            network, base_classes, num_classes, att_classes, net_alice, mode
+            network, base_classes, num_classes, net_alice, mode
         )
         self.update_fc(num_classes)
 

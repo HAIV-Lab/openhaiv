@@ -12,7 +12,7 @@ from ncdia.utils import MODELS
 @MODELS.register
 class SAVCNET(nn.Module):
     def __init__(
-        self, network, base_classes, num_classes, att_classes, net_savc, mode=None
+        self, network, base_classes, num_classes, net_savc, mode=None
     ):
         super().__init__()
         if net_savc.fantasy is not None:
@@ -30,7 +30,6 @@ class SAVCNET(nn.Module):
         self.num_features = 512
         self.base_classes = base_classes
         self.num_classes = num_classes
-        self.att_classes = att_classes
         self.net_savc = net_savc
 
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))

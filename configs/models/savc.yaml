@@ -5,7 +5,6 @@ model:
     pretrained: True
   base_classes: 109
   num_classes: 189
-  att_classes: 86
   net_savc:
     moco_dim: 128
     moco_k: 65536

@@ -21,7 +21,6 @@ class AliceNET(nn.Module):
         network: Configs,
         base_classes,
         num_classes,
-        att_classes,
         net_alice,
         mode="ft_cos",
     ) -> None:

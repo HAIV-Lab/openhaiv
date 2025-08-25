@@ -46,7 +46,6 @@ class FosterHook(AlgHook):
             trainer.cfg.model.network,
             trainer.cfg.CIL.base_classes,
             trainer.cfg.CIL.num_classes,
-            trainer.cfg.CIL.att_classes,
             trainer.cfg.model.net_alice,
             total_classes=total_class,
             pretrained=False,

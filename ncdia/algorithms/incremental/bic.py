@@ -82,7 +82,6 @@ class BiCHook(AlgHook):
             trainer.cfg.model.network,
             trainer.cfg.CIL.base_classes,
             trainer.cfg.CIL.num_classes,
-            trainer.cfg.CIL.att_classes,
             trainer.cfg.model.net_alice,
         )
         old_model.load_state_dict(trainer.model.state_dict())

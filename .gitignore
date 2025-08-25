@@ -241,10 +241,10 @@ scripts/ncdia_remote_savc.sh
 configs/pipeline/ncdia/
 configs/pipeline/inference/inference.yaml
 configs/pipeline/supervised_learning/sl_remote_rn18.yaml
-configs/pipeline/incremental_leanring/inc_remote_alice.yaml
-configs/pipeline/incremental_leanring/inc_remote_fact.yaml
-configs/pipeline/incremental_leanring/inc_remote_savc.yaml
-configs/pipeline/incremental_leanring/inc_remote_ssre.yaml
+configs/pipeline/incremental_learning/inc_remote_alice.yaml
+configs/pipeline/incremental_learning/inc_remote_fact.yaml
+configs/pipeline/incremental_learning/inc_remote_savc.yaml
+configs/pipeline/incremental_learning/inc_remote_ssre.yaml
 configs/dataloader/remote.yaml
 configs/dataloader/remote/
 

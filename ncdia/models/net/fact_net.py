@@ -10,14 +10,13 @@ from ncdia.utils import MODELS
 class FACTNET(nn.Module):
 
     def __init__(
-        self, network, base_classes, num_classes, att_classes, net_fact, mode="ft_cos"
+        self, network, base_classes, num_classes, net_fact, mode="ft_cos"
     ):
         super().__init__()
 
         self.mode = mode
         self.base_classes = base_classes
         self.num_classes = num_classes
-        self.att_classes = att_classes
         self.net_fact = net_fact
         self.network = network
 
