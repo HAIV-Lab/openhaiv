@@ -24,7 +24,6 @@ class AdaptiveNet(nn.Module):
         network: Configs,
         base_classes,
         num_classes,
-        att_classes,
         net_alice,
         mode="ft_cos",
     ) -> None:
@@ -42,11 +41,12 @@ class AdaptiveNet(nn.Module):
         self.fc = None
         self.aux_fc = None
         self.task_sizes = []
-        self.att_classes = att_classes
+
+        for i in self.num_classes:
+            self.update_fc(i)
 
         self.AdaptiveExtractors = nn.ModuleList()
-        for i in self.att_classes:
-            self.update_fc(i)
+
 
     @property
     def feature_dim(self):

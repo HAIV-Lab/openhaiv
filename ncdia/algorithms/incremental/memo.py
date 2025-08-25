@@ -71,16 +71,13 @@ class MEMOHook(AlgHook):
         algorithm = trainer.algorithm
         filename = "task_" + str(trainer.session) + ".pth"
         trainer.save_ckpt(os.path.join(trainer.work_dir, filename))
-        att_classes = []
         temp_class_num = trainer.cfg.CIL.base_classes
         for i in range(trainer.session + 1):
-            att_classes.append(temp_class_num)
             temp_class_num += trainer.cfg.CIL.way
         trainer.old_model = AdaptiveNet(
             trainer.cfg.model.network,
             trainer.cfg.CIL.base_classes,
             trainer.cfg.CIL.num_classes,
-            att_classes,
             trainer.cfg.model.net_alice,
         )
         trainer.old_model.load_state_dict(trainer.model.state_dict())
