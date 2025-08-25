@@ -68,7 +68,8 @@ class DERNET(nn.Module):
 
         self.task_sizes = []
         self.convnets = nn.ModuleList()
-
+        for i in self.num_classes:
+            self.update_fc(i)
 
     @property
     def feature_dim(self):
