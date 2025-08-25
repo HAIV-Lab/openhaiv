@@ -214,11 +214,12 @@ inference_1.py
 test_data.py
 train_detect.py
 
+ncdia/models/net/clip_based
 ncdia/models/clip_based/todolist.md
+ncdia/models/clip_based/calip.py
 ncdia/models/clip_based/open_clip
 ncdia/models/clip_based/clip_maple
 ncdia/models/net/conf_branch_net.py
-ncdia/models/clip_based/calip.py
 ncdia/algorithms/ood/neglabel.py
 ncdia/utils/losses/ece.py
 ncdia/utils/losses/negpromptloss.py

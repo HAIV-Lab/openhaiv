@@ -1,14 +1,13 @@
-from .clip import clip
+clip_locoopfrom .clip import clip
 from .clip_dpm import clip_dpm
 from .clip_locoop import clip_locoop
 
-# from .clip_maple import clip_maple
 import torch.nn as nn
 from .customclip import (
     CustomCLIP,
     CustomCLIP_LoCoOp,
     CustomCLIP_DPM,
-)  # , CustomCLIP_Maple, CustomCLIP_NegPrompt,
+)
 from .clip_utils import *
 from ncdia.utils import MODELS, Configs
 
