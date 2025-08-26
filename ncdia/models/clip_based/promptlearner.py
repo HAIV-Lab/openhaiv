@@ -1,7 +1,5 @@
-# import clip
 import torch
 import torch.nn as nn
-import copy
 from copy import deepcopy
 from ncdia.models.clip_based import clip
 from ncdia.utils import MODELS, Configs
