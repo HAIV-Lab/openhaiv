@@ -221,6 +221,7 @@ ncdia/models/clip_based/calip.py
 ncdia/models/clip_based/open_clip
 ncdia/models/clip_based/clip_maple
 ncdia/models/net/conf_branch_net.py
+ncdia/algorithms/ncd
 ncdia/algorithms/ood/neglabel.py
 ncdia/utils/losses/ece.py
 ncdia/utils/losses/negpromptloss.py
