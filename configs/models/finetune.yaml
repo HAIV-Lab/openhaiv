@@ -1,11 +1,10 @@
 model:
   type: IncrementalNet
   network:
-    type: ResNet50
+    type: ResNet18
     pretrained: True
   base_classes: 94
   num_classes: 189
-  checkpoint: your checkpoint path
   net_alice:
     moco_dim: 128
     moco_k: 65536

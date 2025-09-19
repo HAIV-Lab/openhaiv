@@ -302,9 +302,7 @@ def _resnet(
     progress: bool,
     **kwargs: Any,
 ) -> ResNet:
-    if weights is not None:
-        _ovewrite_named_param(kwargs, "num_classes", len(weights.meta["categories"]))
-
+    
     model = ResNet(block, layers, **kwargs)
 
     if weights is not None:

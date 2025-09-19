@@ -3,5 +3,5 @@
 # Method: WA
 # Task: Class-incremental Learning
 python train.py \
-    --cfg configs/pipeline/incremental_leanring/inc_cub_wa.yaml \
+    --cfg configs/pipeline/incremental_learning/inc_cub_wa.yaml \
     --opts device='cuda:0'

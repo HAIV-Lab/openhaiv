@@ -3,5 +3,5 @@
 # Method: ALICE
 # Task: Few-shot Class-incremental Learning
 python train.py \
-    --cfg configs/pipeline/incremental_leanring/inc_BM200_alice.yaml \
+    --cfg configs/pipeline/incremental_learning/inc_BM200_alice.yaml \
     --opts device='cuda:0'
