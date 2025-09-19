@@ -32,15 +32,14 @@ class ODINNet(nn.Module):
         self.args = network.cfg
         self.args["pretrained"] = True
         num_classes_true = self.args["num_classes"]
-        self.args["num_classes"] = 1000
         self.temperature = temperature
         self.noise = noise
         self.input_std = input_std
         self.network = MODELS.build(copy.deepcopy(self.args))
-        num_features = self.network.fc.in_features  # ��ȡ��������ά��
+        num_features = self.network.fc.in_features  # 获取输入特征维度
         self.network.fc = torch.nn.Linear(
             num_features, num_classes_true
-        )  # �滻Ϊ�µ�ȫ���Ӳ�
+        )  # 替换为新的全连接层
         self.out_features = None
         if checkpoint:
             print("load_checkpoint")

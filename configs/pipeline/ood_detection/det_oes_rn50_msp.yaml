@@ -33,4 +33,4 @@ seed: 0
 device: cuda
 CIL: False
 exp_name: exp
-work_dir: ./output/ood/det_oes_rn50_mls
+work_dir: ./output/ood/det_oes_rn50_msp

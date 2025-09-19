@@ -33,4 +33,4 @@ seed: 0
 device: cuda
 
 exp_name: exp
-work_dir: ./output/ood/det_oes_rn18_mls_0401
+work_dir: ./output/ood/det_oes_rn18_logitnorm

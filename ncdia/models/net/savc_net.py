@@ -25,7 +25,7 @@ class SAVCNET(nn.Module):
 
         network = network.cfg
         network["pretrained"] = True
-        network["num_classes"] = 1000
+        network["num_classes"] = num_classes
         self.encoder_q = MODELS.build(network)
         self.num_features = 512
         self.base_classes = base_classes

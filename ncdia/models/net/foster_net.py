@@ -25,7 +25,7 @@ class FOSTERNet(nn.Module):
         super().__init__()
         self.args = network.cfg
         self.args["pretrained"] = pretrained
-        self.args["num_classes"] = 1000
+        self.args["num_classes"] = num_classes
         self.network = network
         if "type" not in network:
             self.args["type"] = "resnet18"

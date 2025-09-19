@@ -24,7 +24,7 @@ class FACTNET(nn.Module):
         # https://github.com/xyutao/fscil/issues/11#issuecomment-687548790
         network = network.cfg
         network["pretrained"] = True
-        network["num_classes"] = 1000
+        network["num_classes"] = num_classes
         self.encoder = MODELS.build(network)
 
         self.num_features = 512

@@ -56,7 +56,6 @@ class ResNet_Base(nn.Module):
         self.args = network.cfg
         self.args["pretrained"] = True
         num_classes_true = self.args["num_classes"]
-        self.args["num_classes"] = 1000
 
         self.network = MODELS.build(copy.deepcopy(self.args))
         num_features = self.network.fc.in_features  # 获取输入特征维度

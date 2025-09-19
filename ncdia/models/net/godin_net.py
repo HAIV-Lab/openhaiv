@@ -91,7 +91,7 @@ class GodinNet(nn.Module):
         self.args = network.cfg
         self.args["pretrained"] = True
         num_classes_true = self.args["num_classes"]
-        self.args["num_classes"] = 1000
+        self.args["num_classes"] = num_classes
         self.network = MODELS.build(copy.deepcopy(self.args))
         self.network.fc = torch.nn.Linear(feature_size, num_classes_true)
 

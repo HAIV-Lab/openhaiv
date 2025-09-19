@@ -56,7 +56,7 @@ class DERNET(nn.Module):
         super().__init__()
         self.args = network.cfg
         self.args["pretrained"] = True
-        self.args["num_classes"] = 1000
+        self.args["num_classes"] = num_classes
         if "type" not in self.args:
             self.args["type"] = "resnet18"
 
