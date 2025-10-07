@@ -9,14 +9,20 @@ trainer:
   gather_test_stats: True
 
 algorithm:
-  type: GODIN
-
+  type: VOS
+  
+sample_number: 1000
+feature_dim: 2048
+sample_from: 10000
+select: 1
+loss_weight: 0.1
+start_epoch: 0
 model:
-  type: GodinNet
+  type: ResNet_Base
   network:
     type: ResNet18
     num_classes: 94
-  checkpoint: ./output/ood/det_oes_rn18_godin/train/latest.pth
+  checkpoint: ./output/ood/det_oes_rn18_vos/exp/latest.pth
   loss: CrossEntropyLoss
   
 criterion:
@@ -36,5 +42,4 @@ device: cuda
 CIL: False
 
 exp_name: test
-work_dir: ./output/ood/det_oes_rn18_godin
-
+work_dir: ./output/ood/det_oes_rn18_vos

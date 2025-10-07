@@ -8,9 +8,9 @@ algorithm:
   type: StandardSL
 
 model:
-  type: ResNet_Base
+  type: MobileNet_Base   # or mobilenet_v3_large
   network:
-    type: ResNet18
+    type: mobilenet_v3_small   # 或 mobilenet_v3_large
     num_classes: 94
 
 criterion:
@@ -28,4 +28,4 @@ seed: 0
 device: cuda
 
 exp_name: exp
-work_dir: ./output/supervised/sl_oes_rn18
+work_dir: ./output/supervised/sl_oes_mnv3
