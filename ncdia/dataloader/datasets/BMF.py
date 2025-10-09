@@ -4,7 +4,7 @@ from torchvision import transforms
 
 from ncdia.utils import DATASETS
 from ncdia.dataloader.tools import pil_loader
-from .utils import BaseDataset
+from .template import BaseDataset
 
 
 @DATASETS.register
@@ -19,44 +19,20 @@ class BMF(BaseDataset):
             If str, it should be one of 'train', 'test' for predefined transforms.
     """
 
-    # train_transform = transforms.Compose([
-    #     transforms.Resize(256, interpolation=transforms.InterpolationMode.BILINEAR),
-    #     transforms.RandomResizedCrop(224),
-    #     transforms.RandomHorizontalFlip(),
-    #     transforms.ToTensor(),
-    #     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    # ])
+    train_transform = transforms.Compose([
+        transforms.Resize(256, interpolation=transforms.InterpolationMode.BILINEAR),
+        transforms.RandomResizedCrop(224),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
 
-    # test_transform = transforms.Compose([
-    #     transforms.Resize(256, interpolation=transforms.InterpolationMode.BILINEAR),
-    #     transforms.CenterCrop(224),
-    #     transforms.ToTensor(),
-    #     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    # ])
-    train_transform = transforms.Compose(
-        [
-            transforms.Resize(224, interpolation=transforms.InterpolationMode.BICUBIC),
-            # transforms.RandomResizedCrop(224),
-            # transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            transforms.Normalize(
-                mean=[0.48145466, 0.4578275, 0.40821073],
-                std=[0.26862954, 0.26130258, 0.27577711],
-            ),
-        ]
-    )
-
-    test_transform = transforms.Compose(
-        [
-            transforms.Resize(224, interpolation=transforms.InterpolationMode.BICUBIC),
-            # transforms.CenterCrop(224),
-            transforms.ToTensor(),
-            transforms.Normalize(
-                mean=[0.48145466, 0.4578275, 0.40821073],
-                std=[0.26862954, 0.26130258, 0.27577711],
-            ),
-        ]
-    )
+    test_transform = transforms.Compose([
+        transforms.Resize(256, interpolation=transforms.InterpolationMode.BILINEAR),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
 
     def __init__(
         self,

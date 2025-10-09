@@ -4,12 +4,12 @@ from torchvision import transforms
 
 from ncdia.utils import DATASETS
 from ncdia.dataloader.tools import pil_loader
-from .utils import BaseDataset
+from .template import BaseDataset
 
 
 @DATASETS.register
-class BMF_OOD(BaseDataset):
-    """BMF dataset
+class OES_OOD(BaseDataset):
+    """OES_OOD dataset
 
     Args:
         root (str): root folder of the dataset
@@ -19,61 +19,22 @@ class BMF_OOD(BaseDataset):
             If str, it should be one of 'train', 'test' for predefined transforms.
     """
 
-    # CLIP transform
-    train_transform = transforms.Compose(
-        [
-            transforms.Resize(
-                (224, 224),
-                interpolation=transforms.InterpolationMode.BICUBIC,
-                max_size=None,
-                antialias=True,
-            ),
-            transforms.Lambda(
-                lambda image: image.convert("RGB") if image.mode != "RGB" else image
-            ),
-            transforms.ToTensor(),
-            transforms.Normalize(
-                mean=[0.48145466, 0.4578275, 0.40821073],
-                std=[0.26862954, 0.26130258, 0.27577711],
-            ),
-        ]
-    )
+    # ResNet transform
+    train_transform = transforms.Compose([
+        transforms.Resize((256, 256), interpolation=transforms.InterpolationMode.BILINEAR),
+        transforms.CenterCrop(224),
+        transforms.RandomHorizontalFlip(0.5),
+        transforms.RandomCrop(224, padding=4),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
 
-    test_transform = transforms.Compose(
-        [
-            transforms.Resize(
-                224,
-                interpolation=transforms.InterpolationMode.BICUBIC,
-                max_size=None,
-                antialias=True,
-            ),
-            transforms.CenterCrop((224, 224)),
-            transforms.Lambda(
-                lambda image: image.convert("RGB") if image.mode != "RGB" else image
-            ),
-            transforms.ToTensor(),
-            transforms.Normalize(
-                mean=[0.48145466, 0.4578275, 0.40821073],
-                std=[0.26862954, 0.26130258, 0.27577711],
-            ),
-        ]
-    )
-    # # ResNet transform
-    # train_transform = transforms.Compose([
-    #     transforms.Resize((256, 256), interpolation=transforms.InterpolationMode.BILINEAR),
-    #     transforms.CenterCrop(224),
-    #     transforms.RandomHorizontalFlip(0.5),
-    #     transforms.RandomCrop(224, padding=4),
-    #     transforms.ToTensor(),
-    #     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    # ])
-
-    # test_transform = transforms.Compose([
-    #     transforms.Resize((256,256), interpolation=transforms.InterpolationMode.BILINEAR),
-    #     transforms.CenterCrop(224),
-    #     transforms.ToTensor(),
-    #     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    # ])
+    test_transform = transforms.Compose([
+        transforms.Resize((256,256), interpolation=transforms.InterpolationMode.BILINEAR),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
 
     def __init__(
         self,

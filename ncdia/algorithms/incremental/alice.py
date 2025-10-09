@@ -74,8 +74,8 @@ class Alice(BaseAlg):
             trainloader.dataset.transform = tsfm
             class_list = list(
                 range(
-                    self.args.CIL.base_class + (session - 1) * self.args.CIL.way,
-                    self.args.CIL.base_class + self.args.CIL.way * session,
+                    self.args.CIL.base_classes + (session - 1) * self.args.CIL.way,
+                    self.args.CIL.base_classes + self.args.CIL.way * session,
                 )
             )
             self._network.update_fc(trainloader, class_list, session)
@@ -109,7 +109,7 @@ class Alice(BaseAlg):
             label_list = torch.cat(label_list, dim=0)
 
             proto_list = []
-            for class_index in range(self.args.CIL.base_class * m):
+            for class_index in range(self.args.CIL.base_classes * m):
                 data_index = (label_list == class_index).nonzero()
                 embedding_this = embedding_list[data_index.squeeze(-1)]
                 embedding_this = embedding_this.mean(0)
@@ -117,10 +117,10 @@ class Alice(BaseAlg):
 
             proto_list = torch.stack(proto_list, dim=0)
             # proto_list = torch.nn.functional.normalize(proto_list, p=2, dim=0)
-            self._network.fc.weight.data[: self.args.CIL.base_class * m] = proto_list
+            self._network.fc.weight.data[: self.args.CIL.base_classes * m] = proto_list
 
             # return self.net
-            # class_list = list(range(self.args.CIL.base_class))
+            # class_list = list(range(self.args.CIL.base_classes))
             # print(class_list)
             # self._network.update_fc(train_loader, class_list, 0)
 
@@ -140,19 +140,19 @@ class Alice(BaseAlg):
             self._network.train()
 
             masknum = 3
-            mask = np.zeros((self.args.CIL.base_class, self.args.CIL.num_classes))
-            for i in range(self.args.CIL.num_classes - self.args.CIL.base_class):
+            mask = np.zeros((self.args.CIL.base_classes, self.args.CIL.num_classes))
+            for i in range(self.args.CIL.num_classes - self.args.CIL.base_classes):
                 picked_dummy = np.random.choice(
-                    self.args.CIL.base_class, masknum, replace=False
+                    self.args.CIL.base_classes, masknum, replace=False
                 )
-                mask[:, i + self.args.CIL.base_class][picked_dummy] = 1
+                mask[:, i + self.args.CIL.base_classes][picked_dummy] = 1
             mask = torch.tensor(mask).cuda()
 
             data = data.cuda()
             labels = label.cuda()
 
             logits = self._network(data)
-            logits_ = logits[:, : self.args.CIL.base_class]
+            logits_ = logits[:, : self.args.CIL.base_classes]
             # pred = F.softmax(logits_, dim=1)
             acc = accuracy(logits_, labels)[0]
             per_acc = str(per_class_accuracy(logits_, labels))
@@ -199,7 +199,7 @@ class Alice(BaseAlg):
                 labels = label.cuda()
 
                 logits = self._network(data)
-                logits_ = logits[:, : self.args.CIL.base_class]
+                logits_ = logits[:, : self.args.CIL.base_classes]
                 # _, pred = torch.max(logits_, dim=1)
                 acc = accuracy(logits_, labels)[0]
                 loss = self.loss(logits_, labels)
@@ -210,7 +210,7 @@ class Alice(BaseAlg):
                 ret["acc"] = acc.item()
                 ret["per_class_acc"] = per_acc
         else:
-            test_class = self.args.CIL.base_class + session * self.args.CIL.way
+            test_class = self.args.CIL.base_classes + session * self.args.CIL.way
             # self._network = trainer.model
             # self._network.eval()
 
@@ -234,7 +234,7 @@ class Alice(BaseAlg):
 
                 acc = accuracy(agg_preds, labels)[0]
                 # logits = self._network(data)
-                # logits_ = logits[:, :self.args.CIL.base_class+self.args.CIL.base_class*session]
+                # logits_ = logits[:, :self.args.CIL.base_classes+self.args.CIL.base_classes*session]
                 # acc = accuracy(logits_, labels)[0]
                 loss = self.loss(agg_preds, labels)
                 per_acc = str(per_class_accuracy(agg_preds, labels))

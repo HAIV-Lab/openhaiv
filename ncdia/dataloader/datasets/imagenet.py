@@ -3,7 +3,7 @@ from typing import Callable
 from torchvision.datasets import ImageFolder
 
 from ncdia.utils import DATASETS
-from .utils import BaseDataset
+from .template import BaseDataset
 from ncdia.dataloader import default_loader
 
 

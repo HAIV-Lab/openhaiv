@@ -39,8 +39,38 @@ class AliceNET(nn.Module):
         if "type" not in network:
             network["type"] = "resnet18"
         self.encoder = MODELS.build(network)
+        # Detect feature dimension from the encoder/backbone in a robust way.
+        num_features = None
+        if hasattr(self.encoder, "out_dim"):
+            num_features = getattr(self.encoder, "out_dim")
+        elif hasattr(self.encoder, "fc") and hasattr(self.encoder.fc, "in_features"):
+            num_features = int(getattr(self.encoder.fc, "in_features"))
+        elif hasattr(self.encoder, "classifier"):
+            try:
+                cls = getattr(self.encoder, "classifier")
+                if isinstance(cls, (list, tuple)):
+                    last = cls[-1]
+                else:
+                    last = list(cls.children())[-1]
+                if hasattr(last, "in_features"):
+                    num_features = int(getattr(last, "in_features"))
+            except Exception:
+                num_features = None
 
-        self.num_features = 2048
+        if num_features is None:
+            # fallback to the original hardcoded value but warn
+            try:
+                import warnings
+
+                warnings.warn(
+                    "Unable to infer encoder feature dim; falling back to 2048. "
+                    "If your backbone is not ResNet50, please ensure encoder exposes `out_dim`, `fc.in_features` or `classifier[-1].in_features`."
+                )
+            except Exception:
+                pass
+            num_features = 2048
+
+        self.num_features = num_features
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
         self.pre_allocate = num_classes
@@ -48,13 +78,15 @@ class AliceNET(nn.Module):
 
         nn.init.orthogonal_(self.fc.weight)
         self.dummy_orthogonal_classifier = nn.Linear(
-            self.num_features, self.pre_allocate - self.base_classes, bias=False
+            self.num_features, max(0, self.pre_allocate - self.base_classes), bias=False
         )
+        # freeze dummy classifier weights and initialize from corresponding rows in fc
         self.dummy_orthogonal_classifier.weight.requires_grad = False
-
-        self.dummy_orthogonal_classifier.weight.data = self.fc.weight.data[
-            self.base_classes :, :
-        ]
+        # copy matching rows from fc.weight (shape: [pre_allocate, num_features])
+        if self.pre_allocate - self.base_classes > 0:
+            self.dummy_orthogonal_classifier.weight.data.copy_(
+                self.fc.weight.data[self.base_classes : self.pre_allocate, :]
+            )
 
     def forward_metric(self, x):
         x = self.encode(x)
@@ -167,16 +199,26 @@ class AliceNET(nn.Module):
         #     self.update_fc_ft(new_fc,data,label,session)
 
     def update_fc_avg(self, data, labels, class_list, m):
+        # Compute one prototype per absolute class index in class_list
         new_fc = []
         for class_index in class_list:
-            for i in range(m):
-                index = class_index * m + i
-                data_index = (labels == index).nonzero().squeeze(-1)
+            # find samples belonging to this absolute class index
+            data_index = (labels == class_index).nonzero().squeeze(-1)
+            if data_index.numel() == 0:
+                # no samples for this class in the batch; append zero vector
+                proto = torch.zeros(self.num_features, device=data.device)
+            else:
                 embedding = data[data_index]
                 proto = embedding.mean(0)
-                new_fc.append(proto)
-                self.fc.weight.data[index] = proto
-                self.dummy_orthogonal_classifier.weight.data[index - self.base_classes]
+            new_fc.append(proto)
+            # assign prototype to fc row corresponding to absolute class index
+            if 0 <= class_index < self.pre_allocate:
+                self.fc.weight.data[class_index] = proto
+                # if dummy classifier exists and the index maps into it, update
+                dummy_idx = class_index - self.base_classes
+                if 0 <= dummy_idx < self.dummy_orthogonal_classifier.weight.data.size(0):
+                    self.dummy_orthogonal_classifier.weight.data[dummy_idx] = proto
+
         new_fc = torch.stack(new_fc, dim=0)
         return new_fc
 

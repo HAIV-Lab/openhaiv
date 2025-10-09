@@ -1,10 +1,10 @@
-from .utils import *
+from .template import *
 from .cifar import CIFAR10, CIFAR100
 from .imagenet import ImageNet
 from .imagenetr import ImageNetR
 from .food101 import Food101
 from .caltech101 import Caltech101
 from .cub200 import CUB200
-from .BM200 import BM200
+from .OES import OES
 from .BMF import BMF
-from .BMF_OOD import BMF_OOD
+from .OES_OOD import OES_OOD

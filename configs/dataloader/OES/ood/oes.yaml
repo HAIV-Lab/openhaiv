@@ -2,7 +2,7 @@ _base_: configs/dataloader/loader.yaml
 
 trainloader:
   dataset:
-    type: BMF_OOD
+    type: OES_OOD
     root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/ID/train/
     split: train
     download: True
@@ -18,7 +18,7 @@ trainloader:
 
 valloader:
   dataset:
-    type: BMF_OOD
+    type: OES_OOD
     root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/ID/test/
     split: val
     download: True
@@ -33,7 +33,7 @@ valloader:
         std: [0.229, 0.224, 0.225]
 testloader:
   dataset:
-    type: BMF_OOD
+    type: OES_OOD
     root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/ID/test/
     split: val
     download: True
@@ -48,7 +48,7 @@ testloader:
         std: [0.229, 0.224, 0.225]
 evalloader:  
   ood_easy:
-      type: BMF_OOD
+      type: OES_OOD
       root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/OOD_Easy/test/
       split: val
       download: True
@@ -60,7 +60,7 @@ evalloader:
           std: [0.229, 0.224, 0.225]
   
   ood_hard:  
-      type: BMF_OOD 
+      type: OES_OOD 
       root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/OOD_Hard/test/
       split: val
       transform:  

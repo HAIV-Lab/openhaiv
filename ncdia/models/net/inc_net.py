@@ -121,7 +121,45 @@ class IncrementalNet(BaseNet):
         self.update_fc(num_classes)
 
     def update_fc(self, nb_classes):
-        fc = self.generate_fc(2048, nb_classes)
+        # use the actual feature dimension from the backbone (resnet18 -> 512, resnet50 -> 2048)
+        # Detect feature dimension from the backbone in a robust way.
+        # Try several common attributes used by different backbones:
+        #  - custom nets may expose `out_dim`
+        #  - torchvision ResNet exposes `fc.in_features`
+        #  - mobilenet-like nets expose `classifier[-1].in_features`
+        if not hasattr(self, "convnet") or self.convnet is None:
+            raise RuntimeError("convnet is not initialized before update_fc")
+
+        in_dim = None
+        # custom attribute used elsewhere in the code
+        if hasattr(self.convnet, "out_dim"):
+            in_dim = getattr(self.convnet, "out_dim")
+        # torchvision ResNet / similar
+        elif hasattr(self.convnet, "fc") and hasattr(self.convnet.fc, "in_features"):
+            in_dim = int(getattr(self.convnet.fc, "in_features"))
+        # mobilenet style classifier (list/nn.Sequential)
+        elif hasattr(self.convnet, "classifier"):
+            try:
+                cls = getattr(self.convnet, "classifier")
+                # classifier might be Sequential; take last module's in_features
+                if isinstance(cls, (list, tuple)):
+                    last = cls[-1]
+                else:
+                    # nn.Sequential or Module
+                    last = list(cls.children())[-1]
+                if hasattr(last, "in_features"):
+                    in_dim = int(getattr(last, "in_features"))
+            except Exception:
+                in_dim = None
+
+        if in_dim is None:
+            raise RuntimeError(
+                "Unable to infer feature dimension from convnet. "
+                "Please ensure the backbone exposes `out_dim`, or `fc.in_features`, "
+                "or `classifier[-1].in_features`."
+            )
+
+        fc = self.generate_fc(in_dim, nb_classes)
         if self.fc is not None:
             nb_output = self.fc.out_features
             weight = copy.deepcopy(self.fc.weight.data)

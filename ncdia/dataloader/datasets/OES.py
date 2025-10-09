@@ -4,12 +4,12 @@ from torchvision import transforms
 
 from ncdia.utils import DATASETS
 from ncdia.dataloader.tools import pil_loader
-from .utils import BaseDataset
+from .template import BaseDataset
 
 
 @DATASETS.register
-class BM200(BaseDataset):
-    """BM200 dataset
+class OES(BaseDataset):
+    """OES dataset
 
     Args:
         root (str): root folder of the dataset
@@ -19,20 +19,6 @@ class BM200(BaseDataset):
             If str, it should be one of 'train', 'test' for predefined transforms.
     """
 
-    # train_transform = transforms.Compose([
-    #     transforms.Resize(256, interpolation=transforms.InterpolationMode.BILINEAR),
-    #     transforms.RandomResizedCrop(224),
-    #     transforms.RandomHorizontalFlip(),
-    #     transforms.ToTensor(),
-    #     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    # ])
-
-    # test_transform = transforms.Compose([
-    #     transforms.Resize(256, interpolation=transforms.InterpolationMode.BILINEAR),
-    #     transforms.CenterCrop(224),
-    #     transforms.ToTensor(),
-    #     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    # ])
     train_transform = transforms.Compose(
         [
             transforms.Resize(

@@ -4,7 +4,7 @@ from torchvision.datasets import CIFAR100 as _CIFAR100
 from PIL import Image
 
 from ncdia.utils import DATASETS
-from .utils import BaseDataset
+from .template import BaseDataset
 
 
 @DATASETS.register

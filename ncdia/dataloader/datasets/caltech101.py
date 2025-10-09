@@ -4,7 +4,7 @@ from torchvision import transforms
 
 from ncdia.utils import DATASETS
 from ncdia.dataloader.tools import pil_loader
-from .utils import BaseDataset
+from .template import BaseDataset
 
 
 @DATASETS.register

@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from ncdia.utils import TRAINERS
 from ncdia.dataloader import build_dataloader
 from ncdia.algorithms.ood import AutoOOD
-from ncdia.dataloader.datasets.BMF_OOD import BMF_OOD
+from ncdia.dataloader.datasets.OES_OOD import OES_OOD
 from .pretrainer import PreTrainer
 from .hooks import QuantifyHook, QuantifyHook_OOD
 
