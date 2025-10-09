@@ -11,8 +11,6 @@ trainer:
 algorithm:
   type: VIM
   dim: 256
-  W: 5
-  b: 10
 
 model:
   type: ResNet_Base

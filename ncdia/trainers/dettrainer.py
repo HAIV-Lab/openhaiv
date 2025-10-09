@@ -191,10 +191,23 @@ class DetTrainer(PreTrainer):
                 train_feat=(train_stats.get("features") if train_stats else None),
                 tpr_th=tpr_th,
                 prec_th=prec_th,
+                # If the algorithm declares hyparameters but hasn't computed them yet,
+                # try to derive them from the trainer's model (e.g. for VIM we need fc weights).
                 hyparameters=(
                     self.algorithm.hyparameters
-                    if hasattr(self.algorithm, "hyparameters")
-                    else None
+                    if hasattr(self.algorithm, "hyparameters") and self.algorithm.hyparameters is not None
+                    else (
+                        # attempt to compute hyparameters from model
+                        {
+                            "dim": self._cfg.get("algorithm", {}).get("dim", None),
+                            "w": self.model.network.fc.weight.clone().detach().cpu().numpy(),
+                            "b": self.model.network.fc.bias.clone().detach().cpu().numpy(),
+                        }
+                        if hasattr(self, "model")
+                        and hasattr(self.model, "network")
+                        and hasattr(self.model.network, "fc")
+                        else None
+                    )
                 ),
             )
 
@@ -284,6 +297,23 @@ class DetTrainer(PreTrainer):
                             ),
                             tpr_th=tpr_th,
                             prec_th=prec_th,
+                            # Pass hyparameters; if algorithm.hyparameters exists but is None,
+                            # try to derive from the trainer model (for VIM we need fc w/b and dim).
+                            hyparameters=(
+                                self.algorithm.hyparameters
+                                if hasattr(self.algorithm, "hyparameters") and self.algorithm.hyparameters is not None
+                                else (
+                                    {
+                                        "dim": self._cfg.get("algorithm", {}).get("dim", None),
+                                        "w": self.model.network.fc.weight.clone().detach().cpu().numpy(),
+                                        "b": self.model.network.fc.bias.clone().detach().cpu().numpy(),
+                                    }
+                                    if hasattr(self, "model")
+                                    and hasattr(self.model, "network")
+                                    and hasattr(self.model.network, "fc")
+                                    else None
+                                )
+                            ),
                             hyperparameters=(
                                 self.algorithm.hyperparameters
                                 if hasattr(self.algorithm, "hyperparameters")
