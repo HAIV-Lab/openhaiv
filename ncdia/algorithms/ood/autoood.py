@@ -2,18 +2,11 @@ from ncdia.utils import ALGORITHMS
 from .inference import (
     mls_inf,
     msp_inf,
-    mcm_inf,
-    glmcm_inf,
-    dpm_inf,
-    neglabel_inf,
     energy_inf,
     vim_inf,
     dml_inf,
     dmlp_inf,
-    prot_inf,
     klm_inf,
-    # she_inf,
-    # relation_inf
 )
 
 
@@ -89,30 +82,6 @@ class AutoOOD(object):
                 tpr_th=tpr_th,
                 prec_th=prec_th,
             )
-            # if metric == 'msp':
-            #     ood_scores['msp'] = msp(id_labels, id_logits, ood_labels, ood_logits, tpr_th, prec_th)
-            # elif metric == 'mcm':
-            #     ood_scores['mcm'] = mcm(id_labels, id_logits, ood_labels, ood_logits, tpr_th, prec_th)
-            # elif metric == 'maxlogit':
-            #     ood_scores['maxlogit'] = max_logit(id_labels, id_logits, ood_labels, ood_logits, tpr_th, prec_th)
-            # elif metric == 'energy':
-            #     ood_scores['energy'] = energy(id_labels, id_logits, ood_labels, ood_logits, tpr_th, prec_th)
-            # elif metric == 'vim':
-            #     ood_scores['vim'] = vim(id_labels, id_logits, id_feats, ood_labels, ood_logits, ood_feats, train_logits, train_feats, tpr_th, prec_th)
-            # elif metric == 'dml':
-            #     ood_scores['dml'] = dml(id_labels, id_feats, ood_labels, ood_feats, fc_weight, tpr_th, prec_th)
-            # elif metric == 'dmlp':
-            #     ood_scores['dmlp'] = dmlp(id_labels, id_logits, id_feats, ood_labels, ood_logits, ood_feats, fc_weight, prototype_cls, tpr_th, prec_th)
-            # elif metric == 'cls':
-            #     ood_scores['cls'] = prot(id_labels, [id_logits], ood_labels, [ood_logits], [prototype_cls], tpr_th, prec_th)
-            # elif metric == 'att':
-            #     ood_scores['att'] = prot(id_labels, [id_logits], ood_labels, [ood_logits], [prototype_cls], tpr_th, prec_th)
-            # elif metric == 'merge':
-            #     ood_scores['merge'] = prot(id_labels, [id_logits], ood_labels, [ood_logits], [prototype_cls], tpr_th, prec_th)
-            # elif metric == 'attr':
-            #     ood_scores['attr'] = prot(id_labels, [id_attrs], ood_labels, [ood_attrs], [prototype_att], tpr_th, prec_th)
-            # else:
-            #     raise ValueError(f"Unknown metric: {metric}")
 
         return ood_scores
 
@@ -137,14 +106,6 @@ class AutoOOD(object):
                 conf["mls"] = mls_inf(logits)
             elif metric == "msp":
                 conf["msp"] = msp_inf(logits)
-            elif metric == "mcm":
-                conf["mcm"] = mcm_inf(logits)
-            elif metric == "glmcm":
-                conf["glmcm"] = glmcm_inf(global_logits, local_logits)
-            elif metric == "dpm":
-                conf["dpm"] = dpm_inf(logits, train_logits)
-            # elif metric == 'neglabel':
-            #     conf['neglabel'] = neglabel_inf(positive_logits, negative_logits)
             elif metric == "energy":
                 conf["energy"] = energy_inf(logits)
             elif metric == "vim":
@@ -155,19 +116,6 @@ class AutoOOD(object):
                 conf["dmlp"] = dmlp_inf(logits, feat, fc_weight, prototype)
             elif metric == "klm":
                 conf["klm"] = klm_inf(logits, train_logits)
-            # elif metric == 'she':
-            #     conf['she'] = she_inf(logits, feat, train_feat)
-            # elif metric == 'relation':
-            #     conf['relation'] = relation_inf(logits, feat, train_logits, train_feat)
-
-            elif metric == "cls":
-                conf["cls"] = prot_inf([logits], [prototype])
-            elif metric == "att":
-                conf["att"] = prot_inf([logits], [prototype])
-            elif metric == "merge":
-                conf["merge"] = prot_inf([logits], [prototype])
-            elif metric == "attr":
-                conf["attr"] = prot_inf([logits_att], [prototype_att])
             else:
                 raise ValueError(f"Unknown metric: {metric}")
 

@@ -56,6 +56,13 @@ class QuantifyHook(AlgHook):
         local_features, local_logits = [], []
         local_feats = None
         local_preds = None
+        def _safe_get_features(model, data):
+            # Some model implementations accept data argument, some don't.
+            try:
+                return model.get_features(data)
+            except TypeError:
+                return model.get_features()
+
         for batch in tbar:
             data = batch["data"].to(device)
             label = batch["label"].to(device)
@@ -64,7 +71,7 @@ class QuantifyHook(AlgHook):
             else:
                 preds = model(data)
             # preds = preds[:, :num_classes]
-            feats = model.get_features(data)
+            feats = _safe_get_features(model, data)
             if isinstance(feats, tuple) and len(feats) == 2:
                 feats, local_feats = feats  # 解包元组
                 preds, local_preds = preds
@@ -218,6 +225,12 @@ class QuantifyHook_OOD(AlgHook):
         local_features, local_logits = [], []
         local_feats = None
         local_preds = None
+        def _safe_get_features(model, data):
+            try:
+                return model.get_features(data)
+            except TypeError:
+                return model.get_features()
+
         for batch in tbar:
             data = batch["data"].to(device)
             label = batch["label"].to(device)
@@ -225,7 +238,7 @@ class QuantifyHook_OOD(AlgHook):
                 preds = model.evaluate(data)
             else:
                 preds = model(data)
-            feats = model.get_features(data)
+            feats = _safe_get_features(model, data)
             if isinstance(preds, tuple) and len(preds) == 2:
                 feats, local_feats = feats  # 解包元组
                 preds, local_preds = preds

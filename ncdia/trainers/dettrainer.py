@@ -227,7 +227,7 @@ class DetTrainer(PreTrainer):
                 )
 
                 for dataset_name, data_cfg in id_setting.items():
-                    evalset = BMF_OOD(
+                    evalset = OES_OOD(
                         root=data_cfg["root"],
                         split=data_cfg["split"],
                         subset_labels=None,

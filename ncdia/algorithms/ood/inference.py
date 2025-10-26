@@ -27,50 +27,6 @@ def msp_inf(
     return conf.cpu()
 
 
-def mcm_inf(
-    logits,
-    T: int = 1,
-) -> tuple:
-    conf, _ = torch.max(torch.softmax(logits / T, dim=1), dim=1)
-
-    return conf.cpu()
-
-
-def glmcm_inf(
-    global_logits,
-    local_logits,
-    lambda_local: float = 1,
-    T: int = 1,
-) -> tuple:
-    global_conf, _ = torch.max(torch.softmax(global_logits / T, dim=1), dim=1)
-    local_conf, _ = torch.max(torch.softmax(local_logits / T, dim=-1), dim=(1, 2))
-    conf, _ = global_conf + lambda_local * local_conf
-    return conf.cpu()
-
-
-def dpm_inf(
-    logits,
-    train_logits,
-    T: int = 2,
-    beta: float = 0.5,
-) -> tuple:
-    conf, _ = torch.max(torch.softmax(logits / T, dim=1), dim=1)
-    kl = klm_inf(logits, train_logits)
-    conf = conf - beta * kl
-    return conf.cpu()
-
-
-def neglabel_inf(
-    positive_logits,
-    negative_logits,
-    T: int = 2,
-) -> tuple:
-    total_logits = torch.cat((positive_logits, negative_logits), dim=1)
-    total_conf, _ = torch.max(torch.softmax(total_logits / T, dim=1), dim=1)
-    conf = total_conf[:, : positive_logits.shape[1]]
-    return conf.cpu()
-
-
 def energy_inf(
     logits,
 ) -> tuple:
@@ -142,23 +98,6 @@ def dmlp_inf(
     return conf
 
 
-def prot_inf(
-    logits,
-    prototypes: list,
-) -> tuple:
-    L = len(prototypes)
-    conf = 0
-    # label = 0
-    for i in range(L):
-        prototypes[i] = F.normalize(prototypes[i], p=2, dim=1)
-
-        _conf = F.normalize(logits[i], p=2, dim=1) @ prototypes[i].T
-        _conf, _ = torch.max(_conf, dim=1)
-        conf += _conf.cpu()
-
-    return conf
-
-
 def kl(self, p, q):
     return scipy.stats.entropy(p, q)
 
@@ -172,89 +111,6 @@ def klm_inf(
     )[1]
 
     return conf
-
-
-# def she_inf(
-#         logits: torch.Tensor,
-#         features: torch.Tensor,
-#         train_features: torch.Tensor,
-#         metric: str = 'inner_product',
-# ) -> tuple:
-#     # Get predicted class indices
-#     preds = logits.argmax(dim=1)
-
-#     # Compute distances
-#     if metric == 'inner_product':
-#         conf = torch.sum(features * train_features[preds], dim=1)
-#     elif metric == 'euclidean':
-#         conf = -torch.sqrt(torch.sum((features - train_features[preds])**2, dim=1))
-#     elif metric == 'cosine':
-#         conf = torch.cosine_similarity(features, train_features[preds], dim=1)
-#     else:
-#         raise ValueError(f"Unknown metric: {metric}")
-
-#     return conf
-
-
-# def relation_inf(
-#         logits: torch.Tensor,
-#         features: torch.Tensor,
-#         train_logits: torch.Tensor,
-#         train_features: torch.Tensor,
-#         pow: int = 1,
-#         thres: float = 0.03,
-#         chunk: int = 50,
-# ) -> tuple:
-
-#     def kernel(feat, feat_t, logits, logits_t, split=2):
-#         size = math.ceil(len(feat_t) / split)
-#         rel_full = []
-#         for i in range(split):
-#             feat_t_ = feat_t[i * size:(i + 1) * size]
-#             logits_t_ = logits_t[i * size:(i + 1) * size]
-
-#             with torch.no_grad():
-#                 dot = torch.matmul(feat, feat_t_.transpose(1, 0))
-#                 dot = torch.clamp(dot, min=0.)
-
-#                 sim = torch.matmul(logits, logits_t_.transpose(1, 0))
-#                 rel = dot * sim
-
-#             rel_full.append(rel)
-
-#         rel_full = torch.cat(rel_full, dim=-1)
-#         return rel_full
-
-#     def get_relation(feat, feat_t, logits, logits_t, pow=1, chunk=50, thres=0.03):
-#         n = feat.shape[0]
-#         n_chunk = math.ceil(n / chunk)
-
-#         score = []
-#         for i in range(n_chunk):
-#             feat_ = feat[i * chunk:(i + 1) * chunk]
-#             logits_ = logits[i * chunk:(i + 1) * chunk]
-
-#             rel = kernel(feat_, feat_t, logits_, logits_t)
-
-#             mask = (rel.abs() > thres)
-#             rel_mask = mask * rel
-#             edge_sum = (rel_mask.sign() * (rel_mask.abs()**pow)).sum(-1)
-
-#             score.append(edge_sum.cpu())
-
-#         score = torch.cat(score, dim=0)
-
-#         return score
-
-#     # Normalize features
-#     features = F.normalize(features, dim=1)
-#     train_features = F.normalize(train_features, dim=1)
-
-#     # Compute relation scores
-#     conf = get_relation(features, train_features, logits, train_logits, pow=pow, chunk=chunk, thres=thres)
-
-
-#     return conf
 
 
 # def mds_inf(

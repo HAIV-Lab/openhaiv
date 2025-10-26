@@ -13,18 +13,7 @@ from scipy.special import logsumexp
 from tqdm import tqdm
 from .metrics import ood_metrics, search_threshold
 from ncdia.trainers.hooks import AlgHook, QuantifyHook
-from ncdia.utils import HOOKS
 from ncdia.trainers.hooks import AlgHook
-
-
-@HOOKS.register
-class MLSHook(QuantifyHook):
-    def __init__(self) -> None:
-        super().__init__()
-
-    def after_test(self, trainer) -> None:
-        pass
-
 
 @ALGORITHMS.register
 class MLS(BaseAlg):
@@ -39,8 +28,6 @@ class MLS(BaseAlg):
 
     def __init__(self, trainer) -> None:
         super().__init__(trainer)
-        hook = MLSHook()
-        trainer.register_hook(hook)
         self.hyparameters = None
 
     def val_step(self, trainer, data, label, *args, **kwargs):

@@ -9,18 +9,7 @@ from ncdia.trainers.hooks import AlgHook, QuantifyHook
 import numpy as np
 from tqdm import tqdm
 from .metrics import ood_metrics, search_threshold
-from ncdia.utils import HOOKS
 from ncdia.trainers.hooks import AlgHook
-
-
-@HOOKS.register
-class MSPHook(QuantifyHook):
-    def __init__(self) -> None:
-        super().__init__()
-
-    def after_test(self, trainer) -> None:
-        pass
-
 
 @ALGORITHMS.register
 class MSP(StandardSL):
@@ -35,8 +24,6 @@ class MSP(StandardSL):
 
     def __init__(self, trainer) -> None:
         super().__init__(trainer)
-        hook = MSPHook()
-        trainer.register_hook(hook)
         self.hyparameters = None
 
     def val_step(self, trainer, data, label, *args, **kwargs):
