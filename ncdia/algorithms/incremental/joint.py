@@ -43,12 +43,18 @@ class ExpHook(AlgHook):
         """
 
         # 将inplace设置为True，直接替换hist_trainset
-        trainer.update_hist_trainset(
-            trainer.train_loader.dataset, replace_transform=True, inplace=True
+        trainer.update_hist_dataset(
+            key="hist_trainset",
+            new_dataset=trainer.train_loader.dataset, 
+            replace_transform=True, 
+            inplace=True
         )
 
-        trainer.update_hist_valset(
-            trainer.val_loader.dataset, replace_transform=True, inplace=True
+        trainer.update_hist_dataset(
+            key="hist_valset",
+            new_dataset=trainer.val_loader.dataset, 
+            replace_transform=True, 
+            inplace=True
         )
 
         algorithm = trainer.algorithm
@@ -80,8 +86,11 @@ class ExpHook(AlgHook):
         """
         在测试结束后，将当前session中需要保存的数据保存到hist_testset中。
         """
-        trainer.update_hist_testset(
-            trainer.test_loader.dataset, replace_transform=True, inplace=True
+        trainer.update_hist_dataset(
+            key="hist_testset",
+            new_dataset=trainer.test_loader.dataset, 
+            replace_transform=True, 
+            inplace=True
         )
 
 
