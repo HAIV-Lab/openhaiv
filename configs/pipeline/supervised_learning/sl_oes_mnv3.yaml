@@ -8,9 +8,9 @@ algorithm:
   type: StandardSL
 
 model:
-  type: MobileNet_Base   # or mobilenet_v3_large
+  type: MobileNet_Base
   network:
-    type: mobilenet_v3_small   # 或 mobilenet_v3_large
+    type: mobilenet_v3_small
     num_classes: 94
 
 criterion:

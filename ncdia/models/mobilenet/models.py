@@ -140,7 +140,6 @@ class InvertedResidual(nn.Module):
 
         return result
 
-@MODELS.register
 class MobileNetV3(nn.Module):
     def __init__(self,
                  inverted_residual_setting: List[InvertedResidualConfig],

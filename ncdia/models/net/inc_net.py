@@ -6,97 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ncdia.utils import MODELS, Configs
-
-@MODELS.register
-class SimpleLinear(nn.Module):
-    """
-    Reference:
-    https://github.com/pytorch/pytorch/blob/master/torch/nn/modules/linear.py
-    """
-
-    def __init__(self, in_features, out_features, bias=True):
-        super(SimpleLinear, self).__init__()
-        self.in_features = in_features
-        self.out_features = out_features
-        self.weight = nn.Parameter(torch.Tensor(out_features, in_features))
-        if bias:
-            self.bias = nn.Parameter(torch.Tensor(out_features))
-        else:
-            self.register_parameter("bias", None)
-        self.reset_parameters()
-
-    def reset_parameters(self):
-        nn.init.kaiming_uniform_(self.weight, nonlinearity="linear")
-        nn.init.constant_(self.bias, 0)
-
-    def forward(self, input):
-        return F.linear(input, self.weight, self.bias)
-
-@MODELS.register
-class BaseNet(nn.Module):
-    """BaseNet for incremental learning.
-
-    Args:
-        network (Configs): Network configuration.
-
-    """
-
-    def __init__(
-        self,
-        network: Configs,
-        base_classes,
-        num_classes,
-        net_alice,
-        mode="ft_cos",
-    ) -> None:
-        super().__init__()
-        self.args = network.cfg
-        self.args["pretrained"] = True
-        self.args["num_classes"] = num_classes
-        if "type" not in network:
-            self.args["type"] = "resnet50"
-        self.convnet = MODELS.build(self.args)
-        self.fc = None
-
-    @property
-    def feature_dim(self):
-        return self.convnet.out_dim
-
-    def extract_vector(self, x):
-        self.convnet(x)
-        return self.convnet.out_features
-
-    def forward(self, x):
-        x = self.convnet(x)
-        features = self.convnet.out_features
-        out = self.fc(features)
-        """
-        {
-            'fmaps': [x_1, x_2, ..., x_n],
-            'features': features
-            'logits': logits
-        }
-        """
-        # out.update(x)
-
-        return out
-
-    def update_fc(self, nb_classes):
-        pass
-
-    def generate_fc(self, in_dim, out_dim):
-        pass
-
-    def copy(self):
-        return copy.deepcopy(self)
-
-    def freeze(self):
-        for param in self.parameters():
-            param.requires_grad = False
-        self.eval()
-
-        return self
-
+from ncdia.models.net.base_net import BaseNet, SimpleLinear
 
 @MODELS.register
 class IncrementalNet(BaseNet):
@@ -112,11 +22,10 @@ class IncrementalNet(BaseNet):
         network: Configs,
         base_classes,
         num_classes,
-        net_alice,
         mode="ft_cos",
     ) -> None:
         super().__init__(
-            network, base_classes, num_classes, net_alice, mode
+            network, base_classes, num_classes, mode
         )
         self.update_fc(num_classes)
 

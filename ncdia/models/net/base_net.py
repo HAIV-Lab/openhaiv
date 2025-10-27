@@ -36,6 +36,70 @@ class SimpleLinear(nn.Module):
     def forward(self, input):
         return F.linear(input, self.weight, self.bias)
 
+@MODELS.register
+class BaseNet(nn.Module):
+    """BaseNet for incremental learning.
+
+    Args:
+        network (Configs): Network configuration.
+
+    """
+
+    def __init__(
+        self,
+        network: Configs,
+        base_classes,
+        num_classes,
+        mode="ft_cos",
+    ) -> None:
+        super().__init__()
+        # copy the config dict to avoid mutating the original
+        self.args = copy.deepcopy(network.cfg)
+        self.args["pretrained"] = True
+        self.args["num_classes"] = num_classes
+        if "type" not in self.args or not self.args.get("type"):
+            self.args["type"] = "resnet50"
+        self.convnet = MODELS.build(self.args)
+        self.fc = None
+
+    @property
+    def feature_dim(self):
+        return self.convnet.out_dim
+
+    def extract_vector(self, x):
+        self.convnet(x)
+        return self.convnet.out_features
+
+    def forward(self, x):
+        x = self.convnet(x)
+        features = self.convnet.out_features
+        out = self.fc(features)
+        """
+        {
+            'fmaps': [x_1, x_2, ..., x_n],
+            'features': features
+            'logits': logits
+        }
+        """
+        # out.update(x)
+
+        return out
+
+    def update_fc(self):
+        pass
+
+    def generate_fc(self):
+        pass
+
+    def copy(self):
+        return copy.deepcopy(self)
+
+    def freeze(self):
+        for param in self.parameters():
+            param.requires_grad = False
+        self.eval()
+
+        return self
 
 @MODELS.register
 class ResNet_Base(nn.Module):
