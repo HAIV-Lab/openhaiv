@@ -169,7 +169,6 @@ class DetTrainer(PreTrainer):
             dict: OOD scores, keys are the names of the OOD detection methods,
                 values are the OOD scores and search threshold.
         """
-        # CIL = False
         if self._cfg.CIL:
             train_stats = self.train_stats
             test_stats = self.test_stats
@@ -273,55 +272,20 @@ class DetTrainer(PreTrainer):
                         scores = self.algorithm.eval(
                             id_gt=(test_stats.get("labels") if test_stats else None),
                             id_logits=(test_stats.get("logits") if test_stats else None),
-                            id_local_logits=(test_stats.get("local_logits") if test_stats else None),
                             id_feat=(test_stats.get("features") if test_stats else None),
-                            id_local_feat=(test_stats.get("local_features") if test_stats else None),
                             ood_logits=(eval_stats.get("logits") if eval_stats else None),
-                            ood_local_logits=(eval_stats.get("local_logits") if eval_stats else None),
                             ood_feat=(eval_stats.get("features") if eval_stats else None),
-                            ood_local_feat=(eval_stats.get("local_features") if eval_stats else None),
                             train_gt=(train_stats.get("labels") if train_stats else None),
                             train_logits=(train_stats.get("logits") if train_stats else None),
-                            train_local_logits=(
-                                train_stats.get("local_logits") if train_stats else None
-                            ),
                             train_feat=(train_stats.get("features") if train_stats else None),
-                            train_local_feat=(
-                                train_stats.get("local_features") if train_stats else None
-                            ),
-                            prototypes=(
-                                train_stats.get("prototypes") if train_stats else None
-                            ),
-                            s_prototypes=(
-                                train_stats.get("s_prototypes") if train_stats else None
-                            ),
                             tpr_th=tpr_th,
                             prec_th=prec_th,
-                            # Pass hyparameters; if algorithm.hyparameters exists but is None,
-                            # try to derive from the trainer model (for VIM we need fc w/b and dim).
-                            hyparameters=(
-                                self.algorithm.hyparameters
-                                if hasattr(self.algorithm, "hyparameters") and self.algorithm.hyparameters is not None
-                                else (
-                                    {
-                                        "dim": self._cfg.get("algorithm", {}).get("dim", None),
-                                        "w": self.model.network.fc.weight.clone().detach().cpu().numpy(),
-                                        "b": self.model.network.fc.bias.clone().detach().cpu().numpy(),
-                                    }
-                                    if hasattr(self, "model")
-                                    and hasattr(self.model, "network")
-                                    and hasattr(self.model.network, "fc")
-                                    else None
-                                )
-                            ),
                             hyperparameters=(
                                 self.algorithm.hyperparameters
                                 if hasattr(self.algorithm, "hyperparameters")
                                 else None
                             ),
                         )
-                        # print('FPR95:',scores[2]*100)
-                        # print('AUROC:',scores[3]*100)
                         fpr, aur, aupr_in, aupr_out = scores[0]
                         self.logger.info(
                             f"aur, fpr, aupr_in, aupr_out: {aur:.4f}, {fpr:.4f}, {aupr_in:.4f}, {aupr_out:.4f}"

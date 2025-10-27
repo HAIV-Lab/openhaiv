@@ -36,4 +36,4 @@ device: cuda
 CIL: False
 
 exp_name: test
-work_dir: ./output/ood/det_oes_rn18_mds
+work_dir: ./output/ood/det_oes_rn18_energy

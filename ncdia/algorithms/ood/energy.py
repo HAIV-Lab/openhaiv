@@ -8,11 +8,12 @@ from ncdia.algorithms.supervised.standard import StandardSL
 from ncdia.trainers.hooks import AlgHook, QuantifyHook
 import numpy as np
 from tqdm import tqdm
+from scipy.special import logsumexp
 from .metrics import ood_metrics, search_threshold
 from ncdia.trainers.hooks import AlgHook
 
 @ALGORITHMS.register
-class MSP(StandardSL):
+class ENERGY(StandardSL):
 
     def __init__(self, trainer) -> None:
         super().__init__(trainer)
@@ -92,8 +93,8 @@ class MSP(StandardSL):
         print("MSP inference..")
         neg_ood_gt = -1 * np.ones(ood_logits.shape[0])
 
-        id_conf, _ = torch.max(torch.softmax(id_logits, dim=1), dim=1)
-        ood_conf, _ = torch.max(torch.softmax(ood_logits, dim=1), dim=1)
+        id_conf = logsumexp(id_logits.cpu(), axis=-1)
+        ood_conf = logsumexp(ood_logits.cpu(), axis=-1)
 
         conf = np.concatenate([id_conf.cpu(), ood_conf.cpu()])
         label = np.concatenate([id_gt.cpu(), neg_ood_gt])

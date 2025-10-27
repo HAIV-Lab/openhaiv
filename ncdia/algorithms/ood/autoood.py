@@ -4,9 +4,6 @@ from .inference import (
     msp_inf,
     energy_inf,
     vim_inf,
-    dml_inf,
-    dmlp_inf,
-    klm_inf,
 )
 
 
@@ -92,13 +89,6 @@ class AutoOOD(object):
         feat,
         train_logits,
         train_feat,
-        labels,
-        fc_weight,
-        prototype,
-        logits_att=None,
-        prototype_att=None,
-        global_logits=None,
-        local_logits=None,
     ) -> dict:
         conf = {}
         for metric in metrics:
@@ -110,12 +100,6 @@ class AutoOOD(object):
                 conf["energy"] = energy_inf(logits)
             elif metric == "vim":
                 conf["vim"] = vim_inf(logits, feat, train_logits, train_feat)
-            elif metric == "dml":
-                conf["dml"] = dml_inf(feat, fc_weight)
-            elif metric == "dmlp":
-                conf["dmlp"] = dmlp_inf(logits, feat, fc_weight, prototype)
-            elif metric == "klm":
-                conf["klm"] = klm_inf(logits, train_logits)
             else:
                 raise ValueError(f"Unknown metric: {metric}")
 

@@ -79,37 +79,16 @@ class MLS(BaseAlg):
     def eval(
         id_gt: torch.Tensor,
         id_logits: torch.Tensor,
-        id_feat: torch.Tensor,
         ood_logits: torch.Tensor,
-        ood_feat: torch.Tensor,
-        train_logits: torch.Tensor = None,
-        train_feat: torch.Tensor = None,
-        train_gt: torch.Tensor = None,
         tpr_th: float = 0.95,
         prec_th: float = None,
-        hyparameters: dict = None,
-        id_local_logits=None,
-        id_local_feat=None,
-        ood_local_logits=None,
-        ood_local_feat=None,
-        train_local_logits=None,
-        train_local_feat=None,
-        prototypes=None,
-        s_prototypes=None,
-        hyperparameters=None,
     ):
-        """Decoupled MaxLogit+ (DML+) method for OOD detection.
-
-        Decoupling MaxLogit for Out-of-Distribution Detection
-        https://openaccess.thecvf.com/content/CVPR2023/html/Zhang_Decoupling_MaxLogit_for_Out-of-Distribution_Detection_CVPR_2023_paper
+        """
 
         Args:
+            id_gt (torch.Tensor): ID ground truth labels. Shape (N,).
             id_logits (torch.Tensor): ID logits. Shape (N, C).
-            id_feat (torch.Tensor): ID features. Shape (N, D).
             ood_logits (torch.Tensor): OOD logits. Shape (M, C).
-            ood_feat (torch.Tensor): OOD features. Shape (M, D).
-            train_logits (torch.Tensor): Training logits. Shape (K, C).
-            train_feat (torch.Tensor): Training features. Shape (K, D).
             tpr_th (float): True positive rate threshold to compute
                 false positive rate. Default is 0.95.
             prec_th (float | None): Precision threshold for searching threshold.

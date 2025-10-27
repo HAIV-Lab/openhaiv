@@ -106,21 +106,10 @@ class VIM(BaseAlg):
         id_feat: torch.Tensor,
         ood_logits: torch.Tensor,
         ood_feat: torch.Tensor,
-        train_logits: torch.Tensor = None,
         train_feat: torch.Tensor = None,
-        train_gt: torch.Tensor = None,
         tpr_th: float = 0.95,
         prec_th: float = None,
         hyparameters: dict = None,
-        id_local_logits=None,
-        id_local_feat=None,
-        ood_local_logits=None,
-        ood_local_feat=None,
-        train_local_logits=None,
-        train_local_feat=None,
-        prototypes=None,
-        s_prototypes=None,
-        hyperparameters=None,
     ):
         """Decoupled MaxLogit+ (DML+) method for OOD detection.
 
