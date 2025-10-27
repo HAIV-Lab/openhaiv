@@ -25,16 +25,16 @@ testloader:
     download: True
     transform:
 
-evalloader:  # used for eval ood
+evalloader:  
   Standard_ID:
-    dataset: # ID name:dataset, split:test
+    dataset: 
       type: OES_OOD
       root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/ID/test/
       split: test
       download: True
       transform:
 
-    ood_easy:  # OOD name:XXXX, split:OOD     
+    ood_easy:  
       type: OES_OOD
       root: /new_data/datasets/OES/sub-dataset1-RGB-domain1/OOD_Easy/test/
       split: ood

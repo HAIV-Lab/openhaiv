@@ -19,8 +19,8 @@ CIL:
   new_mode: avg_cos
   incft: True
   not_data_init: False
-  base_classes: 20
-  num_classes: 200
+  base_classes: 9
+  num_classes: 189
   way: 20
   shot: 100
   sessions: 10

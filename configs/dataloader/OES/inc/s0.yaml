@@ -4,7 +4,6 @@ trainloader:
   dataset:
     _replace_: True
     type: OES
-    # root: /data/datasets/CIL/BMF/
     root: /new_data/datasets/Benchmark/CIL
     split: train
     subset_labels: 9
@@ -14,7 +13,6 @@ valloader:
   dataset:
     _replace_: True
     type: OES
-    # root: /data/datasets/CIL/BMF/
     root: /new_data/datasets/Benchmark/CIL
     split: test
     subset_labels: 9
@@ -24,7 +22,6 @@ testloader:
   dataset:
     _replace_: True
     type: OES
-    # root: /data/datasets/CIL/BMF/
     root: /new_data/datasets/Benchmark/CIL
     split: test
     subset_labels: 9
