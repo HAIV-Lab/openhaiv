@@ -8,7 +8,6 @@ trainloader:
     download: True
     transform:
 
-
 valloader:
   dataset:
     type: OES_OOD

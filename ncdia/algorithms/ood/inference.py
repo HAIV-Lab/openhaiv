@@ -8,9 +8,6 @@ import math
 import scipy
 from scipy.special import logsumexp
 from sklearn.covariance import EmpiricalCovariance
-from sklearn.metrics import pairwise_distances_argmin_min
-
-from .metrics import ood_metrics, search_threshold
 
 
 def mls_inf(

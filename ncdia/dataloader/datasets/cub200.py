@@ -109,7 +109,6 @@ class CUB200(BaseDataset):
         return {
             "data": img,
             "label": label,
-            "attribute": [],
             "imgpath": imgpath,
         }
 

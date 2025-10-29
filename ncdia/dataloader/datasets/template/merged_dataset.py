@@ -103,7 +103,6 @@ class MergedDataset(BaseDataset):
             batch (dict):
                 - 'data': image data,
                 - 'target': class_index of the target class,
-                - 'attribute': attribute of the image,
                 - 'imgpath': path of the image.
         """
         imgpath, label = self.images[index], self.labels[index]
@@ -118,6 +117,5 @@ class MergedDataset(BaseDataset):
         return {
             "data": img,
             "label": label,
-            "attribute": [],
             "imgpath": imgpath,
         }

@@ -124,13 +124,12 @@ class Alice(BaseAlg):
             # print(class_list)
             # self._network.update_fc(train_loader, class_list, 0)
 
-    def train_step(self, trainer, data, label, attribute, imgpath):
+    def train_step(self, trainer, data, label, imgpath):
         """
         base train for fact method
         Args:
             data: data in batch
             label: label in batch
-            attribute: attribute in batch
             imgpath: imgpath in batch
         """
         session = self.trainer.session

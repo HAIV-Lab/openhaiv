@@ -33,7 +33,6 @@ scheduler:
 
 seed: 0
 device: cuda
-CIL: False
 
 exp_name: test
 work_dir: ./output/ood/det_oes_rn18_msp

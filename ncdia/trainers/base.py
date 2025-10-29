@@ -418,8 +418,7 @@ class BaseTrainer(object):
 
         for epoch in range(self.max_epochs):
             self.model.train()
-            print(f"Train")
-            print(f"Model is in training mode:{self.model.training}")
+            print("----------Training----------")
             self.epoch = epoch
             self.call_hook("before_train_epoch")
 
@@ -455,8 +454,7 @@ class BaseTrainer(object):
     def val(self):
         """Validation process."""
         self.model.eval()
-        print(f"Validation")
-        print(f"Model is in training mode:{self.model.training}")
+        print(f"----------Validating----------")
         self.call_hook("before_val")
         self.call_hook("before_val_epoch")
 
@@ -476,8 +474,7 @@ class BaseTrainer(object):
     def test(self):
         """Test process."""
         self.model.eval()
-        print(f"Test")
-        print(f"Model is in training mode:{self.model.training}")
+        print(f"----------Testing----------")
         self.call_hook("before_test")
         self.call_hook("before_test_epoch")
 

@@ -109,7 +109,6 @@ class Food101(BaseDataset):
         return {
             "data": img,
             "label": label,
-            "attribute": [],
             "imgpath": imgpath,
         }
 

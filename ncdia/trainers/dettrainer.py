@@ -9,7 +9,7 @@ from ncdia.dataloader import build_dataloader
 from ncdia.algorithms.ood import AutoOOD
 from ncdia.dataloader.datasets.OES_OOD import OES_OOD
 from .pretrainer import PreTrainer
-from .hooks import QuantifyHook, QuantifyHook_OOD
+from .hooks import QuantifyHook
 
 from torch.utils.data import DataLoader
 from torchvision import transforms
@@ -48,19 +48,12 @@ class DetTrainer(PreTrainer):
         verbose: bool = True,
         **kwargs,
     ) -> None:
-        # CIL = False
-        if cfg.CIL == False:
-            self.quantify_hook = QuantifyHook_OOD(
-                gather_train_stats=gather_train_stats,
-                gather_test_stats=gather_test_stats,
-                verbose=verbose,
-            )
-        else:
-            self.quantify_hook = QuantifyHook(
-                gather_train_stats=gather_train_stats,
-                gather_test_stats=gather_test_stats,
-                verbose=verbose,
-            )
+        
+        self.quantify_hook = QuantifyHook(
+            gather_train_stats=gather_train_stats,
+            gather_test_stats=gather_test_stats,
+            verbose=verbose,
+        )
 
         super(DetTrainer, self).__init__(
             cfg=cfg,
@@ -69,7 +62,6 @@ class DetTrainer(PreTrainer):
             custom_hooks=[self.quantify_hook],
             **kwargs,
         )
-
         self.best_acc = -1
         self.eval_loader_tmp = eval_loader
         self._eval_loader = {}
@@ -169,128 +161,62 @@ class DetTrainer(PreTrainer):
             dict: OOD scores, keys are the names of the OOD detection methods,
                 values are the OOD scores and search threshold.
         """
-        if self._cfg.CIL:
-            train_stats = self.train_stats
-            test_stats = self.test_stats
-
-            eval_stats = self.quantify_hook.gather_stats(
-                model=self.model,
-                dataloader=evalloader if evalloader else self.eval_loader,
-                device=self.device,
-                verbose=self.verbose,
-            )
-
-            scores = self.algorithm.eval(
-                id_gt=(test_stats.get("labels") if test_stats else None),
-                id_logits=(test_stats.get("logits") if test_stats else None),
-                id_feat=(test_stats.get("features") if test_stats else None),
-                ood_logits=eval_stats.get("logits") if eval_stats else None,
-                ood_feat=eval_stats.get("features") if eval_stats else None,
-                train_logits=(train_stats.get("logits") if train_stats else None),
-                train_feat=(train_stats.get("features") if train_stats else None),
-                tpr_th=tpr_th,
-                prec_th=prec_th,
-                # If the algorithm declares hyparameters but hasn't computed them yet,
-                # try to derive them from the trainer's model (e.g. for VIM we need fc weights).
-                hyparameters=(
-                    self.algorithm.hyparameters
-                    if hasattr(self.algorithm, "hyparameters") and self.algorithm.hyparameters is not None
-                    else (
-                        # attempt to compute hyparameters from model
-                        {
-                            "dim": self._cfg.get("algorithm", {}).get("dim", None),
-                            "w": self.model.network.fc.weight.clone().detach().cpu().numpy(),
-                            "b": self.model.network.fc.bias.clone().detach().cpu().numpy(),
-                        }
-                        if hasattr(self, "model")
-                        and hasattr(self.model, "network")
-                        and hasattr(self.model.network, "fc")
-                        else None
-                    )
-                ),
-            )
-
-            return scores
-
-        else:
-            self.model.eval()
-            train_stats = self.quantify_hook.gather_stats(
-                model=self.model,
-                dataloader=self.train_loader,
-                device=self.device,
-                verbose=self.verbose,
-            )
-            for setting_name, id_setting in self._eval_loader.items():
-                self.logger.info(
-                    "*************evaluate {} setting*************".format(setting_name)
+        self.model.eval()
+        train_stats = self.train_stats
+        
+        for setting_name, id_setting in self._eval_loader.items():
+            self.logger.info(f"*************evaluate {setting_name} setting*************")
+            for dataset_name, data_cfg in id_setting.items():
+                evalset = OES_OOD(
+                    root=data_cfg["root"],
+                    split=data_cfg["split"],
+                    subset_labels=None,
+                    subset_file=None,
+                    transform=None,
                 )
-
-                for dataset_name, data_cfg in id_setting.items():
-                    evalset = OES_OOD(
-                        root=data_cfg["root"],
-                        split=data_cfg["split"],
-                        subset_labels=None,
-                        subset_file=None,
-                        transform=None,
+                evalloader = DataLoader(
+                    evalset,
+                    batch_size=32,
+                    shuffle=False,
+                    num_workers=8,
+                )
+                if dataset_name == "dataset":
+                    self.logger.info(f"*************evaluate {setting_name} test set*************")
+                    test_stats = self.quantify_hook.gather_stats(
+                        model=self.model,
+                        dataloader=evalloader,
+                        device=self.device,
+                        verbose=self.verbose,
                     )
-                    evalloader = DataLoader(
-                        evalset,
-                        batch_size=32,
-                        shuffle=False,
-                        num_workers=8,
+                    top1_acc = test_stats["top1_acc"]
+                    top5_acc = test_stats["top5_acc"]
+                    self.logger.info(f"Top-1 Accuracy: {top1_acc:.2f}%")
+                    self.logger.info(f"Top-5 Accuracy: {top5_acc:.2f}%")
+                else:
+                    self.logger.info(f"*************evaluate {dataset_name} Datasets*************")
+                    eval_stats = self.quantify_hook.gather_stats(
+                        model=self.model,
+                        dataloader=evalloader,
+                        device=self.device,
+                        verbose=self.verbose,
                     )
-                    if dataset_name == "dataset":
-                        self.logger.info(
-                            "*************evaluate {} test set*************".format(
-                                setting_name
-                            )
-                        )
-                        test_stats = self.quantify_hook.gather_stats(
-                            model=self.model,
-                            dataloader=evalloader,
-                            device=self.device,
-                            id_acc=True,
-                            verbose=self.verbose,
-                        )
-                        top1_acc = test_stats["top1_acc"]
-                        top5_acc = test_stats["top5_acc"]
-                        self.logger.info(f"Top-1 Accuracy: {top1_acc:.2f}%")
-                        self.logger.info(f"Top-5 Accuracy: {top5_acc:.2f}%")
-                    else:
-                        self.logger.info(
-                            "*************evaluate {} Datasets*************".format(
-                                dataset_name
-                            )
-                        )
-                        eval_stats = self.quantify_hook.gather_stats(
-                            model=self.model,
-                            dataloader=evalloader,
-                            device=self.device,
-                            id_acc=False,
-                            verbose=self.verbose,
-                        )
-                        scores = self.algorithm.eval(
-                            id_gt=(test_stats.get("labels") if test_stats else None),
-                            id_logits=(test_stats.get("logits") if test_stats else None),
-                            id_feat=(test_stats.get("features") if test_stats else None),
-                            ood_logits=(eval_stats.get("logits") if eval_stats else None),
-                            ood_feat=(eval_stats.get("features") if eval_stats else None),
-                            train_gt=(train_stats.get("labels") if train_stats else None),
-                            train_logits=(train_stats.get("logits") if train_stats else None),
-                            train_feat=(train_stats.get("features") if train_stats else None),
-                            tpr_th=tpr_th,
-                            prec_th=prec_th,
-                            hyperparameters=(
-                                self.algorithm.hyperparameters
-                                if hasattr(self.algorithm, "hyperparameters")
-                                else None
-                            ),
-                        )
-                        fpr, aur, aupr_in, aupr_out = scores[0]
-                        self.logger.info(
-                            f"aur, fpr, aupr_in, aupr_out: {aur:.4f}, {fpr:.4f}, {aupr_in:.4f}, {aupr_out:.4f}"
-                        )
-        return scores
+                        
+                    scores = self.algorithm.eval(
+                        id_gt=(test_stats.get("labels") if test_stats else None),
+                        id_logits=(test_stats.get("logits") if test_stats else None),
+                        id_feat=(test_stats.get("features") if test_stats else None),
+                        ood_logits=(eval_stats.get("logits") if eval_stats else None),
+                        ood_feat=(eval_stats.get("features") if eval_stats else None),
+                        train_gt=(train_stats.get("labels") if train_stats else None),
+                        train_logits=(train_stats.get("logits") if train_stats else None),
+                        train_feat=(train_stats.get("features") if train_stats else None),
+                        tpr_th=tpr_th,
+                        prec_th=prec_th,
+                    )
+                    fpr, aur, aupr_in, aupr_out = scores[0]
+                    self.logger.info(
+                        f"aur, fpr, aupr_in, aupr_out: {aur:.4f}, {fpr:.4f}, {aupr_in:.4f}, {aupr_out:.4f}"
+                    )
 
     def detect(
         self,
@@ -323,8 +249,6 @@ class DetTrainer(PreTrainer):
             feat=eval_stats["features"],
             train_logits=train_stats["logits"],
             train_feat=train_stats["features"],
-            fc_weight=self.model.fc.weight.clone().detach().cpu(),
-            prototype=train_stats["prototypes"],
         )
 
         return confidence

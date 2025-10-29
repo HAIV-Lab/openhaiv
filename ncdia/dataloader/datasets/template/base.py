@@ -22,7 +22,6 @@ class BaseDataset(Dataset):
         super().__init__()
         self.images = []
         self.labels = []
-        self.attributes = []
 
         self.loader = loader
         self.transform = transform
@@ -60,6 +59,5 @@ class BaseDataset(Dataset):
         return {
             "data": self.images[index],
             "label": self.labels[index],
-            "attribute": self.attributes[index],
             "imgpath": self.images[index],
         }

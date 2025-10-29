@@ -114,7 +114,6 @@ class ImageNetR(BaseDataset):
         return {
             "data": img,
             "label": label,
-            "attribute": [],
             "imgpath": imgpath,
         }
 

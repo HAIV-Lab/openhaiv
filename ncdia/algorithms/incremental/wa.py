@@ -67,13 +67,12 @@ class WA(BaseAlg):
 
         session = trainer.session
 
-    def train_step(self, trainer, data, label, attribute, imgpath):
+    def train_step(self, trainer, data, label, imgpath):
         """
         base train for fact method
         Args:
             data: data in batch
             label: label in batch
-            attribute: attribute in batch
             imgpath: imgpath in batch
         """
 

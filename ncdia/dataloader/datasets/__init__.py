@@ -6,5 +6,4 @@ from .food101 import Food101
 from .caltech101 import Caltech101
 from .cub200 import CUB200
 from .OES import OES
-from .BMF import BMF
 from .OES_OOD import OES_OOD

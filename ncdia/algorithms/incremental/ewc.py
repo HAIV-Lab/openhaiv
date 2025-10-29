@@ -96,13 +96,12 @@ class EWC(BaseAlg):
 
         self.fisher = None
 
-    def train_step(self, trainer, data, label, attribute, imgpath):
+    def train_step(self, trainer, data, label, imgpath):
         """
         train for ewc method
         Args:
             data: data in batch
             label: label in batch
-            attribute: attribute in batch
             imgpath: imgpath in batch
         """
 

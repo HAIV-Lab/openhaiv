@@ -5,7 +5,7 @@ _base_: [
 trainer:
   type: DetTrainer
   max_epochs: 0
-  gather_train_stats: False
+  gather_train_stats: True
   gather_test_stats: True
 
 algorithm:
@@ -34,7 +34,6 @@ scheduler:
 
 seed: 0
 device: cuda
-CIL: False
 
 exp_name: test
 work_dir: ./output/ood/det_oes_rn18_vim/

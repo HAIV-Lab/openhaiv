@@ -76,7 +76,6 @@ class CIFAR10(_CIFAR10, BaseDataset):
             batch (dict):
                 - 'data': image data,
                 - 'target': class_index of the target class.
-                - 'attribute': attribute of the image,
                 - 'imgpath': path of the image.
         """
         img, target = self.images[index], self.labels[index]
@@ -94,7 +93,6 @@ class CIFAR10(_CIFAR10, BaseDataset):
         return {
             "data": img,
             "label": target,
-            "attribute": [],
             "imgpath": "",
         }
 

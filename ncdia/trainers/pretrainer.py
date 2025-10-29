@@ -28,8 +28,8 @@ class PreTrainer(BaseTrainer):
             results (dict): Training result.
         """
 
-        data, label, attribute, imgpath = self.batch_parser(batch)
-        return self.algorithm.train_step(self, data, label, attribute, imgpath)
+        data, label, imgpath = self.batch_parser(batch)
+        return self.algorithm.train_step(self, data, label, imgpath)
 
     def val_step(self, batch, **kwargs):
         """Validation step.
@@ -40,8 +40,8 @@ class PreTrainer(BaseTrainer):
         Returns:
             results (dict): Validation result.
         """
-        data, label, attribute, imgpath = self.batch_parser(batch)
-        return self.algorithm.val_step(self, data, label, attribute, imgpath)
+        data, label, imgpath = self.batch_parser(batch)
+        return self.algorithm.val_step(self, data, label, imgpath)
 
     def test_step(self, batch, **kwargs):
         """Test step.
@@ -52,8 +52,8 @@ class PreTrainer(BaseTrainer):
         Returns:
             results (dict): Test result.
         """
-        data, label, attribute, imgpath = self.batch_parser(batch)
-        return self.algorithm.test_step(self, data, label, attribute, imgpath)
+        data, label, imgpath = self.batch_parser(batch)
+        return self.algorithm.test_step(self, data, label, imgpath)
 
     @staticmethod
     def batch_parser(batch):
@@ -65,11 +65,9 @@ class PreTrainer(BaseTrainer):
         Returns:
             data (torch.Tensor | list): Input data.
             label (torch.Tensor | list): Label data.
-            attribute (torch.Tensor | list): Attribute data.
             imgpath (list of str): Image path.
         """
         data = batch["data"]  # data: (B, C, H, W) | list of (B, C, H, W)
         label = batch["label"]  # label: (B,) | list of (B,)
-        attribute = batch["attribute"]  # attribute: (B, A) | list of (B, A)
         imgpath = batch["imgpath"]  # imgpath: list(str) of length B
-        return data, label, attribute, imgpath
+        return data, label, imgpath

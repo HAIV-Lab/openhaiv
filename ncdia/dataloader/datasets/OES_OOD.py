@@ -99,7 +99,6 @@ class OES_OOD(BaseDataset):
         return {
             "data": img,
             "label": label,
-            "attribute": [],
             "imgpath": imgpath,
         }
 
